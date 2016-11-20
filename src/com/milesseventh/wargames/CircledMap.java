@@ -5,14 +5,14 @@ import java.util.Random;
 
 import com.badlogic.gdx.math.Vector2;
 
-public class Map {
+public class CircledMap {
 	private static Random r = new Random();
 	private ArrayList<Mountain> mountains = new ArrayList<Mountain>();
 	private float width = 0, height = 0;
 	private final float MOUNTAIN_RAD_SHAKE = 10;//Must be fixed
-	private final float GEN_GRAPH_LEN = 17, GEN_GRAPH_ANGLESHAKE = 90;//Degrees
+	private final float GEN_GRAPH_LEN = 7, GEN_GRAPH_ANGLESHAKE = 90;//Degrees
 	
-	public Map(float _w, float _h, int _mountainsMinSize, int _mountains, int _chains){
+	public CircledMap(float _w, float _h, int _mountainsMinSize, int _mountains, int _chains){
 		width = _w;
 		height = _h;
 		Vector2 _center = new Vector2(_w / 2f, _h / 2f);
@@ -43,4 +43,8 @@ public class Map {
 	public ArrayList<Mountain> getMountains(){
 		return mountains;
 	}
+	
+	/*public Marchable[] getMarchables(){
+		return getMountains().toArray(new Marchable[getMountains().size()]);
+	}*/
 }

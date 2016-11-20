@@ -1,0 +1,84 @@
+package com.milesseventh.wargames;
+
+import java.util.Random;
+
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.math.Vector2;
+
+import net.jlibnoise.generator.Perlin;
+
+public class NoisedMap implements Utils.Marchable{
+	private float[][] noiseMap;
+	private Vector2 size;
+	private Pixmap pm;
+	private Random r = new Random();
+	
+	public NoisedMap(Vector2 _size){
+		size = _size;
+		
+		noiseMap = new float[getWidth()][getHeight()];
+		pm = new Pixmap(getWidth(), getHeight(), Pixmap.Format.RGBA8888);
+		float _noise, _dist;
+		Perlin _noiseGen = new Perlin();
+		_noiseGen.setSeed(r.nextInt());
+		for (int x = 0; x < getWidth(); x++)
+			for (int y = 0; y < getHeight(); y++){
+					_noise = (float) getNoise(_noiseGen, x, y, 4f);
+					//_noise += (float) getNoise(_noiseGen, x, y, 8f);//Damn gauss distribution
+					//_noise += (float) getNoise(_noiseGen, x, y, 16);
+					//_noise += (float) getNoise(_noiseGen, x, y, 32f);
+					_noise += (float) getNoise(_noiseGen, x, y, 64f);
+					_noise += (float) getNoise(_noiseGen, x, y, 128f);
+					_noise += (float) getNoise(_noiseGen, x, y, 256f);
+					_noise *= 4f;
+					if (_noise > 1)
+						_noise = 1;
+					System.out.println(_noise);
+					if (_noise < .52f && _noise > .48f)
+						pm.setColor(Color.RED);
+					else
+						if (_noise < 0.5f)
+							pm.setColor(Utils.getGradColor(Color.LIME, Color.BROWN, _noise * 2));
+						else
+							pm.setColor(Utils.getGradColor(Color.BROWN, Color.WHITE, _noise * 2 - 1));
+						
+					noiseMap[x][getHeight() - y - 1] = _noise;
+					pm.drawPixel(x, getHeight() - y - 1);
+			}
+	}
+
+	public int getWidth(){
+		return (int)size.x;
+	}
+
+	public int getHeight(){
+		return (int)size.y;
+	}
+	
+	public Vector2 getSize(){
+		return size;
+	}
+	
+	public Pixmap getPixmap(){
+		return pm;
+	}
+	
+	private double getNoise(Perlin _noise, int x, int y, double _zoom){
+		double e = (1 / _zoom) * 
+				(_noise.getValue(x / (double) getWidth() * _zoom, 
+								y / (double) getHeight() * _zoom, 
+															0.5f) + 1f) / 2f;
+		return Math.pow(e, 1);
+	}
+
+	@Override
+	public float getMeta(float _x, float _y){
+		return noiseMap[(int)_x][(int)_y];
+	}
+
+	@Override
+	public float getMetaThreshold(){
+		return 0.6f;//getMeta returns [0;1]
+	}
+}

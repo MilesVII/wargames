@@ -1,21 +1,17 @@
 package com.milesseventh.wargames.units;
 
-import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Vector2;
-import com.milesseventh.wargames.Marchable;
-import com.milesseventh.wargames.Territory;
+import com.milesseventh.wargames.*;
 
-public abstract class Unit implements Marchable{
+public abstract class Unit {
 	private float ownRange;//Radius of circle that will be added to fraction's territory
 	private Territory owner;//ID of fraction that owns this unit
 	private float health, maxHealth;
 	private Vector2 position;
-	private Circle circle;
 	
 	protected Unit(Vector2 _pos, float _range, Territory _owner, float _mH){
-		position = _pos;
 		ownRange = _range;
-		circle = new Circle(_pos.x, _pos.y, _range);
+		position = _pos;
 		owner = _owner;
 		health = maxHealth = _mH;
 	}
@@ -40,13 +36,16 @@ public abstract class Unit implements Marchable{
 	public Territory getOwner(){
 		return owner;
 	}
-	
+
 	public Vector2 getPosition(){
 		return position;
 	}
 	
-	@Override
-	public Circle getCircle(){
-		return circle;
+	public float getX(){
+		return position.x;
+	}
+	
+	public float getY(){
+		return position.y;
 	}
 }
