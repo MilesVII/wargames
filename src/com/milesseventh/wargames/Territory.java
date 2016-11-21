@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.milesseventh.wargames.units.Mine;
 import com.milesseventh.wargames.units.Unit;
 
-public class Territory implements Utils.Marchable{
+public class Territory implements Marching.Marchable{
 	private int ownerFraction;
 	private ArrayList<Unit> units = new ArrayList <Unit>();
 	
@@ -17,7 +17,8 @@ public class Territory implements Utils.Marchable{
 	
 	public void build(){
 		units.add(new Mine(new Vector2(20, 20), 20, this, 0));
-		units.add(new Mine(new Vector2(35, 35), 20, this, 0));
+		units.add(new Mine(new Vector2(40, 40), 20, this, 0));
+		//units.add(new Mine(new Vector2(20, 40), 20, this, 0));
 	}
 	
 	public void unregister(Unit _unit){
@@ -36,4 +37,12 @@ public class Territory implements Utils.Marchable{
 	public float getMetaThreshold() {
 		return 1;
 	}
+
+	public ArrayList<Unit> getUnits(){
+		return units;
+	}
+	/*@Override
+	public float interpolate(double a, double b) {
+		return (float)((1 - a) / (b - a));
+	}*/
 }

@@ -40,6 +40,10 @@ public abstract class Unit {
 	public Vector2 getPosition(){
 		return position;
 	}
+	////
+	public void setPosition(Vector2 _n){
+		position = _n;
+	}
 	
 	public float getX(){
 		return position.x;

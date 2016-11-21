@@ -4,11 +4,12 @@ import java.util.Random;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
 import net.jlibnoise.generator.Perlin;
 
-public class NoisedMap implements Utils.Marchable{
+public class NoisedMap implements Marching.Marchable{
 	private float[][] noiseMap;
 	private Vector2 size;
 	private Pixmap pm;
@@ -24,27 +25,28 @@ public class NoisedMap implements Utils.Marchable{
 		_noiseGen.setSeed(r.nextInt());
 		for (int x = 0; x < getWidth(); x++)
 			for (int y = 0; y < getHeight(); y++){
-					_noise = (float) getNoise(_noiseGen, x, y, 4f);
+					_noise = 0;
+					_noise += (float) getNoise(_noiseGen, x, y, 4f);
 					//_noise += (float) getNoise(_noiseGen, x, y, 8f);//Damn gauss distribution
 					//_noise += (float) getNoise(_noiseGen, x, y, 16);
-					//_noise += (float) getNoise(_noiseGen, x, y, 32f);
+					_noise += (float) getNoise(_noiseGen, x, y, 32f);
 					_noise += (float) getNoise(_noiseGen, x, y, 64f);
-					_noise += (float) getNoise(_noiseGen, x, y, 128f);
-					_noise += (float) getNoise(_noiseGen, x, y, 256f);
-					_noise *= 4f;
-					if (_noise > 1)
+					//_noise += (float) getNoise(_noiseGen, x, y, 128f);
+					//_noise += (float) getNoise(_noiseGen, x, y, 256f);
+					_noise *= 2.7f;
+					if (_noise > 1f)
 						_noise = 1;
-					System.out.println(_noise);
-					if (_noise < .52f && _noise > .48f)
-						pm.setColor(Color.RED);
+					if (_noise < 0f)
+						_noise = 0;
+					if (_noise < 0.5f)
+						pm.setColor(Color.LIME);
+						//pm.setColor(Utils.getGradColor(Color.LIME, Color.BROWN, _noise * 2));
 					else
-						if (_noise < 0.5f)
-							pm.setColor(Utils.getGradColor(Color.LIME, Color.BROWN, _noise * 2));
-						else
-							pm.setColor(Utils.getGradColor(Color.BROWN, Color.WHITE, _noise * 2 - 1));
+						pm.setColor(Color.WHITE);
+						//pm.setColor(Utils.getGradColor(Color.BROWN, Color.WHITE, _noise * 2 - 1));
 						
-					noiseMap[x][getHeight() - y - 1] = _noise;
-					pm.drawPixel(x, getHeight() - y - 1);
+					noiseMap[x][getHeight() - y - 1] = _noise;//getHeight() - y - 1
+					pm.drawPixel(x, y);
 			}
 	}
 
@@ -64,12 +66,13 @@ public class NoisedMap implements Utils.Marchable{
 		return pm;
 	}
 	
-	private double getNoise(Perlin _noise, int x, int y, double _zoom){
-		double e = (1 / _zoom) * 
+	private float getNoise(Perlin _noise, int x, int y, double _zoom){
+		float e = (float)((1 / _zoom) * 
 				(_noise.getValue(x / (double) getWidth() * _zoom, 
 								y / (double) getHeight() * _zoom, 
-															0.5f) + 1f) / 2f;
-		return Math.pow(e, 1);
+															0f) + 1f) / 2f);
+		//System.out.println(e);
+		return (float)Math.pow(e, 1f);
 	}
 
 	@Override
@@ -79,6 +82,6 @@ public class NoisedMap implements Utils.Marchable{
 
 	@Override
 	public float getMetaThreshold(){
-		return 0.6f;//getMeta returns [0;1]
+		return 0.5f;//getMeta returns [0;1]
 	}
 }

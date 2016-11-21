@@ -4,6 +4,7 @@ import java.util.Random;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -21,19 +22,18 @@ public class WG extends ApplicationAdapter {
 	public final int FRACTION_GOD = 0,
 					 FRACTION_SEVENTH = 1,
 					 FRACTION_ID_OFFSET = 2;
-    public static final int SCREEN_W = 3000;
-    public static final int SCREEN_H = 3000;
-    public static final int MARCHING_STEP = 4;
-    public static final int INFINITY = 10000;
+    public static final int SCREEN_W = 700;
+    public static final int SCREEN_H = 700;
+    public static final int MARCHING_STEP = 2;
 	
 	SpriteBatch batch;
 	NoisedMap map;
     private Camera camera;
 	private Viewport viewport;
     private ShapeRenderer sr; 
-    private float[][] marchingGrid;
     private Territory t = new Territory(FRACTION_SEVENTH);
-	private Texture _noiseT;
+    private Marching landOutline, unitsOutline;
+	private Texture _noiseT, _marchT;
 	
 	@Override
 	public void create () {
@@ -46,10 +46,13 @@ public class WG extends ApplicationAdapter {
         batch = new SpriteBatch();
 		batch.setProjectionMatrix(camera.combined);
 		
-		map = new NoisedMap(new Vector2(SCREEN_W, SCREEN_H));//new Map(SCREEN_W, SCREEN_H, 17, 27, 5);
-		marchingGrid = Utils.calculateMarchingGrid(map, map.getSize(), MARCHING_STEP);//(map.getMarchables(),  map, MARCHING_STEP);
-		_noiseT = new Texture(map.getPixmap());
+		map = new NoisedMap(new Vector2(SCREEN_W, SCREEN_H));
+		landOutline = new Marching(map, map.getSize(), MARCHING_STEP, Marching.Mode.PRERENDERED);
+		_marchT = new Texture(landOutline.getRendered());
+		unitsOutline = new Marching(t, map.getSize(), MARCHING_STEP, Marching.Mode.RAW);
 		
+		_noiseT = new Texture(map.getPixmap());
+		sr.setColor(Color.BLACK);
 	}
 	
 	@Override
@@ -59,11 +62,14 @@ public class WG extends ApplicationAdapter {
 		
 		batch.begin();
 		batch.draw(_noiseT, -SCREEN_W/2, -SCREEN_H/2);
+		batch.draw(_marchT, -SCREEN_W/2, -SCREEN_H/2);
 		batch.end();
-		
+		System.out.println(Gdx.graphics.getFramesPerSecond());
 		sr.begin(ShapeType.Filled);
-		sr.setColor(Color.BLACK);
+		//landOutline.render(sr);
+		//unitsOutline.renderRaw(sr);
 		//Utils.marchLine(map, marchingGrid, MARCHING_STEP, sr);
+		//Utils.marchLine(t, tmarchingGrid, MARCHING_STEP, sr);
 		sr.end();
 	}
 
