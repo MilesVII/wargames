@@ -107,6 +107,7 @@ public class Marching {
 					}
 					switch (mode){
 					case PRERENDERED:
+						pm.setColor(Color.BLACK);
 						pm.drawLine((int)((_x + _from.x) * step), (int)(size.y - 1 - (_y + _from.y) * step),
 									(int)((_x + _to.x) * step), (int)(size.y - 1 - (_y + _to.y) * step));
 						break;

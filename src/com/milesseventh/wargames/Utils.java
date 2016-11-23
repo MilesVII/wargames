@@ -63,10 +63,18 @@ public class Utils {
 			return WG.INFINITY;*/
 		return _map.getMeta(_x, _y) < _map.getMetaThreshold();
 	}
-	
+
 	public static Color getGradColor(Color _from, Color _to, float _percent){
 		return new Color(MathUtils.lerp(_from.r, _to.r, _percent),
 						MathUtils.lerp(_from.g, _to.g, _percent),
 						MathUtils.lerp(_from.b, _to.b, _percent), 1);
+	}
+	
+	public static Color getGradColor(Color[] _colors, float _percent){
+		int _intervals =  _colors.length - 1;
+		for (int c = 0; c < _intervals; c++)
+			if (_percent < (1 / (float)_intervals * (float)(c + 1f)))
+				return new Color(getGradColor(_colors[c], _colors[c + 1], _percent * _intervals - 1 / (float)_intervals * (float)c));
+		return Color.BLACK;
 	}
 }

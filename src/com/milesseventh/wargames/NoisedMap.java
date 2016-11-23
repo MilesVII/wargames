@@ -4,23 +4,37 @@ import java.util.Random;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.graphics.Pixmap.Blending;
 import com.badlogic.gdx.math.Vector2;
 
 import net.jlibnoise.generator.Perlin;
 
-public class NoisedMap implements Marching.Marchable{
+public class NoisedMap implements Marching.Marchable, Pathfinder.Stridable{
+	public static class ColorScheme{
+		public Color WATER, GROUND, MOUNTAIN, TOP;
+		public ColorScheme(Color _w, Color _g, Color _m, Color _t){
+			WATER = _w;
+			GROUND = _g;
+			MOUNTAIN = _m;
+			TOP = _t;
+		}
+	}
+	
+	private static Color workingColor = Color.BLACK;
 	private float[][] noiseMap;
 	private Vector2 size;
 	private Pixmap pm;
 	private Random r = new Random();
+	private ColorScheme cs;
 	
-	public NoisedMap(Vector2 _size){
+	public NoisedMap(Vector2 _size, ColorScheme _cs){
 		size = _size;
-		
+		cs = _cs;
+
+		Color[] _c = {cs.GROUND, cs.MOUNTAIN, cs.TOP};
 		noiseMap = new float[getWidth()][getHeight()];
 		pm = new Pixmap(getWidth(), getHeight(), Pixmap.Format.RGBA8888);
-		float _noise, _dist;
+		float _noise;
 		Perlin _noiseGen = new Perlin();
 		_noiseGen.setSeed(r.nextInt());
 		for (int x = 0; x < getWidth(); x++)
@@ -38,13 +52,7 @@ public class NoisedMap implements Marching.Marchable{
 						_noise = 1;
 					if (_noise < 0f)
 						_noise = 0;
-					if (_noise < 0.5f)
-						pm.setColor(Color.LIME);
-						//pm.setColor(Utils.getGradColor(Color.LIME, Color.BROWN, _noise * 2));
-					else
-						pm.setColor(Color.WHITE);
-						//pm.setColor(Utils.getGradColor(Color.BROWN, Color.WHITE, _noise * 2 - 1));
-						
+					pm.setColor(Utils.getGradColor(_c, _noise));
 					noiseMap[x][getHeight() - y - 1] = _noise;//getHeight() - y - 1
 					pm.drawPixel(x, y);
 			}
@@ -67,14 +75,12 @@ public class NoisedMap implements Marching.Marchable{
 	}
 	
 	private float getNoise(Perlin _noise, int x, int y, double _zoom){
-		float e = (float)((1 / _zoom) * 
+		return (float)((1 / _zoom) * 
 				(_noise.getValue(x / (double) getWidth() * _zoom, 
 								y / (double) getHeight() * _zoom, 
 															0f) + 1f) / 2f);
-		//System.out.println(e);
-		return (float)Math.pow(e, 1f);
 	}
-
+	
 	@Override
 	public float getMeta(float _x, float _y){
 		return noiseMap[(int)_x][(int)_y];
@@ -83,5 +89,10 @@ public class NoisedMap implements Marching.Marchable{
 	@Override
 	public float getMetaThreshold(){
 		return 0.5f;//getMeta returns [0;1]
+	}
+
+	@Override
+	public boolean isWalkable(float _x, float _y) {
+		return getMeta(_x, _y) < getMetaThreshold();
 	}
 }

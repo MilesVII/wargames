@@ -9,6 +9,4 @@ public class AmmoFactory extends IndustrialUnit {
 	protected AmmoFactory(Vector2 _pos, float _range, Territory _owner, float _mH) {
 		super(_pos, _range, _owner, _mH);
 	}
-
-	
 }
