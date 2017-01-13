@@ -5,42 +5,45 @@ import com.milesseventh.wargames.*;
 
 public abstract class Unit {
 	private float ownRange;//Radius of circle that will be added to fraction's territory
-	private Territory owner;//ID of fraction that owns this unit
-	private float health, maxHealth;
+	private Fraction ownerFraction;//ID of fraction that owns this unit
+	private float condition, maxCondition;
 	private Vector2 position;
 	
-	protected Unit(Vector2 _pos, float _range, Territory _owner, float _mH){
+	protected Unit(Vector2 _pos, float _range, float _mC, Fraction owner){
 		ownRange = _range;
+		ownerFraction = owner;
 		position = _pos;
-		owner = _owner;
-		health = maxHealth = _mH;
+		condition = maxCondition = _mC;
 	}
 	
 	public float getOwnRange(){
 		return (ownRange);
 	}
 
-	public void hit(float _damage){
-		health -= _damage;
-		if (health <= 0f)
-			owner.unregister(this);
-	}
+	public abstract void unregister();
 	
-	public void repair(float _repair){
-		health += _repair;
-		if (health > maxHealth){
-			health = maxHealth;
+	public void hit(float _damage){
+		condition -= _damage;
+		if (condition <= 0){
+			unregister();
 		}
 	}
 	
-	public Territory getOwner(){
-		return owner;
+	public void repair(float _repair){
+		condition += _repair;
+		if (condition > condition){
+			condition = condition;
+		}
 	}
 
+	public Fraction getFraction(){
+		return ownerFraction;
+	}
+	
 	public Vector2 getPosition(){
 		return position;
 	}
-	////
+	/////////
 	public void setPosition(Vector2 _n){
 		position = _n;
 	}

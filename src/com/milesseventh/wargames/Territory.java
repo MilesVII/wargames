@@ -16,8 +16,8 @@ public class Territory implements Marching.Marchable{
 	}
 	
 	public void build(){
-		units.add(new Mine(new Vector2(20, 20), 20, this, 0));
-		units.add(new Mine(new Vector2(40, 40), 20, this, 0));
+		//units.add(new Mine(new Vector2(20, 20), 20, this, 0));
+		//units.add(new Mine(new Vector2(40, 40), 20, this, 0));
 		//units.add(new Mine(new Vector2(20, 40), 20, this, 0));
 	}
 	

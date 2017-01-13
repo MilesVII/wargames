@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import com.badlogic.gdx.math.Vector2;
 
 public class Pathfinder {
+	@SuppressWarnings("serial")
 	public class Node extends Vector2{
-		//float x, y;
 		boolean isChecked = false;
 		public Node (float _x, float _y){super(_x, _y);}
 		public void check(){isChecked = true;}
@@ -42,6 +42,7 @@ public class Pathfinder {
 		_from.set(Math.round(_from.x / step), Math.round(_from.y / step));
 		_to.set(Math.round(_to.x / step), Math.round(_to.y / step));
 		
+		//Avoid fullscan
 		if (!collisionmap[(int)_from.x][(int)_from.y] || !collisionmap[(int)_to.x][(int)_to.y])
 			return false;
 		
@@ -85,8 +86,12 @@ public class Pathfinder {
 	private Node findBest(ArrayList<Node> _list, Vector2 _to){
 		Node best = _list.get(0);
 		for (Node _runner: _list)
-			if (_runner.dst(_to) < best.dst(_to))
+			if (manhattan(_runner, _to) < manhattan(best, _to))
 				best = _runner;
 		return best;
+	}
+	
+	private float manhattan(Vector2 _a, Vector2 _b){
+		return Math.abs(_a.x - _b.x) + Math.abs(_a.y - _b.y);
 	}
 }
