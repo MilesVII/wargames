@@ -6,10 +6,14 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 
 public class GUIButton {
+	/*
+	 * WORKS BUT PRESERVED
+	 */
 	public interface GUIEvents{
 		public void action(Object sender);
 		public void actionContinious(Object sender);
 	}
+	
 	public Vector2 position, size;
 	private static Color DEFAULT_COLOR = new Color(0, 0, 0, .5f), 
 						HOVER_COLOR = new Color(0, 0, 0, 1), 

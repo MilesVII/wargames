@@ -23,14 +23,29 @@ import com.milesseventh.wargames.units.City;
 
 public class WG extends ApplicationAdapter {
 	public final int FRACTION_GOD = 0,
-					 FRACTION_SEVENTH = 1,
-					 FRACTION_ID_OFFSET = 2;
+	                 FRACTION_SEVENTH = 1,
+	                 FRACTION_ID_OFFSET = 2;
 	public static final int WORLD_W = 700, WORLD_H = 700,
-							HUD_W = 700, HUD_H = 700;
+	                        HUD_W = 700, HUD_H = 700;
 	public static final int MARCHING_STEP = 4;
 	public static final float CAM_ZOOM_MIN = .2f,
-							  CAM_ZOOM_STEP = .02f;
-	
+	                          CAM_ZOOM_STEP = .02f;
+	//GUI constants
+	private static final Color[] GUI_BUTTON_DEFAULT_COLORS = {
+		new Color(0, 0, 0, .5f), 
+		new Color(0, 0, 0, 1), 
+		new Color(.5f, .5f, .5f, .8f)
+	};
+	private static final Vector2 GUI_BUTTON_POS_BUILD = new Vector2(5, 5),
+	                             GUI_BUTTON_SIZ_BUILD = new Vector2(HUD_W * .05f, HUD_W * .05f),
+	                             GUI_BUTTON_CNT_BUILD = GUI_BUTTON_POS_BUILD.add(GUI_BUTTON_SIZ_BUILD.cpy().scl(.5f));
+	private static final Runnable GUI_BUTTON_ACT_BUILD = new Runnable(){
+		@Override
+		public void run() {
+			System.out.println("BUILD pressed");
+		}
+	};
+	//Variables
 	private SpriteBatch batch; 
 	private Batch hudBatch;
 	HeightMap map;
@@ -43,9 +58,8 @@ public class WG extends ApplicationAdapter {
 	//private Pathfinder landWalker;
 	private BitmapFont font;
 	private Matrix4 hudmx;
-	private GUIButton debug_button;
 	public SessionManager sm;
-	
+	public GUI gui = new GUI();
 	
 	
 	@Override
@@ -80,17 +94,6 @@ public class WG extends ApplicationAdapter {
 		//Game mechanics
 		Fraction[] _ = {new Fraction(FRACTION_SEVENTH, Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForCity(map))};
 		sm = new SessionManager(_);
-		debug_button = new GUIButton(new Vector2(10, 10), new Vector2(HUD_W / 100 * 5, HUD_W / 100 * 5), new GUIButton.GUIEvents(){
-			@Override
-			public void actionContinious(Object sender) {
-				//Do nothing
-			}
-			
-			@Override
-			public void action(Object sender) {
-				System.out.println("Button pressed");
-			}
-		});
 	}
 
 	public void resize(int width, int height) {
@@ -131,12 +134,7 @@ public class WG extends ApplicationAdapter {
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		hsr.begin(ShapeType.Filled);
-		if (Gdx.input.isButtonPressed(Buttons.LEFT)){
-			hsr.circle(getHUDMouseX(), getHUDMouseY(), 15);
-		}
-		debug_button.render(hsr);
-		//landOutline.render(sr);
-		//unitsOutline.render(sr);
+		gui.button(hsr, GUI_BUTTON_POS_BUILD, GUI_BUTTON_SIZ_BUILD, GUI_BUTTON_ACT_BUILD, GUI_BUTTON_DEFAULT_COLORS);
 		hsr.end();
 		
 		sr.begin(ShapeType.Filled);
