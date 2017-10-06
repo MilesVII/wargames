@@ -11,6 +11,7 @@ import com.milesseventh.wargames.units.City;;
 
 public class Utils {
 	public static Vector2 WorldMousePosition = new Vector2(), HUDMousePosition = new Vector2();//Updated via WG.java, update();
+	public static boolean isTouchJustReleased = false;
 	
 	public static float projectX(float _len, float _dir){
 		return (float)(_len * Math.cos(Math.toRadians(_dir)));
@@ -112,5 +113,18 @@ public class Utils {
 			if (_from.dst2(_to.getPosition()) < _from.dst2(minCity.getPosition()))
 				minCity = _to;
 		return minCity;
+	}
+	
+	public static float getAngle(Vector2 point){
+		return (float) Math.toDegrees((Math.atan2(point.y, point.x) > 0 ? Math.atan2(point.y, point.x) : Math.atan2(point.y, point.x) + Math.PI * 2));
+	}
+	
+	public static void drawTrueArc(ShapeRenderer sr, Vector2 cnt, float radius, float start, float length, int segments){
+		for (int i = 0; i < segments; ++i){
+			double angle0 = Math.toRadians(start) + Math.toRadians(length) * ((i + 0) / (double)segments);
+			double angle1 = Math.toRadians(start) + Math.toRadians(length) * ((i + 1) / (double)segments);
+			sr.rectLine((float) Math.cos(angle0) * radius + cnt.x, (float) Math.sin(angle0) * radius + cnt.y, 
+			            (float) Math.cos(angle1) * radius + cnt.x, (float) Math.sin(angle1) * radius + cnt.y, 2);
+		}
 	}
 }

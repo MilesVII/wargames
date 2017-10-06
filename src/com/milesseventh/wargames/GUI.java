@@ -20,4 +20,20 @@ public class GUI {
 		sr.setColor(color);
 		sr.rect(position.x, position.y, size.x, size.y);
 	}
+	
+	private static final int PIE_MENU_SECTOR_MARGIN = 5;
+	public void piemenu(ShapeRenderer sr, Vector2 position, float radius, Color unselected, Color selected, Runnable[] actions){
+		for(int i = 0; i < actions.length; i++){
+			if (Utils.getAngle(Utils.WorldMousePosition.cpy().sub(position)) > i * (360 / (float) actions.length) + PIE_MENU_SECTOR_MARGIN &&
+				Utils.getAngle(Utils.WorldMousePosition.cpy().sub(position)) < (i + 1) * (360 / (float) actions.length) + PIE_MENU_SECTOR_MARGIN){
+				if (Utils.isTouchJustReleased){
+					actions[i].run();
+				}
+				sr.setColor(selected);
+			} else
+				sr.setColor(unselected);
+			Utils.drawTrueArc(sr, position, 20, i * (360 / (float) actions.length) + PIE_MENU_SECTOR_MARGIN, (360 / (float) actions.length) - 2 * PIE_MENU_SECTOR_MARGIN, 70);
+			//sr.arc(position.x, position.y, radius, i * (360 / (float) actions.length) + PIE_MENU_SECTOR_MARGIN, (360 / (float) actions.length) - 2 * PIE_MENU_SECTOR_MARGIN, 70);
+		}
+	}
 }

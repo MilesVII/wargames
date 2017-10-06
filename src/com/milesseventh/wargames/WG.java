@@ -22,6 +22,11 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.milesseventh.wargames.units.City;
 
 public class WG extends ApplicationAdapter {
+	public enum GameplayState{
+		DEFAULT, BUILDING, WINDOWED
+	}
+	
+	//Game constants
 	public final int FRACTION_GOD = 0,
 	                 FRACTION_SEVENTH = 1,
 	                 FRACTION_ID_OFFSET = 2;
@@ -30,22 +35,26 @@ public class WG extends ApplicationAdapter {
 	public static final int MARCHING_STEP = 4;
 	public static final float CAM_ZOOM_MIN = .2f,
 	                          CAM_ZOOM_STEP = .02f;
+	
 	//GUI constants
 	private static final Color[] GUI_BUTTON_DEFAULT_COLORS = {
 		new Color(0, 0, 0, .5f), 
 		new Color(0, 0, 0, 1), 
 		new Color(.5f, .5f, .5f, .8f)
 	};
-	private static final Vector2 GUI_BUTTON_POS_BUILD = new Vector2(5, 5),
-	                             GUI_BUTTON_SIZ_BUILD = new Vector2(HUD_W * .05f, HUD_W * .05f),
-	                             GUI_BUTTON_CNT_BUILD = GUI_BUTTON_POS_BUILD.add(GUI_BUTTON_SIZ_BUILD.cpy().scl(.5f));
+	private static final Vector2 GUI_BUTTON_POS_BUILD = new Vector2(5, 5),//Position
+	                             GUI_BUTTON_SIZ_BUILD = new Vector2(HUD_W * .05f, HUD_W * .05f),//Size
+	                             GUI_BUTTON_CNT_BUILD = GUI_BUTTON_POS_BUILD.add(GUI_BUTTON_SIZ_BUILD.cpy().scl(.5f));//Center
 	private static final Runnable GUI_BUTTON_ACT_BUILD = new Runnable(){
 		@Override
 		public void run() {
 			System.out.println("BUILD pressed");
+			WG.antistatic.gpstate = WG.GameplayState.BUILDING;
 		}
 	};
+	
 	//Variables
+	public static WG antistatic;
 	private SpriteBatch batch; 
 	private Batch hudBatch;
 	HeightMap map;
@@ -58,12 +67,15 @@ public class WG extends ApplicationAdapter {
 	//private Pathfinder landWalker;
 	private BitmapFont font;
 	private Matrix4 hudmx;
+	private boolean preTouched = false;
 	public SessionManager sm;
 	public GUI gui = new GUI();
-	
+	public GameplayState gpstate = GameplayState.DEFAULT;
 	
 	@Override
 	public void create () {
+		antistatic = this;
+		
 		FreeTypeFontGenerator ftfg = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Prototype.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = 28;
@@ -139,11 +151,41 @@ public class WG extends ApplicationAdapter {
 		
 		sr.begin(ShapeType.Filled);
 		//sr.circle(getWorldMouseX(), getWorldMouseY(), 5);
+		
+		Runnable[] r = {
+			new Runnable(){
+				@Override
+				public void run(){
+					System.out.println("1");
+				}
+			},
+			new Runnable(){
+				@Override
+				public void run(){
+					System.out.println("2");
+				}
+			},
+			new Runnable(){
+				@Override
+				public void run(){
+					System.out.println("3");
+				}
+			},
+			new Runnable(){
+				@Override
+				public void run(){
+					System.out.println("4");
+				}
+			}
+		};
+		
 		for (Fraction runhorsey: sm.getFractions()){
 			//TODO Draw cities as textures
 			sr.setColor(runhorsey.getColor());
-			for (City neverlookback: runhorsey.getCities())
+			for (City neverlookback: runhorsey.getCities()){
 				Utils.drawCity(sr, neverlookback.getPosition());
+				gui.piemenu(sr, neverlookback.getPosition(), 20, Color.BLACK, Color.RED, r);
+			}
 		}
 		sr.end();
 	}
@@ -154,6 +196,8 @@ public class WG extends ApplicationAdapter {
 		Utils.HUDMousePosition.y = getHUDMouseY();
 		Utils.WorldMousePosition.x = getWorldMouseX();
 		Utils.WorldMousePosition.y = getWorldMouseY();
+		Utils.isTouchJustReleased = (preTouched != Gdx.input.isTouched() && !Gdx.input.justTouched());
+		preTouched = Gdx.input.isTouched();
 		
 		//Debug controls
 		if (Gdx.input.isKeyPressed(Input.Keys.M)){
