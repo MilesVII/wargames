@@ -10,7 +10,7 @@ public class Fraction {
 	private int id;
 	private String name;
 	private Color fractionColor;
-	private ArrayList<Territory> territories = new ArrayList<Territory>();
+	//private ArrayList<Territory> territories = new ArrayList<Territory>();
 	private ArrayList<City> cities = new ArrayList<City>();
 	private City capital;
 	
@@ -21,11 +21,18 @@ public class Fraction {
 		
 		capital = new City(_pos, this);
 		cities.add(capital);
-		
 	}
 	
 	public void unregisterCity(City _victim){
 		cities.remove(_victim);
+	}
+	
+	public void registerCity(City _victim){
+		cities.add(_victim);
+	}
+	
+	public ArrayList<City> getCities(){
+		return cities;
 	}
 	
 	public Color getColor(){

@@ -3,14 +3,21 @@ package com.milesseventh.wargames.units;
 import com.badlogic.gdx.math.Vector2;
 import com.milesseventh.wargames.Territory;
 
-public class Mine extends ResUnit {
-	private static final int MAX_LEVEL = 3, MAX_MP = 7;
-	private int level = 1;
+public class Mine extends Unit {
+	private City owner;
 	
 	public Mine(Vector2 _pos, float _range, float _mH, City _owner) {
-		super(_pos, _range, _mH, _owner);
+		super(_pos, _range, _mH, _owner.getFraction());
+		_owner.addMine(this);
+		owner = _owner;
 	}
 	
+	@Override
+	public void unregister(){
+		owner.mineDestroyed(this);
+	}
+	
+	/*
 	private float getMiningPower(int _level){
 		return MAX_MP * (level / MAX_LEVEL);
 	}
@@ -26,5 +33,5 @@ public class Mine extends ResUnit {
 	
 	public float getMP(){
 		return getMiningPower(level);
-	}
+	}*/
 }

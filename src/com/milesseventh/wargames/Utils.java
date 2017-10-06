@@ -1,12 +1,17 @@
 package com.milesseventh.wargames;
 
+import java.util.ArrayList;
+import java.util.Random;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.MathUtils;;
+import com.milesseventh.wargames.units.City;;
 
 public class Utils {
+	public static Vector2 WorldMousePosition = new Vector2(), HUDMousePosition = new Vector2();//Updated via WG.java, update();
+	
 	public static float projectX(float _len, float _dir){
 		return (float)(_len * Math.cos(Math.toRadians(_dir)));
 	}
@@ -47,7 +52,7 @@ public class Utils {
 		return grid;
 	}*/
 	
-	public static boolean isBuildingAllowed(NoisedMap _map, float _x, float _y){
+	public static boolean isBuildingAllowed(HeightMap _map, float _x, float _y){
 		/*float min = WG.INFINITY, _dist;
 		Marchable _ = null;
 		for (Marchable march: _cs){
@@ -76,5 +81,36 @@ public class Utils {
 			if (_percent <= (1 / (float)_intervals * (float)(c + 1f)))
 				return new Color(getGradColor(_colors[c], _colors[c + 1], _percent * _intervals - 1 / (float)_intervals * (float)c));
 		return Color.BLACK;
+	}
+
+	public static void drawCity(ShapeRenderer _s, Vector2 _p){
+		_s.circle(_p.x, _p.y, 5);
+	}
+	
+	private static final float DBG_MIN_CITY_H = .10f, DBG_MAX_CITY_H = .32f;
+	public static Vector2 debugFindAPlaceForCity(HeightMap _map){
+		Vector2 _place;
+		Random _r = new Random();
+		do {
+			_place = new Vector2(_r.nextInt(_map.getWidth()), _r.nextInt(_map.getHeight()));
+		} while(_map.getMeta(_place.x, _place.y) > DBG_MAX_CITY_H || _map.getMeta(_place.x, _place.y) < DBG_MIN_CITY_H);
+		return _place;
+	}
+	
+	private static final int DBG_MIN_CITY_DST = 17, DBG_MAX_CITY_DST = 48;
+	public static boolean debugCheckPlaceForNewCity(HeightMap _map, Fraction _f, Vector2 _place){
+		City _nrst = debugFindNearestCity(_f.getCities(), _place);
+
+		return (_nrst.getPosition().dst2(_place) < DBG_MAX_CITY_DST * DBG_MAX_CITY_DST &&
+			_nrst.getPosition().dst2(_place) > DBG_MIN_CITY_DST * DBG_MIN_CITY_DST &&
+			(_map.getMeta(_place.x, _place.y) < DBG_MAX_CITY_H && _map.getMeta(_place.x, _place.y) > DBG_MIN_CITY_H));
+	}
+	
+	private static City debugFindNearestCity(ArrayList<City> cities, Vector2 _from){
+		City minCity = cities.get(0);
+		for (City _to: cities)
+			if (_from.dst2(_to.getPosition()) < _from.dst2(minCity.getPosition()))
+				minCity = _to;
+		return minCity;
 	}
 }

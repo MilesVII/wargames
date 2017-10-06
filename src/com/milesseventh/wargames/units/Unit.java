@@ -31,8 +31,8 @@ public abstract class Unit {
 	
 	public void repair(float _repair){
 		condition += _repair;
-		if (condition > condition){
-			condition = condition;
+		if (condition > maxCondition){
+			condition = maxCondition;
 		}
 	}
 
@@ -43,7 +43,7 @@ public abstract class Unit {
 	public Vector2 getPosition(){
 		return position;
 	}
-	/////////
+
 	public void setPosition(Vector2 _n){
 		position = _n;
 	}
