@@ -25,23 +25,23 @@ public class WG extends ApplicationAdapter {
 	public final int FRACTION_GOD = 0,
 					 FRACTION_SEVENTH = 1,
 					 FRACTION_ID_OFFSET = 2;
-    public static final int WORLD_W = 700, WORLD_H = 700,
-    						HUD_W = 700, HUD_H = 700;
-    public static final int MARCHING_STEP = 4;
-    public static final float CAM_ZOOM_MIN = .2f,
-    						  CAM_ZOOM_STEP = .02f;
+	public static final int WORLD_W = 700, WORLD_H = 700,
+							HUD_W = 700, HUD_H = 700;
+	public static final int MARCHING_STEP = 4;
+	public static final float CAM_ZOOM_MIN = .2f,
+							  CAM_ZOOM_STEP = .02f;
 	
 	private SpriteBatch batch; 
 	private Batch hudBatch;
 	HeightMap map;
-    private OrthographicCamera camera;
+	private OrthographicCamera camera;
 	private Viewport viewport;
-    private ShapeRenderer sr, hsr; 
-    //private Territory t = new Territory(FRACTION_SEVENTH);
-    private Marching landOutline, unitsOutline;
+	private ShapeRenderer sr, hsr; 
+	//private Territory t = new Territory(FRACTION_SEVENTH);
+	private Marching landOutline, unitsOutline;
 	private Texture _noiseT, _marchT;
 	//private Pathfinder landWalker;
-    private BitmapFont font;
+	private BitmapFont font;
 	private Matrix4 hudmx;
 	private GUIButton debug_button;
 	public SessionManager sm;
@@ -60,13 +60,13 @@ public class WG extends ApplicationAdapter {
 		font.setColor(Color.RED);
 		ftfg.dispose();
 
-        camera = new OrthographicCamera(WORLD_W, WORLD_H);
-        camera.translate(WORLD_W / 2.0f, WORLD_H / 2.0f);
-        viewport = new FitViewport(WORLD_W, WORLD_H, camera);
+		camera = new OrthographicCamera(WORLD_W, WORLD_H);
+		camera.translate(WORLD_W / 2.0f, WORLD_H / 2.0f);
+		viewport = new FitViewport(WORLD_W, WORLD_H, camera);
 		sr = new ShapeRenderer(); 
 		sr.setColor(Color.RED);
 		
-        batch = new SpriteBatch();
+		batch = new SpriteBatch();
 		
 		map = new HeightMap(new Vector2(WORLD_W, WORLD_H), new HeightMap.ColorScheme(Color.GREEN, Color.LIME, Color.BROWN, Color.WHITE));
 		landOutline = new Marching(map, map.getSize(), MARCHING_STEP, Marching.Mode.PRERENDERED);
@@ -93,19 +93,19 @@ public class WG extends ApplicationAdapter {
 		});
 	}
 
-    public void resize(int width, int height) {
-        viewport.update(width, height);
-        
-        OrthographicCamera hudCamera = new OrthographicCamera(HUD_W, HUD_H);
-        hudmx = hudCamera.combined;
-        hudmx.translate(-HUD_W/2f, -HUD_H/2f, 0);
-        
-        hudBatch = new SpriteBatch();
-        hudBatch.setProjectionMatrix(hudmx);
+	public void resize(int width, int height) {
+		viewport.update(width, height);
+		
+		OrthographicCamera hudCamera = new OrthographicCamera(HUD_W, HUD_H);
+		hudmx = hudCamera.combined;
+		hudmx.translate(-HUD_W/2f, -HUD_H/2f, 0);
+		
+		hudBatch = new SpriteBatch();
+		hudBatch.setProjectionMatrix(hudmx);
 		hsr = new ShapeRenderer(); 
 		hsr.setProjectionMatrix(hudmx);
 		hsr.setColor(Color.BLACK);
-    }
+	}
 	
 	@Override
 	public void render () {
@@ -128,7 +128,7 @@ public class WG extends ApplicationAdapter {
 			hudBatch.end();
 		} catch (Exception e){}
 
-        Gdx.gl.glEnable(GL20.GL_BLEND);
+		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		hsr.begin(ShapeType.Filled);
 		if (Gdx.input.isButtonPressed(Buttons.LEFT)){
@@ -198,7 +198,7 @@ public class WG extends ApplicationAdapter {
 			if (camera.position.y + WORLD_H / 2.0f * camera.zoom < WORLD_H)
 				camera.translate(0, 2);
 	}
-    
+	
 	@Override
 	public void dispose () {
 		sr.dispose();
