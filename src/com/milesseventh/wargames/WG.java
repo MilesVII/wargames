@@ -53,6 +53,9 @@ public class WG extends ApplicationAdapter {
 		}
 	};
 	
+	//Dimensions
+	private static final int CITY_ICON_RADIUS = 10,
+	                         PIE_MENU_RADIUS = 20;
 	//Variables
 	public static WG antistatic;
 	private SpriteBatch batch; 
@@ -71,6 +74,7 @@ public class WG extends ApplicationAdapter {
 	public SessionManager sm;
 	public GUI gui = new GUI();
 	public GameplayState gpstate = GameplayState.DEFAULT;
+	private City pieMenuState = null; // null if no pie menu opened
 	
 	@Override
 	public void create () {
@@ -124,6 +128,15 @@ public class WG extends ApplicationAdapter {
 	
 	@Override
 	public void render () {
+		//Cursor coordinates update
+		Utils.HUDMousePosition.x = getHUDMouseX();
+		Utils.HUDMousePosition.y = getHUDMouseY();
+		Utils.WorldMousePosition.x = getWorldMouseX();
+		Utils.WorldMousePosition.y = getWorldMouseY();
+		Utils.isTouchJustReleased = (preTouched != Gdx.input.isTouched() && !Gdx.input.justTouched());
+		preTouched = Gdx.input.isTouched();
+		if (!Gdx.input.isTouched())
+			pieMenuState = null;
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		
@@ -145,12 +158,9 @@ public class WG extends ApplicationAdapter {
 
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-		hsr.begin(ShapeType.Filled);
-		gui.button(hsr, GUI_BUTTON_POS_BUILD, GUI_BUTTON_SIZ_BUILD, GUI_BUTTON_ACT_BUILD, GUI_BUTTON_DEFAULT_COLORS);
-		hsr.end();
 		
 		sr.begin(ShapeType.Filled);
-		//sr.circle(getWorldMouseX(), getWorldMouseY(), 5);
+		sr.end();
 		
 		Runnable[] r = {
 			new Runnable(){
@@ -178,27 +188,26 @@ public class WG extends ApplicationAdapter {
 				}
 			}
 		};
-		
+		hsr.begin(ShapeType.Filled);
+		gui.button(hsr, GUI_BUTTON_POS_BUILD, GUI_BUTTON_SIZ_BUILD, GUI_BUTTON_ACT_BUILD, GUI_BUTTON_DEFAULT_COLORS);
 		for (Fraction runhorsey: sm.getFractions()){
-			//TODO Draw cities as textures
-			sr.setColor(runhorsey.getColor());
 			for (City neverlookback: runhorsey.getCities()){
-				Utils.drawCity(sr, neverlookback.getPosition());
-				gui.piemenu(sr, neverlookback.getPosition(), 20, Color.BLACK, Color.RED, r);
+				hsr.setColor(runhorsey.getColor());
+				if (neverlookback.getPosition().dst(Utils.WorldMousePosition) < CITY_ICON_RADIUS * 1.2f){
+					hsr.setColor(runhorsey.getColor().r * 1.2f, runhorsey.getColor().g * 1.2f, runhorsey.getColor().b * 1.2f, 1f);
+					if (Gdx.input.justTouched())
+						pieMenuState = neverlookback;
+				}
+				hsr.circle(this.getHUDFromWorldX(neverlookback.getPosition().x), this.getHUDFromWorldY(neverlookback.getPosition().y), CITY_ICON_RADIUS);
 			}
 		}
-		sr.end();
+		if (pieMenuState != null){
+			gui.piemenu(hsr, pieMenuState.getPosition(), 20, Color.BLACK, Color.RED, r);
+		}
+		hsr.end();
 	}
 	
 	private void update(){
-		//Cursor coordinates update
-		Utils.HUDMousePosition.x = getHUDMouseX();
-		Utils.HUDMousePosition.y = getHUDMouseY();
-		Utils.WorldMousePosition.x = getWorldMouseX();
-		Utils.WorldMousePosition.y = getWorldMouseY();
-		Utils.isTouchJustReleased = (preTouched != Gdx.input.isTouched() && !Gdx.input.justTouched());
-		preTouched = Gdx.input.isTouched();
-		
 		//Debug controls
 		if (Gdx.input.isKeyPressed(Input.Keys.M)){
 			//Generate new map
@@ -265,10 +274,18 @@ public class WG extends ApplicationAdapter {
 	
 	private float getHUDMouseX(){
 		//Here we only do the first stage of conversion.
-		return (Gdx.input.getX() - (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2.0f)/viewport.getScreenWidth()*HUD_W;//Here we have cursor position related to camera view but not to world coordinates
+		return (Gdx.input.getX() - (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2.0f) / viewport.getScreenWidth() * HUD_W;//Here we have cursor position related to camera view but not to world coordinates
 	}
 	
 	private float getHUDMouseY(){
-		return (viewport.getScreenHeight() - Gdx.input.getY() + (Gdx.graphics.getHeight() - viewport.getScreenHeight()) / 2.0f)/viewport.getScreenHeight()*HUD_H;
+		return (viewport.getScreenHeight() - Gdx.input.getY() + (Gdx.graphics.getHeight() - viewport.getScreenHeight()) / 2.0f) / viewport.getScreenHeight() * HUD_H;
+	}
+
+	public float getHUDFromWorldX(float x){
+		return (x - camera.position.x + WORLD_W / 2.0f * camera.zoom) / (WORLD_W * camera.zoom) * HUD_W;
+	}
+	
+	public float getHUDFromWorldY(float y){
+		return (y - camera.position.y + WORLD_H / 2.0f * camera.zoom) / (WORLD_H * camera.zoom) * HUD_H;
 	}
 }

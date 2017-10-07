@@ -83,10 +83,6 @@ public class Utils {
 				return new Color(getGradColor(_colors[c], _colors[c + 1], _percent * _intervals - 1 / (float)_intervals * (float)c));
 		return Color.BLACK;
 	}
-
-	public static void drawCity(ShapeRenderer _s, Vector2 _p){
-		_s.circle(_p.x, _p.y, 5);
-	}
 	
 	private static final float DBG_MIN_CITY_H = .10f, DBG_MAX_CITY_H = .32f;
 	public static Vector2 debugFindAPlaceForCity(HeightMap _map){
@@ -127,4 +123,5 @@ public class Utils {
 			            (float) Math.cos(angle1) * radius + cnt.x, (float) Math.sin(angle1) * radius + cnt.y, 2);
 		}
 	}
+	
 }
