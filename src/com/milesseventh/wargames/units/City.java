@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import com.badlogic.gdx.math.Vector2;
 import com.milesseventh.wargames.Fraction;
 
-public class City extends Unit {
+public class City extends StationaryUnit {
 	private ArrayList<Mine> mines = new ArrayList<Mine>();
 	private float[] resources = {0, 0, 0};
 	public static final int RES_ORE = 0, RES_MET = 1, RES_AMMO = 2;

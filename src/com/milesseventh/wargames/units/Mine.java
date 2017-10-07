@@ -3,7 +3,7 @@ package com.milesseventh.wargames.units;
 import com.badlogic.gdx.math.Vector2;
 import com.milesseventh.wargames.Territory;
 
-public class Mine extends Unit {
+public class Mine extends StationaryUnit {
 	private City owner;
 	
 	public Mine(Vector2 _pos, float _range, float _mH, City _owner) {

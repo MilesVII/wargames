@@ -22,19 +22,28 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.milesseventh.wargames.units.City;
 
 public class WG extends ApplicationAdapter {
-	public enum GameplayState{
-		DEFAULT, BUILDING, WINDOWED
+	public enum Dialog{
+		NONE, UNITS_BUILDING, RESOURCE_MANAGER, UNITS_ASSEMBLY
+	}
+	public enum UnitsTechnology{
+		COLUMN_INTERCEPTION, SIEGE, DEFENCE, MOBILE_ATTACK
+	}
+	public enum MissilesTechnology{
+		WARHEAD_FRAGMENTATION, THERMAL_TRAPS
 	}
 	
 	//Game constants
-	public final int FRACTION_GOD = 0,
-	                 FRACTION_SEVENTH = 1,
-	                 FRACTION_ID_OFFSET = 2;
 	public static final int WORLD_W = 700, WORLD_H = 700,
-	                        HUD_W = 700, HUD_H = 700;
+	                        UI_W = 700, UI_H = 700;
 	public static final int MARCHING_STEP = 4;
 	public static final float CAM_ZOOM_MIN = .2f,
 	                          CAM_ZOOM_STEP = .02f;
+	
+	//Dimensions
+	public static final float CITY_ICON_RADIUS = 12,
+	                          PIE_MENU_RADIUS = 22,
+	                          DIALOG_HEIGHT = .8f;
+	public static final Color GUI_DIALOG_BGD = new Color(0, 0, 0, .7f);
 	
 	//GUI constants
 	private static final Color[] GUI_BUTTON_DEFAULT_COLORS = {
@@ -43,19 +52,25 @@ public class WG extends ApplicationAdapter {
 		new Color(.5f, .5f, .5f, .8f)
 	};
 	private static final Vector2 GUI_BUTTON_POS_BUILD = new Vector2(5, 5),//Position
-	                             GUI_BUTTON_SIZ_BUILD = new Vector2(HUD_W * .05f, HUD_W * .05f),//Size
-	                             GUI_BUTTON_CNT_BUILD = GUI_BUTTON_POS_BUILD.add(GUI_BUTTON_SIZ_BUILD.cpy().scl(.5f));//Center
+	                             GUI_BUTTON_SIZ_BUILD = new Vector2(UI_W * .05f, UI_W * .05f),//Size
+	                             GUI_BUTTON_CNT_BUILD = GUI_BUTTON_POS_BUILD.cpy().add(GUI_BUTTON_SIZ_BUILD.cpy().scl(.5f));//Center
 	private static final Runnable GUI_BUTTON_ACT_BUILD = new Runnable(){
 		@Override
 		public void run() {
 			System.out.println("BUILD pressed");
-			WG.antistatic.gpstate = WG.GameplayState.BUILDING;
+			//WG.antistatic.gpstate = WG.GameplayState.BUILDING;
+		}
+	};
+	public static final Vector2 GUI_BUTTON_SIZ_CLOSE = new Vector2(UI_W * .1f, UI_H * .05f),
+	                            GUI_BUTTON_POS_CLOSE = new Vector2(UI_W, UI_H - (UI_H - UI_H * DIALOG_HEIGHT) / 2).sub(GUI_BUTTON_SIZ_CLOSE),
+	                            GUI_BUTTON_CNT_CLOSE = GUI_BUTTON_POS_CLOSE.cpy().sub(GUI_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
+	public static final Runnable GUI_BUTTON_ACT_CLOSE = new Runnable(){
+		@Override
+			public void run() {
+			WG.antistatic.currentDialog = WG.Dialog.NONE;
 		}
 	};
 	
-	//Dimensions
-	private static final int CITY_ICON_RADIUS = 10,
-	                         PIE_MENU_RADIUS = 20;
 	//Variables
 	public static WG antistatic;
 	private SpriteBatch batch; 
@@ -72,9 +87,10 @@ public class WG extends ApplicationAdapter {
 	private Matrix4 hudmx;
 	private boolean preTouched = false;
 	public SessionManager sm;
-	public GUI gui = new GUI();
-	public GameplayState gpstate = GameplayState.DEFAULT;
+	public GUI gui = new GUI(this);
+	//public GameplayState gpstate = GameplayState.DEFAULT;
 	private City pieMenuState = null; // null if no pie menu opened
+	public Dialog currentDialog = Dialog.NONE;
 	
 	@Override
 	public void create () {
@@ -82,7 +98,7 @@ public class WG extends ApplicationAdapter {
 		
 		FreeTypeFontGenerator ftfg = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Prototype.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
-		parameter.size = 28;
+		parameter.size = 17;
 		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.-<>!?";
 		font = ftfg.generateFont(parameter);
 		parameter.size = 50;
@@ -115,9 +131,9 @@ public class WG extends ApplicationAdapter {
 	public void resize(int width, int height) {
 		viewport.update(width, height);
 		
-		OrthographicCamera hudCamera = new OrthographicCamera(HUD_W, HUD_H);
+		OrthographicCamera hudCamera = new OrthographicCamera(UI_W, UI_H);
 		hudmx = hudCamera.combined;
-		hudmx.translate(-HUD_W/2f, -HUD_H/2f, 0);
+		hudmx.translate(-UI_W/2f, -UI_H/2f, 0);
 		
 		hudBatch = new SpriteBatch();
 		hudBatch.setProjectionMatrix(hudmx);
@@ -129,14 +145,12 @@ public class WG extends ApplicationAdapter {
 	@Override
 	public void render () {
 		//Cursor coordinates update
-		Utils.HUDMousePosition.x = getHUDMouseX();
-		Utils.HUDMousePosition.y = getHUDMouseY();
+		Utils.UIMousePosition.x = getUIMouseX();
+		Utils.UIMousePosition.y = getUIMouseY();
 		Utils.WorldMousePosition.x = getWorldMouseX();
 		Utils.WorldMousePosition.y = getWorldMouseY();
 		Utils.isTouchJustReleased = (preTouched != Gdx.input.isTouched() && !Gdx.input.justTouched());
 		preTouched = Gdx.input.isTouched();
-		if (!Gdx.input.isTouched())
-			pieMenuState = null;
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		
@@ -167,6 +181,7 @@ public class WG extends ApplicationAdapter {
 				@Override
 				public void run(){
 					System.out.println("1");
+					currentDialog = Dialog.UNITS_BUILDING;
 				}
 			},
 			new Runnable(){
@@ -189,21 +204,26 @@ public class WG extends ApplicationAdapter {
 			}
 		};
 		hsr.begin(ShapeType.Filled);
-		gui.button(hsr, GUI_BUTTON_POS_BUILD, GUI_BUTTON_SIZ_BUILD, GUI_BUTTON_ACT_BUILD, GUI_BUTTON_DEFAULT_COLORS);
+		//gui.button(hsr, GUI_BUTTON_POS_BUILD, GUI_BUTTON_SIZ_BUILD, GUI_BUTTON_ACT_BUILD, GUI_BUTTON_DEFAULT_COLORS);
 		for (Fraction runhorsey: sm.getFractions()){
 			for (City neverlookback: runhorsey.getCities()){
 				hsr.setColor(runhorsey.getColor());
 				if (neverlookback.getPosition().dst(Utils.WorldMousePosition) < CITY_ICON_RADIUS * 1.2f){
 					hsr.setColor(runhorsey.getColor().r * 1.2f, runhorsey.getColor().g * 1.2f, runhorsey.getColor().b * 1.2f, 1f);
-					if (Gdx.input.justTouched())
+					if (Gdx.input.justTouched() && currentDialog == Dialog.NONE)
 						pieMenuState = neverlookback;
 				}
-				hsr.circle(this.getHUDFromWorldX(neverlookback.getPosition().x), this.getHUDFromWorldY(neverlookback.getPosition().y), CITY_ICON_RADIUS);
+				hsr.circle(this.getUIFromWorldX(neverlookback.getPosition().x), this.getUIFromWorldY(neverlookback.getPosition().y), CITY_ICON_RADIUS);
 			}
 		}
 		if (pieMenuState != null)
-			gui.piemenu(hsr, getHUDFromWorldV(pieMenuState.getPosition()), 20, Color.BLACK, Color.RED, r);
+			gui.piemenu(hsr, getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.RED, r);
+		if (currentDialog != Dialog.NONE){
+			gui.drawDialog(currentDialog, hsr);
+		}
 		hsr.end();
+		if (!Gdx.input.isTouched())
+			pieMenuState = null;
 	}
 	
 	private void update(){
@@ -271,27 +291,27 @@ public class WG extends ApplicationAdapter {
 				+ camera.position.y - WORLD_H / 2.0f * camera.zoom;
 	}
 	
-	private float getHUDMouseX(){
+	private float getUIMouseX(){
 		//Here we only do the first stage of conversion.
-		return (Gdx.input.getX() - (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2.0f) / viewport.getScreenWidth() * HUD_W;//Here we have cursor position related to camera view but not to world coordinates
+		return (Gdx.input.getX() - (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2.0f) / viewport.getScreenWidth() * UI_W;//Here we have cursor position related to camera view but not to world coordinates
 	}
 	
-	private float getHUDMouseY(){
-		return (viewport.getScreenHeight() - Gdx.input.getY() + (Gdx.graphics.getHeight() - viewport.getScreenHeight()) / 2.0f) / viewport.getScreenHeight() * HUD_H;
+	private float getUIMouseY(){
+		return (viewport.getScreenHeight() - Gdx.input.getY() + (Gdx.graphics.getHeight() - viewport.getScreenHeight()) / 2.0f) / viewport.getScreenHeight() * UI_H;
 	}
 
-	public float getHUDFromWorldX(float x){
-		return (x - camera.position.x + WORLD_W / 2.0f * camera.zoom) / (WORLD_W * camera.zoom) * HUD_W;
+	public float getUIFromWorldX(float x){
+		return (x - camera.position.x + WORLD_W / 2.0f * camera.zoom) / (WORLD_W * camera.zoom) * UI_W;
 	}
 	
-	public float getHUDFromWorldY(float y){
-		return (y - camera.position.y + WORLD_H / 2.0f * camera.zoom) / (WORLD_H * camera.zoom) * HUD_H;
+	public float getUIFromWorldY(float y){
+		return (y - camera.position.y + WORLD_H / 2.0f * camera.zoom) / (WORLD_H * camera.zoom) * UI_H;
 	}
 	
-	public Vector2 getHUDFromWorldV(Vector2 in){
+	public Vector2 getUIFromWorldV(Vector2 in){
 		Vector2 t = in.cpy();
-		t.x = getHUDFromWorldX(in.x);
-		t.y = getHUDFromWorldY(in.y);
+		t.x = getUIFromWorldX(in.x);
+		t.y = getUIFromWorldY(in.y);
 		return t;
 	}
 }
