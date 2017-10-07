@@ -159,8 +159,8 @@ public class WG extends ApplicationAdapter {
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		
-		sr.begin(ShapeType.Filled);
-		sr.end();
+		//sr.begin(ShapeType.Filled);
+		//sr.end();
 		
 		Runnable[] r = {
 			new Runnable(){
@@ -201,9 +201,8 @@ public class WG extends ApplicationAdapter {
 				hsr.circle(this.getHUDFromWorldX(neverlookback.getPosition().x), this.getHUDFromWorldY(neverlookback.getPosition().y), CITY_ICON_RADIUS);
 			}
 		}
-		if (pieMenuState != null){
-			gui.piemenu(hsr, pieMenuState.getPosition(), 20, Color.BLACK, Color.RED, r);
-		}
+		if (pieMenuState != null)
+			gui.piemenu(hsr, getHUDFromWorldV(pieMenuState.getPosition()), 20, Color.BLACK, Color.RED, r);
 		hsr.end();
 	}
 	
@@ -287,5 +286,12 @@ public class WG extends ApplicationAdapter {
 	
 	public float getHUDFromWorldY(float y){
 		return (y - camera.position.y + WORLD_H / 2.0f * camera.zoom) / (WORLD_H * camera.zoom) * HUD_H;
+	}
+	
+	public Vector2 getHUDFromWorldV(Vector2 in){
+		Vector2 t = in.cpy();
+		t.x = getHUDFromWorldX(in.x);
+		t.y = getHUDFromWorldY(in.y);
+		return t;
 	}
 }
