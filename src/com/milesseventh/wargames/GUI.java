@@ -2,6 +2,7 @@ package com.milesseventh.wargames;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -63,13 +64,22 @@ public class GUI {
 			Utils.drawTrueArc(sr, position, 20, i * (360 / (float) actions.length) + PIE_MENU_SECTOR_MARGIN, (360 / (float) actions.length) - 2 * PIE_MENU_SECTOR_MARGIN, 70);
 		}
 	}
-	
-	public void dialog(WG.Dialog dialog, ShapeRenderer sr){
+
+	private static final Vector2 DBG_DIM_SL_POS = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2).add(10, 10);
+	private static final Vector2 DBG_DIM_SL_SIZ = new Vector2(WG.UI_W * .3f, WG.DIALOG_HEIGHT * WG.UI_H / 2 - 20);
+	private static final float DBG_DIM_SB_W = .12f;
+	public void dialog(WG.Dialog dialog, ShapeRenderer sr, Batch batch, BitmapFont font, UIScrollbar dbg_sb){
 		sr.setColor(WG.GUI_DIALOG_BGD);
 		sr.rect(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2, WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
 		button(sr, WG.GUI_BUTTON_POS_CLOSE, WG.GUI_BUTTON_SIZ_CLOSE, WG.GUI_BUTTON_ACT_CLOSE, GUI_BUTTON_CLOSE_COLORS);
+		
 		switch (dialog){
 		case UNITS_BUILDING:
+			String[] str = {"1", "2", "3", "4", "5", "1", "2", "3", "4", "5", "1", "2", "3", "4", "5", "1", "2", "3", "4", "5"};
+			Runnable[] run = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};
+			scrollableList(sr, font, batch, DBG_DIM_SL_POS, DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
+			               str, run, dbg_sb);
+		//caption(font, batch, new Vector2(200, 200), "KFNIE");
 			break;
 		case RESOURCE_MANAGER:
 			break;
@@ -92,6 +102,8 @@ public class GUI {
 			System.err.println("GUI.java:scrollableList(): Invalid list content");
 			return;
 		}
+		//sr.setColor(Color.CYAN);
+		//sr.rect(position.x, position.y, size.x, size.y);
 		int entriesPerPage = (int) Math.floor(size.y / (font.getLineHeight() + SCROLL_LIST_MARGIN));
 		if (entriesPerPage < captions.length){
 			//Нивлезаит
@@ -106,7 +118,7 @@ public class GUI {
 				button(sr, position.cpy().add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
 				       size.cpy().scl(1 - scrollbarWidth, 1 / (float) entriesPerPage), 
 				       actions[i + bar.offset], entryColor);
-				caption(font, batch, position.cpy().add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), captions[i + bar.offset]);
+				caption(sr, font, batch, position.cpy().add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i + bar.offset]);
 			}
 			scrollbar(sr, bar, entriesPerPage / (float) captions.length);
 		} else {
@@ -114,7 +126,7 @@ public class GUI {
 			for (int i = 0; i < captions.length; i++){
 				button(sr, position.cpy().add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
 				       size.cpy().scl(1, 1 / (float) entriesPerPage), actions[i], entryColor);
-				caption(font, batch, position.cpy().add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), captions[i]);
+				caption(sr, font, batch, position.cpy().add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i]);
 			}
 		}
 	}
@@ -124,7 +136,8 @@ public class GUI {
 			sb.isActive = false;
 		sr.setColor(sb.color[0]);
 		sr.rect(sb.position.x, sb.position.y, sb.size.x, sb.size.y);
-		if (UIMouseIsInTheBox(sb.position.x, sb.position.y + sb.size.y * (1 - sb.offset / (float) sb.maxStates), sb.size.x, sb.size.y * eppLengthRatio)){
+		float sb_h = sb.size.y * eppLengthRatio;
+		if (UIMouseIsInTheBox(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.maxStates)) * (sb.size.y - sb_h), sb.size.x, sb_h)){
 			sr.setColor(sb.color[2]);
 			if (Gdx.input.justTouched())
 				sb.isActive = true;
@@ -132,19 +145,28 @@ public class GUI {
 			sr.setColor(sb.color[1]);
 		
 		if (sb.isActive){
+			sr.setColor(sb.color[2]);
 			float yy = Utils.UIMousePosition.y;
-			yy = Math.min(yy, sb.position.y + sb.size.y);
-			yy = Math.max(yy, sb.position.y);
-			sb.offset = (int) Math.round((1 - (yy - sb.position.y) / sb.size.y) * sb.maxStates);
+			yy = Math.min(yy, sb.position.y + sb.size.y - sb_h / 2f);
+			yy = Math.max(yy, sb.position.y + sb_h / 2f);
+			yy = 1 - (yy - sb.position.y - sb_h / 2f) / (float) (sb.size.y - sb_h);
+			sb.offset = (int) Math.round(yy * (sb.maxStates - 1));
 		}
 		
-		sr.rect(sb.position.x, sb.position.y + sb.size.y * (1 - sb.offset / (float) sb.maxStates), sb.size.x, sb.size.y * eppLengthRatio);
+		sr.rect(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.maxStates - 1)) * (sb.size.y - sb_h), sb.size.x, sb_h);
 	}
 	
-	public void caption(BitmapFont font, Batch batch, Vector2 position, String text){
+	public void caption(ShapeRenderer sr, BitmapFont font, Batch batch, Vector2 position, String text){
+		sr.flush();
+		
+		batch.begin();
 		font.draw(batch, text, position.x, position.y);
+		batch.end();
+
+		Gdx.gl.glEnable(GL20.GL_BLEND);
+		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 	}
-	
+
 	public boolean UIMouseIsInTheBox(float x, float y, float w, float h){
 		return (Utils.UIMousePosition.x > x && Utils.UIMousePosition.x < x + w &&
 		        Utils.UIMousePosition.y > y && Utils.UIMousePosition.y < y + h);

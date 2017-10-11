@@ -91,7 +91,7 @@ public class WG extends ApplicationAdapter {
 	//public GameplayState gpstate = GameplayState.DEFAULT;
 	private City pieMenuState = null; // null if no pie menu opened
 	public Dialog currentDialog = Dialog.NONE;
-	
+	private GUI.UIScrollbar dbg_sb;
 	@Override
 	public void create () {
 		antistatic = this;
@@ -126,6 +126,7 @@ public class WG extends ApplicationAdapter {
 		//Game mechanics
 		Fraction[] _ = {new Fraction(0, Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForCity(map))};
 		sm = new SessionManager(_);
+		dbg_sb = gui.initScrollbar(GUI.GUI_SCROLLBAR_COLORS);
 	}
 
 	public void resize(int width, int height) {
@@ -136,6 +137,7 @@ public class WG extends ApplicationAdapter {
 		hudmx.translate(-UI_W/2f, -UI_H/2f, 0);
 		
 		hudBatch = new SpriteBatch();
+		hudBatch.enableBlending();
 		hudBatch.setProjectionMatrix(hudmx);
 		hsr = new ShapeRenderer(); 
 		hsr.setProjectionMatrix(hudmx);
@@ -163,20 +165,23 @@ public class WG extends ApplicationAdapter {
 		batch.draw(_noiseT, 0, 0);
 		//batch.draw(_marchT, 0, 0);
 		batch.end();
-		
-		try {
-			hudBatch.begin();
-			font.draw(hudBatch, "" + map.getMeta(getWorldMouseX(), getWorldMouseY())/*Gdx.graphics.getFramesPerSecond() camera.zoom*/, 50, 50);
-			hudBatch.end();
-		} catch (Exception e){}
 
+		hsr.begin(ShapeType.Filled);
+		//hudBatch.begin();
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		
-		//sr.begin(ShapeType.Filled);
-		//sr.end();
+		//font.draw(hudBatch, "FONTS", 50, 50);
+		//hudBatch.flush();
+		
 		
 		Runnable[] r = {
+			new Runnable(){
+				@Override
+				public void run(){
+					System.out.println("Cancelled");
+				}
+			},
 			new Runnable(){
 				@Override
 				public void run(){
@@ -203,7 +208,6 @@ public class WG extends ApplicationAdapter {
 				}
 			}
 		};
-		hsr.begin(ShapeType.Filled);
 		//gui.button(hsr, GUI_BUTTON_POS_BUILD, GUI_BUTTON_SIZ_BUILD, GUI_BUTTON_ACT_BUILD, GUI_BUTTON_DEFAULT_COLORS);
 		for (Fraction runhorsey: sm.getFractions()){
 			for (City neverlookback: runhorsey.getCities()){
@@ -219,9 +223,11 @@ public class WG extends ApplicationAdapter {
 		if (pieMenuState != null)
 			gui.piemenu(hsr, getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, r);
 		if (currentDialog != Dialog.NONE){
-			gui.dialog(currentDialog, hsr);
+			gui.dialog(currentDialog, hsr, hudBatch, font, dbg_sb);
 		}
 		hsr.end();
+		//hudBatch.flush();
+		//hudBatch.end();
 		if (!Gdx.input.isTouched())
 			pieMenuState = null;
 	}

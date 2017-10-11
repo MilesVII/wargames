@@ -1,7 +1,6 @@
 package com.milesseventh.wargames.units;
 
 import com.badlogic.gdx.math.Vector2;
-import com.milesseventh.wargames.Territory;
 
 public class Mine extends StationaryUnit {
 	private City owner;
