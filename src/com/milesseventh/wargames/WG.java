@@ -46,7 +46,7 @@ public class WG extends ApplicationAdapter {
 	public static final Color GUI_DIALOG_BGD = new Color(0, 0, 0, .7f);
 	
 	//GUI constants
-	private static final Color[] GUI_BUTTON_DEFAULT_COLORS = {
+	public static final Color[] GUI_BUTTON_DEFAULT_COLORS = {
 		new Color(0, 0, 0, .5f), 
 		new Color(0, 0, 0, 1), 
 		new Color(.5f, .5f, .5f, .8f)
@@ -61,7 +61,7 @@ public class WG extends ApplicationAdapter {
 			//WG.antistatic.gpstate = WG.GameplayState.BUILDING;
 		}
 	};
-	public static final Vector2 GUI_BUTTON_SIZ_CLOSE = new Vector2(UI_W * .1f, UI_H * .05f),
+	public static final Vector2 GUI_BUTTON_SIZ_CLOSE = new Vector2(UI_W * .1f, UI_H * .05f),//Close dialog button
 	                            GUI_BUTTON_POS_CLOSE = new Vector2(UI_W, UI_H - (UI_H - UI_H * DIALOG_HEIGHT) / 2).sub(GUI_BUTTON_SIZ_CLOSE),
 	                            GUI_BUTTON_CNT_CLOSE = GUI_BUTTON_POS_CLOSE.cpy().sub(GUI_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
 	public static final Runnable GUI_BUTTON_ACT_CLOSE = new Runnable(){
@@ -124,7 +124,7 @@ public class WG extends ApplicationAdapter {
 		//landWalker.isAccessible(new Vector2(20, 20),  new Vector2(40, 40));
 		
 		//Game mechanics
-		Fraction[] _ = {new Fraction(FRACTION_SEVENTH, Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForCity(map))};
+		Fraction[] _ = {new Fraction(0, Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForCity(map))};
 		sm = new SessionManager(_);
 	}
 
@@ -217,9 +217,9 @@ public class WG extends ApplicationAdapter {
 			}
 		}
 		if (pieMenuState != null)
-			gui.piemenu(hsr, getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.RED, r);
+			gui.piemenu(hsr, getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, r);
 		if (currentDialog != Dialog.NONE){
-			gui.drawDialog(currentDialog, hsr);
+			gui.dialog(currentDialog, hsr);
 		}
 		hsr.end();
 		if (!Gdx.input.isTouched())

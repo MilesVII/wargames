@@ -20,12 +20,12 @@ public abstract class StationaryUnit {
 		return (ownRange);
 	}
 
-	public abstract void unregister();
+	public abstract void onDestroy();
 	
 	public void hit(float _damage){
 		condition -= _damage;
 		if (condition <= 0){
-			unregister();
+			onDestroy();
 		}
 	}
 	

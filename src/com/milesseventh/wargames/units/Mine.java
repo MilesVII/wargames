@@ -13,7 +13,7 @@ public class Mine extends StationaryUnit {
 	}
 	
 	@Override
-	public void unregister(){
+	public void onDestroy(){
 		owner.mineDestroyed(this);
 	}
 	

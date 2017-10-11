@@ -76,7 +76,7 @@ public class City extends StationaryUnit {
 	}
 
 	@Override
-	public void unregister() {
+	public void onDestroy() {
 		ownerFraction.unregisterCity(this);
 		//And do some unique city destructive stuff
 	}
