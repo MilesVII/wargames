@@ -16,22 +16,19 @@ public class GUI {
 		};
 	public static final Color[] GUI_SCROLLBAR_COLORS = {
 			new Color(.8f, .8f, .8f, .8f), 
-			new Color(.64f, .64f, .64f, 1), 
+			new Color(.42f, .42f, .42f, 1), 
 			new Color(.97f, .97f, .97f, 1)
 		};
 	
 	public class UIScrollbar{
-		public UIScrollbar(Color[] cs){
-			color= cs;
-		}
-		
 		public boolean isActive = false, firstUse = true;
 		public int maxStates = -1, offset = 0;
 		public Vector2 position, size;
-		public Color[] color;//0 -- Bar bgd, 1 -- Bar normal, 2 -- Bar hovered/pressed
+		public Color[] color = GUI_SCROLLBAR_COLORS;//0 -- Bar bgd, 1 -- Bar normal, 2 -- Bar hovered/pressed
 	}
 	
 	private WG context;
+	private UIScrollbar dbg_sb1 = new UIScrollbar(), dbg_sb2 = new UIScrollbar();
 	public GUI(WG _context) {
 		context = _context;
 	}
@@ -68,17 +65,19 @@ public class GUI {
 	private static final Vector2 DBG_DIM_SL_POS = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2).add(10, 10);
 	private static final Vector2 DBG_DIM_SL_SIZ = new Vector2(WG.UI_W * .3f, WG.DIALOG_HEIGHT * WG.UI_H / 2 - 20);
 	private static final float DBG_DIM_SB_W = .12f;
-	public void dialog(WG.Dialog dialog, ShapeRenderer sr, Batch batch, BitmapFont font, UIScrollbar dbg_sb){
+	public void dialog(WG.Dialog dialog, ShapeRenderer sr, Batch batch, BitmapFont font){
 		sr.setColor(WG.GUI_DIALOG_BGD);
 		sr.rect(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2, WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
 		button(sr, WG.GUI_BUTTON_POS_CLOSE, WG.GUI_BUTTON_SIZ_CLOSE, WG.GUI_BUTTON_ACT_CLOSE, GUI_BUTTON_CLOSE_COLORS);
 		
 		switch (dialog){
 		case UNITS_BUILDING:
-			String[] str = {"1", "2", "3", "4", "5", "1", "2", "3", "4", "5", "1", "2", "3", "4", "5", "1", "2", "3", "4", "5"};
-			Runnable[] run = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};
+			String[] str = {"1", "2", "3", "4", "5", "1", "2", "3", "4", "5", "1", "2", "3", "4", "5"};
+			Runnable[] run = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};
 			scrollableList(sr, font, batch, DBG_DIM_SL_POS, DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
-			               str, run, dbg_sb);
+		               str, run, dbg_sb1);
+			scrollableList(sr, font, batch, DBG_DIM_SL_POS.cpy().add(DBG_DIM_SL_SIZ.x * 1.7f, 0), DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
+		               str, run, dbg_sb2);
 		//caption(font, batch, new Vector2(200, 200), "KFNIE");
 			break;
 		case RESOURCE_MANAGER:
@@ -88,10 +87,6 @@ public class GUI {
 		default:
 			break;
 		}
-	}
-	
-	public UIScrollbar initScrollbar(Color[] colorScheme){
-		return new UIScrollbar(colorScheme);
 	}
 	
 	private static final int SCROLL_LIST_MARGIN = 2;

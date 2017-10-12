@@ -39,3 +39,4 @@ src/net/jlibnoise/filter/Billow.java
 src/net/jlibnoise/combiner/Displace.java
 src/net/jlibnoise/generator/Checkerboard.java
 src/net/jlibnoise/combiner/Add.java
+.settings/org.eclipse.core.resources.prefs

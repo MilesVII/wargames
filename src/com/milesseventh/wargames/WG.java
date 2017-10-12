@@ -33,7 +33,7 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	//Game constants
-	public static final int WORLD_W = 700, WORLD_H = 700,
+	public static final int WORLD_W = 2000, WORLD_H = 2000,
 	                        UI_W = 700, UI_H = 700;
 	public static final int MARCHING_STEP = 4;
 	public static final float CAM_ZOOM_MIN = .2f,
@@ -91,7 +91,6 @@ public class WG extends ApplicationAdapter {
 	//public GameplayState gpstate = GameplayState.DEFAULT;
 	private City pieMenuState = null; // null if no pie menu opened
 	public Dialog currentDialog = Dialog.NONE;
-	private GUI.UIScrollbar dbg_sb;
 	@Override
 	public void create () {
 		antistatic = this;
@@ -103,7 +102,7 @@ public class WG extends ApplicationAdapter {
 		font = ftfg.generateFont(parameter);
 		parameter.size = 50;
 		
-		font.setColor(Color.RED);
+		font.setColor(Color.WHITE);
 		ftfg.dispose();
 
 		camera = new OrthographicCamera(WORLD_W, WORLD_H);
@@ -126,7 +125,6 @@ public class WG extends ApplicationAdapter {
 		//Game mechanics
 		Fraction[] _ = {new Fraction(0, Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForCity(map))};
 		sm = new SessionManager(_);
-		dbg_sb = gui.initScrollbar(GUI.GUI_SCROLLBAR_COLORS);
 	}
 
 	public void resize(int width, int height) {
@@ -223,7 +221,7 @@ public class WG extends ApplicationAdapter {
 		if (pieMenuState != null)
 			gui.piemenu(hsr, getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, r);
 		if (currentDialog != Dialog.NONE){
-			gui.dialog(currentDialog, hsr, hudBatch, font, dbg_sb);
+			gui.dialog(currentDialog, hsr, hudBatch, font);
 		}
 		hsr.end();
 		//hudBatch.flush();
