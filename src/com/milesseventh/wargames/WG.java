@@ -33,7 +33,7 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	//Game constants
-	public static final int WORLD_W = 2000, WORLD_H = 2000,
+	public static final int WORLD_W = 1200, WORLD_H = 1200,
 	                        UI_W = 700, UI_H = 700;
 	public static final int MARCHING_STEP = 4;
 	public static final float CAM_ZOOM_MIN = .2f,
@@ -236,6 +236,7 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	private void update(){
+		System.out.println("FRAME");
 		//Debug controls
 		if (Gdx.input.isKeyPressed(Input.Keys.M)){
 			//Generate new map
@@ -318,7 +319,7 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	public Vector2 getUIFromWorldV(Vector2 in){
-		Vector2 t = in.cpy();
+		Vector2 t = Utils.getVector();
 		t.x = getUIFromWorldX(in.x);
 		t.y = getUIFromWorldY(in.y);
 		return t;

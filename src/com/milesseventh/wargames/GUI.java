@@ -51,7 +51,7 @@ public class GUI {
 	
 	public void buttonWithCaption(Vector2 position, Vector2 size, Runnable callback, Color[] colors, String caption){
 		button(position, size, callback, colors);
-		caption(position.cpy().add(0, size.y * .9f), caption);
+		caption(Utils.getVector(position).add(0, size.y * .9f), caption);
 	}
 	
 	private static final int PIE_MENU_SECTOR_MARGIN = 5;
@@ -85,7 +85,7 @@ public class GUI {
 			               str, run, dbg_sb1);
 			//scrollableList(DBG_DIM_SL_POS.cpy().add(DBG_DIM_SL_SIZ.x * 1.7f, 0), DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
 			//           str, run, dbg_sb2);
-			buttonWithCaption(DBG_DIM_SL_POS.cpy().add(DBG_DIM_SL_SIZ.x * 1.7f, 0), Vector2.Zero.cpy().add(200, 20), null, GUI_BUTTON_CLOSE_COLORS, "CAPTION");
+			buttonWithCaption(Utils.getVector(DBG_DIM_SL_POS.x + DBG_DIM_SL_SIZ.x * 1.7f, DBG_DIM_SL_POS.y), Utils.getVector(200, 20), null, GUI_BUTTON_CLOSE_COLORS, "CAPTION");
 		//caption(font, batch, new Vector2(200, 200), "KFNIE");
 			break;
 		case RESOURCE_MANAGER:
@@ -117,18 +117,18 @@ public class GUI {
 			}
 			
 			for (int i = 0; i < entriesPerPage; i++){
-				button(position.cpy().add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
-				       size.cpy().scl(1 - scrollbarWidth, 1 / (float) entriesPerPage), 
+				button(Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
+				       Utils.getVector(size).scl(1 - scrollbarWidth, 1 / (float) entriesPerPage), 
 				       actions[i + bar.offset], entryColor);
-				caption(position.cpy().add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i + bar.offset]);
+				caption(Utils.getVector(position).add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i + bar.offset]);
 			}
 			scrollbar(bar, entriesPerPage / (float) captions.length);
 		} else {
 			//Влезаит
 			for (int i = 0; i < captions.length; i++){
-				button(position.cpy().add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
-				       size.cpy().scl(1, 1 / (float) entriesPerPage), actions[i], entryColor);
-				caption(position.cpy().add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i]);
+				button(Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
+						Utils.getVector(size).scl(1, 1 / (float) entriesPerPage), actions[i], entryColor);
+				caption(Utils.getVector(position).add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i]);
 			}
 		}
 	}

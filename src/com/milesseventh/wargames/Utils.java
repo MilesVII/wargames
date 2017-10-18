@@ -78,4 +78,24 @@ public class Utils {
 		}
 	}
 	
+	private static final int VECTORS_IN_POOL = 17;
+	public static Vector2[] vpool = new Vector2[VECTORS_IN_POOL];
+	private static int vectorsCounter = 0, holder;
+	public static Vector2 getVector(){//new Vector2() alternative
+		return getVector(0, 0);
+	}
+	public static Vector2 getVector(Vector2 in){//cpy() alternative
+		return getVector(in.x, in.y);
+	}
+	public static Vector2 getVector(float x, float y){//new Vector2(x, y) alternative
+		if (vpool[vectorsCounter] == null)
+			vpool[vectorsCounter] = new Vector2();
+		vpool[vectorsCounter].x= x;
+		vpool[vectorsCounter].y= y;
+		System.out.println("Utils.java: staticVectors: counter changed from " + vectorsCounter + (vpool[vectorsCounter] == null?"AND NULL":" and ok"));
+		holder = vectorsCounter;
+		vectorsCounter = (vectorsCounter == VECTORS_IN_POOL - 1) ? 0 : ++vectorsCounter;
+		return vpool[holder];
+	}
+	
 }
