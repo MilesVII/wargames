@@ -28,15 +28,17 @@ public class GUI {
 	}
 	
 	private WG context;
+	public Batch batch;
+	public ShapeRenderer sr;
+	public BitmapFont font;
 	private UIScrollbar dbg_sb1 = new UIScrollbar(), dbg_sb2 = new UIScrollbar();
-	public GUI(WG _context) {
+	public GUI(WG _context){
 		context = _context;
 	}
-	
-	public void button(ShapeRenderer sr, Vector2 position, Vector2 size, Runnable callback, Color[] colors){
+
+	public void button(Vector2 position, Vector2 size, Runnable callback, Color[] colors){
 		Color color = colors[0];
-		if (Utils.UIMousePosition.x > position.x && Utils.UIMousePosition.x < position.x + size.x &&
-			Utils.UIMousePosition.y > position.y && Utils.UIMousePosition.y < position.y + size.y){
+		if (UIMouseHovered(position.x, position.y, size.x, size.y)){
 			color = colors[1];
 			if (Gdx.input.isTouched())
 				color = colors[2];
@@ -45,6 +47,11 @@ public class GUI {
 		}
 		sr.setColor(color);
 		sr.rect(position.x, position.y, size.x, size.y);
+	}
+	
+	public void buttonWithCaption(Vector2 position, Vector2 size, Runnable callback, Color[] colors, String caption){
+		button(position, size, callback, colors);
+		caption(position.cpy().add(0, size.y * .9f), caption);
 	}
 	
 	private static final int PIE_MENU_SECTOR_MARGIN = 5;
@@ -65,19 +72,20 @@ public class GUI {
 	private static final Vector2 DBG_DIM_SL_POS = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2).add(10, 10);
 	private static final Vector2 DBG_DIM_SL_SIZ = new Vector2(WG.UI_W * .3f, WG.DIALOG_HEIGHT * WG.UI_H / 2 - 20);
 	private static final float DBG_DIM_SB_W = .12f;
-	public void dialog(WG.Dialog dialog, ShapeRenderer sr, Batch batch, BitmapFont font){
+	public void dialog(WG.Dialog dialog){
 		sr.setColor(WG.GUI_DIALOG_BGD);
 		sr.rect(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2, WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
-		button(sr, WG.GUI_BUTTON_POS_CLOSE, WG.GUI_BUTTON_SIZ_CLOSE, WG.GUI_BUTTON_ACT_CLOSE, GUI_BUTTON_CLOSE_COLORS);
+		button(WG.GUI_BUTTON_POS_CLOSE, WG.GUI_BUTTON_SIZ_CLOSE, WG.GUI_BUTTON_ACT_CLOSE, GUI_BUTTON_CLOSE_COLORS);
 		
 		switch (dialog){
 		case UNITS_BUILDING:
 			String[] str = {"1", "2", "3", "4", "5", "1", "2", "3", "4", "5", "1", "2", "3", "4", "5"};
 			Runnable[] run = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};
-			scrollableList(sr, font, batch, DBG_DIM_SL_POS, DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
-		               str, run, dbg_sb1);
-			scrollableList(sr, font, batch, DBG_DIM_SL_POS.cpy().add(DBG_DIM_SL_SIZ.x * 1.7f, 0), DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
-		               str, run, dbg_sb2);
+			scrollableList(DBG_DIM_SL_POS, DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
+			               str, run, dbg_sb1);
+			//scrollableList(DBG_DIM_SL_POS.cpy().add(DBG_DIM_SL_SIZ.x * 1.7f, 0), DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
+			//           str, run, dbg_sb2);
+			buttonWithCaption(DBG_DIM_SL_POS.cpy().add(DBG_DIM_SL_SIZ.x * 1.7f, 0), Vector2.Zero.cpy().add(200, 20), null, GUI_BUTTON_CLOSE_COLORS, "CAPTION");
 		//caption(font, batch, new Vector2(200, 200), "KFNIE");
 			break;
 		case RESOURCE_MANAGER:
@@ -90,8 +98,7 @@ public class GUI {
 	}
 	
 	private static final int SCROLL_LIST_MARGIN = 2;
-	public void scrollableList(ShapeRenderer sr, BitmapFont font, Batch batch,
-	                           Vector2 position, Vector2 size, float scrollbarWidth, 
+	public void scrollableList(Vector2 position, Vector2 size, float scrollbarWidth, 
 	                           Color[] entryColor, String[] captions, Runnable[] actions, UIScrollbar bar){
 		if (captions.length != actions.length){
 			System.err.println("GUI.java:scrollableList(): Invalid list content");
@@ -110,29 +117,29 @@ public class GUI {
 			}
 			
 			for (int i = 0; i < entriesPerPage; i++){
-				button(sr, position.cpy().add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
+				button(position.cpy().add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
 				       size.cpy().scl(1 - scrollbarWidth, 1 / (float) entriesPerPage), 
 				       actions[i + bar.offset], entryColor);
-				caption(sr, font, batch, position.cpy().add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i + bar.offset]);
+				caption(position.cpy().add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i + bar.offset]);
 			}
-			scrollbar(sr, bar, entriesPerPage / (float) captions.length);
+			scrollbar(bar, entriesPerPage / (float) captions.length);
 		} else {
 			//Влезаит
 			for (int i = 0; i < captions.length; i++){
-				button(sr, position.cpy().add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
+				button(position.cpy().add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
 				       size.cpy().scl(1, 1 / (float) entriesPerPage), actions[i], entryColor);
-				caption(sr, font, batch, position.cpy().add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i]);
+				caption(position.cpy().add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i]);
 			}
 		}
 	}
 	
-	private void scrollbar(ShapeRenderer sr, UIScrollbar sb, float eppLengthRatio){
+	private void scrollbar(UIScrollbar sb, float eppLengthRatio){
 		if (!Gdx.input.isTouched())
 			sb.isActive = false;
 		sr.setColor(sb.color[0]);
 		sr.rect(sb.position.x, sb.position.y, sb.size.x, sb.size.y);
 		float sb_h = sb.size.y * eppLengthRatio;
-		if (UIMouseIsInTheBox(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.maxStates)) * (sb.size.y - sb_h), sb.size.x, sb_h)){
+		if (UIMouseHovered(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.maxStates)) * (sb.size.y - sb_h), sb.size.x, sb_h)){
 			sr.setColor(sb.color[2]);
 			if (Gdx.input.justTouched())
 				sb.isActive = true;
@@ -151,7 +158,7 @@ public class GUI {
 		sr.rect(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.maxStates - 1)) * (sb.size.y - sb_h), sb.size.x, sb_h);
 	}
 	
-	public void caption(ShapeRenderer sr, BitmapFont font, Batch batch, Vector2 position, String text){
+	public void caption(Vector2 position, String text){
 		sr.flush();
 		
 		batch.begin();
@@ -162,7 +169,7 @@ public class GUI {
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	public boolean UIMouseIsInTheBox(float x, float y, float w, float h){
+	public boolean UIMouseHovered(float x, float y, float w, float h){
 		return (Utils.UIMousePosition.x > x && Utils.UIMousePosition.x < x + w &&
 		        Utils.UIMousePosition.y > y && Utils.UIMousePosition.y < y + h);
 	}

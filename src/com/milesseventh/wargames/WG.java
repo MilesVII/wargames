@@ -74,7 +74,7 @@ public class WG extends ApplicationAdapter {
 	//Variables
 	public static WG antistatic;
 	private SpriteBatch batch; 
-	private Batch hudBatch;
+	private Batch uiBatch;
 	HeightMap map;
 	private OrthographicCamera camera;
 	private Viewport viewport;
@@ -87,7 +87,7 @@ public class WG extends ApplicationAdapter {
 	private Matrix4 hudmx;
 	private boolean preTouched = false;
 	public SessionManager sm;
-	public GUI gui = new GUI(this);
+	public GUI gui;
 	//public GameplayState gpstate = GameplayState.DEFAULT;
 	private City pieMenuState = null; // null if no pie menu opened
 	public Dialog currentDialog = Dialog.NONE;
@@ -113,7 +113,7 @@ public class WG extends ApplicationAdapter {
 		
 		batch = new SpriteBatch();
 		
-		map = new HeightMap(new Vector2(WORLD_W, WORLD_H), new HeightMap.ColorScheme(Color.GREEN, Color.LIME, Color.BROWN, Color.WHITE));
+		map = new HeightMap(new Vector2(WORLD_W, WORLD_H), new HeightMap.ColorScheme(Color.GREEN, Color.LIME, Color.BROWN, Color.LIME));
 		landOutline = new Marching(map, map.getSize(), MARCHING_STEP, Marching.Mode.PRERENDERED);
 		_marchT = new Texture(landOutline.getRendered());
 		//unitsOutline = new Marching(t, map.getSize(), MARCHING_STEP, Marching.Mode.RAW);
@@ -125,6 +125,7 @@ public class WG extends ApplicationAdapter {
 		//Game mechanics
 		Fraction[] _ = {new Fraction(0, Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForCity(map))};
 		sm = new SessionManager(_);
+		gui = new GUI(this);
 	}
 
 	public void resize(int width, int height) {
@@ -134,12 +135,15 @@ public class WG extends ApplicationAdapter {
 		hudmx = hudCamera.combined;
 		hudmx.translate(-UI_W/2f, -UI_H/2f, 0);
 		
-		hudBatch = new SpriteBatch();
-		hudBatch.enableBlending();
-		hudBatch.setProjectionMatrix(hudmx);
+		uiBatch = new SpriteBatch();
+		uiBatch.enableBlending();
+		uiBatch.setProjectionMatrix(hudmx);
 		hsr = new ShapeRenderer(); 
 		hsr.setProjectionMatrix(hudmx);
 		hsr.setColor(Color.BLACK);
+		gui.batch = uiBatch;
+		gui.sr = hsr;
+		gui.font = font;
 	}
 	
 	@Override
@@ -165,12 +169,12 @@ public class WG extends ApplicationAdapter {
 		batch.end();
 
 		hsr.begin(ShapeType.Filled);
-		//hudBatch.begin();
+		//uiBatch.begin();
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		
-		//font.draw(hudBatch, "FONTS", 50, 50);
-		//hudBatch.flush();
+		//font.draw(uiBatch, "FONTS", 50, 50);
+		//uiBatch.flush();
 		
 		
 		Runnable[] r = {
@@ -210,7 +214,8 @@ public class WG extends ApplicationAdapter {
 		for (Fraction runhorsey: sm.getFractions()){
 			for (City neverlookback: runhorsey.getCities()){
 				hsr.setColor(runhorsey.getColor());
-				if (neverlookback.getPosition().dst(Utils.WorldMousePosition) < CITY_ICON_RADIUS * 1.2f){
+				//if (neverlookback.getPosition().dst(Utils.WorldMousePosition) < CITY_ICON_RADIUS * 1.2f){
+				if (getUIFromWorldV(neverlookback.getPosition()).dst(Utils.UIMousePosition) < CITY_ICON_RADIUS * 1.7f){
 					hsr.setColor(runhorsey.getColor().r * 1.2f, runhorsey.getColor().g * 1.2f, runhorsey.getColor().b * 1.2f, 1f);
 					if (Gdx.input.justTouched() && currentDialog == Dialog.NONE)
 						pieMenuState = neverlookback;
@@ -221,11 +226,11 @@ public class WG extends ApplicationAdapter {
 		if (pieMenuState != null)
 			gui.piemenu(hsr, getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, r);
 		if (currentDialog != Dialog.NONE){
-			gui.dialog(currentDialog, hsr, hudBatch, font);
+			gui.dialog(currentDialog);
 		}
 		hsr.end();
-		//hudBatch.flush();
-		//hudBatch.end();
+		//uiBatch.flush();
+		//uiBatch.end();
 		if (!Gdx.input.isTouched())
 			pieMenuState = null;
 	}
