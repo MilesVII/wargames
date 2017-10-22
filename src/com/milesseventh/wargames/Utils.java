@@ -6,12 +6,12 @@ import java.util.Random;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
-import com.milesseventh.wargames.units.City;;
+import com.badlogic.gdx.math.Vector2;;
 
 public class Utils {
 	public static Vector2 WorldMousePosition = new Vector2(), UIMousePosition = new Vector2();//Updated via WG.java, update();
 	public static boolean isTouchJustReleased = false;
+	public static final int NULL_ID = -1;
 	
 	public static float projectX(float _len, float _dir){
 		return (float)(_len * Math.cos(Math.toRadians(_dir)));
@@ -40,7 +40,7 @@ public class Utils {
 	}
 	
 	private static final float DBG_MIN_CITY_H = .10f, DBG_MAX_CITY_H = .32f;
-	public static Vector2 debugFindAPlaceForCity(HeightMap _map){
+	public static Vector2 debugFindAPlaceForStructure(HeightMap _map){
 		Vector2 _place;
 		Random _r = new Random();
 		do {
@@ -50,19 +50,19 @@ public class Utils {
 	}
 	
 	private static final int DBG_MIN_CITY_DST = 17, DBG_MAX_CITY_DST = 48;
-	public static boolean debugCheckPlaceForNewCity(HeightMap _map, Fraction _f, Vector2 _place){
-		City _nrst = debugFindNearestCity(_f.getCities(), _place);
+	public static boolean debugCheckPlaceForNewStructure(HeightMap _map, Fraction _f, Vector2 _place){
+		Structure _nrst = debugFindNearestStructure(_f.getStructs(), _place);
 		return (_nrst.getPosition().dst2(_place) < DBG_MAX_CITY_DST * DBG_MAX_CITY_DST &&
 			_nrst.getPosition().dst2(_place) > DBG_MIN_CITY_DST * DBG_MIN_CITY_DST &&
 			(_map.getMeta(_place.x, _place.y) < DBG_MAX_CITY_H && _map.getMeta(_place.x, _place.y) > DBG_MIN_CITY_H));
 	}
 	
-	private static City debugFindNearestCity(ArrayList<City> cities, Vector2 _from){
-		City minCity = cities.get(0);
-		for (City _to: cities)
-			if (_from.dst2(_to.getPosition()) < _from.dst2(minCity.getPosition()))
-				minCity = _to;
-		return minCity;
+	private static Structure debugFindNearestStructure(ArrayList<Structure> cities, Vector2 _from){
+		Structure minStructure = cities.get(0);
+		for (Structure _to: cities)
+			if (_from.dst2(_to.getPosition()) < _from.dst2(minStructure.getPosition()))
+				minStructure = _to;
+		return minStructure;
 	}
 	
 	public static float getAngle(Vector2 point){
@@ -92,7 +92,6 @@ public class Utils {
 			vpool[vectorsCounter] = new Vector2();
 		vpool[vectorsCounter].x= x;
 		vpool[vectorsCounter].y= y;
-		System.out.println("Utils.java: staticVectors: counter changed from " + vectorsCounter + (vpool[vectorsCounter] == null?"AND NULL":" and ok"));
 		holder = vectorsCounter;
 		vectorsCounter = (vectorsCounter == VECTORS_IN_POOL - 1) ? 0 : ++vectorsCounter;
 		return vpool[holder];

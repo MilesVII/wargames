@@ -19,7 +19,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.milesseventh.wargames.units.City;
 
 public class WG extends ApplicationAdapter {
 	public enum Dialog{
@@ -64,9 +63,9 @@ public class WG extends ApplicationAdapter {
 	public static final Vector2 GUI_BUTTON_SIZ_CLOSE = new Vector2(UI_W * .1f, UI_H * .05f),//Close dialog button
 	                            GUI_BUTTON_POS_CLOSE = new Vector2(UI_W, UI_H - (UI_H - UI_H * DIALOG_HEIGHT) / 2).sub(GUI_BUTTON_SIZ_CLOSE),
 	                            GUI_BUTTON_CNT_CLOSE = GUI_BUTTON_POS_CLOSE.cpy().sub(GUI_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
-	public static final Runnable GUI_BUTTON_ACT_CLOSE = new Runnable(){
+	public static final Croupfuck GUI_BUTTON_ACT_CLOSE = new Croupfuck(){
 		@Override
-			public void run() {
+			public void action(int source) {
 			WG.antistatic.currentDialog = WG.Dialog.NONE;
 		}
 	};
@@ -89,7 +88,7 @@ public class WG extends ApplicationAdapter {
 	public SessionManager sm;
 	public GUI gui;
 	//public GameplayState gpstate = GameplayState.DEFAULT;
-	private City pieMenuState = null; // null if no pie menu opened
+	private Structure pieMenuState = null; // null if no pie menu opened
 	public Dialog currentDialog = Dialog.NONE;
 	@Override
 	public void create () {
@@ -123,7 +122,7 @@ public class WG extends ApplicationAdapter {
 		//landWalker.isAccessible(new Vector2(20, 20),  new Vector2(40, 40));
 		
 		//Game mechanics
-		Fraction[] _ = {new Fraction(0, Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForCity(map))};
+		Fraction[] _ = {new Fraction(0, Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
 		sm = new SessionManager(_);
 		gui = new GUI(this);
 	}
@@ -212,13 +211,14 @@ public class WG extends ApplicationAdapter {
 		};
 		//gui.button(hsr, GUI_BUTTON_POS_BUILD, GUI_BUTTON_SIZ_BUILD, GUI_BUTTON_ACT_BUILD, GUI_BUTTON_DEFAULT_COLORS);
 		for (Fraction runhorsey: sm.getFractions()){
-			for (City neverlookback: runhorsey.getCities()){
+			for (Structure neverlookback: runhorsey.getStructs()){
 				hsr.setColor(runhorsey.getColor());
 				//if (neverlookback.getPosition().dst(Utils.WorldMousePosition) < CITY_ICON_RADIUS * 1.2f){
 				if (getUIFromWorldV(neverlookback.getPosition()).dst(Utils.UIMousePosition) < CITY_ICON_RADIUS * 1.7f){
 					hsr.setColor(runhorsey.getColor().r * 1.2f, runhorsey.getColor().g * 1.2f, runhorsey.getColor().b * 1.2f, 1f);
-					if (Gdx.input.justTouched() && currentDialog == Dialog.NONE)
-						pieMenuState = neverlookback;
+					if (Gdx.input.justTouched() && currentDialog == Dialog.NONE){
+						gui.currentDialogStruct = pieMenuState = neverlookback;
+					}
 				}
 				hsr.circle(this.getUIFromWorldX(neverlookback.getPosition().x), this.getUIFromWorldY(neverlookback.getPosition().y), CITY_ICON_RADIUS);
 			}
@@ -236,7 +236,6 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	private void update(){
-		System.out.println("FRAME");
 		//Debug controls
 		if (Gdx.input.isKeyPressed(Input.Keys.M)){
 			//Generate new map
@@ -246,10 +245,12 @@ public class WG extends ApplicationAdapter {
 		if (Gdx.input.isKeyPressed(Input.Keys.C)){
 			//Try to build a city
 			Vector2 _np = new Vector2(getWorldMouseX(), getWorldMouseY());
-			if (Utils.debugCheckPlaceForNewCity(map, sm.getCurrent(), _np)){
-				sm.getCurrent().registerCity(new City(_np, sm.getCurrent()));
+			if (Utils.debugCheckPlaceForNewStructure(map, sm.getCurrent(), _np)){
+				sm.getCurrent().registerStructure(new Structure(_np, sm.getCurrent()));
 			}
 		}
+		//Debug mechanics
+		sm.getFractions()[0].getStructs().get(0).addResource(Structure.RES_ORE, .001f);
 		
 		//Camera controls
 		if (Gdx.input.isKeyPressed(Input.Keys.A)){
@@ -319,9 +320,6 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	public Vector2 getUIFromWorldV(Vector2 in){
-		Vector2 t = Utils.getVector();
-		t.x = getUIFromWorldX(in.x);
-		t.y = getUIFromWorldY(in.y);
-		return t;
+		return Utils.getVector(getUIFromWorldX(in.x), getUIFromWorldY(in.y));
 	}
 }

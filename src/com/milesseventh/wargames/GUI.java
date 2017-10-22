@@ -19,7 +19,12 @@ public class GUI {
 			new Color(.42f, .42f, .42f, 1), 
 			new Color(.97f, .97f, .97f, 1)
 		};
-	
+	public static final Croupfuck DBG_LIST_ACT = new Croupfuck(){
+		@Override
+		public void action(int source) {
+			System.out.println("" + source + " pressed");
+		}
+	};
 	public class UIScrollbar{
 		public boolean isActive = false, firstUse = true;
 		public int maxStates = -1, offset = 0;
@@ -31,26 +36,27 @@ public class GUI {
 	public Batch batch;
 	public ShapeRenderer sr;
 	public BitmapFont font;
+	public Structure currentDialogStruct;
 	private UIScrollbar dbg_sb1 = new UIScrollbar(), dbg_sb2 = new UIScrollbar();
 	public GUI(WG _context){
 		context = _context;
 	}
-
-	public void button(Vector2 position, Vector2 size, Runnable callback, Color[] colors){
+	
+	public void button(Vector2 position, Vector2 size, int id, Croupfuck callback, Color[] colors){
 		Color color = colors[0];
 		if (UIMouseHovered(position.x, position.y, size.x, size.y)){
 			color = colors[1];
 			if (Gdx.input.isTouched())
 				color = colors[2];
 			if (Gdx.input.justTouched())
-				callback.run();
+				callback.action(id);
 		}
 		sr.setColor(color);
 		sr.rect(position.x, position.y, size.x, size.y);
 	}
 	
-	public void buttonWithCaption(Vector2 position, Vector2 size, Runnable callback, Color[] colors, String caption){
-		button(position, size, callback, colors);
+	public void buttonWithCaption(Vector2 position, Vector2 size, Croupfuck callback, Color[] colors, String caption){
+		button(position, size, Utils.NULL_ID, callback, colors);
 		caption(Utils.getVector(position).add(0, size.y * .9f), caption);
 	}
 	
@@ -75,17 +81,17 @@ public class GUI {
 	public void dialog(WG.Dialog dialog){
 		sr.setColor(WG.GUI_DIALOG_BGD);
 		sr.rect(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2, WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
-		button(WG.GUI_BUTTON_POS_CLOSE, WG.GUI_BUTTON_SIZ_CLOSE, WG.GUI_BUTTON_ACT_CLOSE, GUI_BUTTON_CLOSE_COLORS);
+		button(WG.GUI_BUTTON_POS_CLOSE, WG.GUI_BUTTON_SIZ_CLOSE, Utils.NULL_ID, WG.GUI_BUTTON_ACT_CLOSE, GUI_BUTTON_CLOSE_COLORS);
 		
 		switch (dialog){
 		case UNITS_BUILDING:
 			String[] str = {"1", "2", "3", "4", "5", "1", "2", "3", "4", "5", "1", "2", "3", "4", "5"};
-			Runnable[] run = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};
+			
 			scrollableList(DBG_DIM_SL_POS, DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
-			               str, run, dbg_sb1);
+			               str, DBG_LIST_ACT, dbg_sb1);
 			//scrollableList(DBG_DIM_SL_POS.cpy().add(DBG_DIM_SL_SIZ.x * 1.7f, 0), DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
 			//           str, run, dbg_sb2);
-			buttonWithCaption(Utils.getVector(DBG_DIM_SL_POS.x + DBG_DIM_SL_SIZ.x * 1.7f, DBG_DIM_SL_POS.y), Utils.getVector(200, 20), null, GUI_BUTTON_CLOSE_COLORS, "CAPTION");
+			buttonWithCaption(Utils.getVector(DBG_DIM_SL_POS.x + DBG_DIM_SL_SIZ.x * 1.7f, DBG_DIM_SL_POS.y), Utils.getVector(200, 20), null, GUI_BUTTON_CLOSE_COLORS, "" + currentDialogStruct.getResource(Structure.RES_ORE));
 		//caption(font, batch, new Vector2(200, 200), "KFNIE");
 			break;
 		case RESOURCE_MANAGER:
@@ -99,13 +105,11 @@ public class GUI {
 	
 	private static final int SCROLL_LIST_MARGIN = 2;
 	public void scrollableList(Vector2 position, Vector2 size, float scrollbarWidth, 
-	                           Color[] entryColor, String[] captions, Runnable[] actions, UIScrollbar bar){
-		if (captions.length != actions.length){
+	                           Color[] entryColor, String[] captions, Croupfuck actions, UIScrollbar bar){
+		/*if (captions.length != actions.length){
 			System.err.println("GUI.java:scrollableList(): Invalid list content");
 			return;
-		}
-		//sr.setColor(Color.CYAN);
-		//sr.rect(position.x, position.y, size.x, size.y);
+		}*/
 		int entriesPerPage = (int) Math.floor(size.y / (font.getLineHeight() + SCROLL_LIST_MARGIN));
 		if (entriesPerPage < captions.length){
 			//Нивлезаит
@@ -118,8 +122,8 @@ public class GUI {
 			
 			for (int i = 0; i < entriesPerPage; i++){
 				button(Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
-				       Utils.getVector(size).scl(1 - scrollbarWidth, 1 / (float) entriesPerPage), 
-				       actions[i + bar.offset], entryColor);
+				       Utils.getVector(size).scl(1 - scrollbarWidth, 1 / (float) entriesPerPage),
+				       i + bar.offset, actions, entryColor);
 				caption(Utils.getVector(position).add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i + bar.offset]);
 			}
 			scrollbar(bar, entriesPerPage / (float) captions.length);
@@ -127,7 +131,7 @@ public class GUI {
 			//Влезаит
 			for (int i = 0; i < captions.length; i++){
 				button(Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
-						Utils.getVector(size).scl(1, 1 / (float) entriesPerPage), actions[i], entryColor);
+						Utils.getVector(size).scl(1, 1 / (float) entriesPerPage), i + bar.offset, actions, entryColor);
 				caption(Utils.getVector(position).add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i]);
 			}
 		}
@@ -167,6 +171,10 @@ public class GUI {
 
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+	}
+	
+	public <T> T radio(T[] list, String caps, Vector2 position, Vector2 size){
+		return null;
 	}
 
 	public boolean UIMouseHovered(float x, float y, float w, float h){
