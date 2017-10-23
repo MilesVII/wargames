@@ -27,7 +27,7 @@ public class GUI {
 	};
 	public class UIScrollbar{
 		public boolean isActive = false, firstUse = true;
-		public int maxStates = -1, offset = 0;
+		public int max = -1, offset = 0;
 		public Vector2 position, size;
 		public Color[] color = GUI_SCROLLBAR_COLORS;//0 -- Bar bgd, 1 -- Bar normal, 2 -- Bar hovered/pressed
 	}
@@ -37,7 +37,7 @@ public class GUI {
 	public ShapeRenderer sr;
 	public BitmapFont font;
 	public Structure currentDialogStruct;
-	private UIScrollbar dbg_sb1 = new UIScrollbar(), dbg_sb2 = new UIScrollbar();
+	private UIScrollbar dbg_sb1 = new UIScrollbar(), dbg_sb2 = new UIScrollbar(), dbg_sb3 = new UIScrollbar();
 	public GUI(WG _context){
 		context = _context;
 	}
@@ -87,10 +87,11 @@ public class GUI {
 		case UNITS_BUILDING:
 			String[] str = {"1", "2", "3", "4", "5", "1", "2", "3", "4", "5", "1", "2", "3", "4", "5"};
 			
-			scrollableList(DBG_DIM_SL_POS, DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
-			               str, DBG_LIST_ACT, dbg_sb1);
+			//scrollableList(DBG_DIM_SL_POS, DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
+			//               str, DBG_LIST_ACT, dbg_sb1);
 			//scrollableList(DBG_DIM_SL_POS.cpy().add(DBG_DIM_SL_SIZ.x * 1.7f, 0), DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
 			//           str, run, dbg_sb2);
+			hscroller(dbg_sb3, .1f, -1);
 			buttonWithCaption(Utils.getVector(DBG_DIM_SL_POS.x + DBG_DIM_SL_SIZ.x * 1.7f, DBG_DIM_SL_POS.y), Utils.getVector(200, 20), null, GUI_BUTTON_CLOSE_COLORS, "" + currentDialogStruct.getResource(Structure.RES_ORE));
 		//caption(font, batch, new Vector2(200, 200), "KFNIE");
 			break;
@@ -114,7 +115,7 @@ public class GUI {
 		if (entriesPerPage < captions.length){
 			//Нивлезаит
 			if (bar.firstUse){
-				bar.maxStates = captions.length - entriesPerPage + 1;
+				bar.max = captions.length - entriesPerPage + 1;
 				bar.position = position.cpy().add(size.x * (1 - scrollbarWidth), 0);
 				bar.size = size.cpy().scl(scrollbarWidth, 1);
 				bar.firstUse = false;
@@ -143,7 +144,7 @@ public class GUI {
 		sr.setColor(sb.color[0]);
 		sr.rect(sb.position.x, sb.position.y, sb.size.x, sb.size.y);
 		float sb_h = sb.size.y * eppLengthRatio;
-		if (UIMouseHovered(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.maxStates)) * (sb.size.y - sb_h), sb.size.x, sb_h)){
+		if (UIMouseHovered(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.max)) * (sb.size.y - sb_h), sb.size.x, sb_h)){
 			sr.setColor(sb.color[2]);
 			if (Gdx.input.justTouched())
 				sb.isActive = true;
@@ -156,10 +157,49 @@ public class GUI {
 			yy = Math.min(yy, sb.position.y + sb.size.y - sb_h / 2f);
 			yy = Math.max(yy, sb.position.y + sb_h / 2f);
 			yy = 1 - (yy - sb.position.y - sb_h / 2f) / (float) (sb.size.y - sb_h);
-			sb.offset = (int) Math.round(yy * (sb.maxStates - 1));
+			sb.offset = (int) Math.round(yy * (sb.max - 1));
 		}
 		
-		sr.rect(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.maxStates - 1)) * (sb.size.y - sb_h), sb.size.x, sb_h);
+		sr.rect(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.max - 1)) * (sb.size.y - sb_h), sb.size.x, sb_h);
+	}	
+	
+	private void hscroller(UIScrollbar sb, float widthPart, int limit){
+		if (sb.firstUse){
+			sb.max = 7;
+			sb.position = new Vector2(20, DBG_DIM_SL_POS.y + 40);
+			sb.size = new Vector2(270, 20);
+			sb.firstUse = false;
+		}
+		
+		caption(Utils.getVector(sb.position).add(sb.size.x, 0), "Off: " + sb.offset + "/" + sb.max);
+		
+		if (!Gdx.input.isTouched())
+			sb.isActive = false;
+		
+		sr.setColor(sb.color[0]);
+		sr.rect(sb.position.x, sb.position.y, sb.size.x, sb.size.y);
+		
+		float sb_w = sb.size.x * widthPart, 
+		      sb_offx = (sb.offset / (float) (sb.max)) * (sb.size.x - sb_w);
+		
+		if (UIMouseHovered(sb.position.x + sb_offx, sb.position.y, sb_w, sb.size.y)){
+			sr.setColor(sb.color[2]);
+			if (Gdx.input.justTouched())
+				sb.isActive = true;
+		} else 
+			sr.setColor(sb.color[1]);
+		
+		if (sb.isActive){
+			sr.setColor(sb.color[2]);
+			float xx = Utils.UIMousePosition.x - sb_w / 2;
+			xx -= sb.position.x;
+			xx = Math.min(xx, sb.size.x - sb_w);
+			xx = Math.max(xx, 0);
+			xx = (xx/*sb_w / 2*/) / (sb.size.x - sb_w);
+			sb.offset = (int) Math.round(xx * (sb.max));
+		}
+		
+		sr.rect(sb.position.x + sb_offx, sb.position.y, sb_w, sb.size.y);
 	}
 	
 	public void caption(Vector2 position, String text){

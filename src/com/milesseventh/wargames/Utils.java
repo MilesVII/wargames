@@ -24,18 +24,19 @@ public class Utils {
 	public static boolean isBuildingAllowed(HeightMap _map, float _x, float _y){
 		return _map.getMeta(_x, _y) < _map.getMetaThreshold();
 	}
-
+	
+	private static Color cholder = new Color();
 	public static Color getGradColor(Color _from, Color _to, float _percent){
-		return new Color(MathUtils.lerp(_from.r, _to.r, _percent),
-		                 MathUtils.lerp(_from.g, _to.g, _percent),
-		                 MathUtils.lerp(_from.b, _to.b, _percent), 1);
+		return cholder.set(MathUtils.lerp(_from.r, _to.r, _percent),
+		                   MathUtils.lerp(_from.g, _to.g, _percent),
+		                   MathUtils.lerp(_from.b, _to.b, _percent), 1);
 	}
 	
-	public static Color getGradColor(Color[] _colors, float _percent){
-		int _intervals =  _colors.length - 1;
-		for (int c = 0; c < _intervals; c++)
-			if (_percent <= (float)(c + 1f) / (float)_intervals)
-				return new Color(getGradColor(_colors[c], _colors[c + 1], _percent * _intervals - 1 / (float)_intervals * (float)c));
+	public static Color getGradColor(Color[] colors, float percent){
+		int intervals =  colors.length - 1;
+		for (int c = 0; c < intervals; c++) 
+			if (percent <= (c + 1) / (float)intervals)
+				return getGradColor(colors[c], colors[c + 1], (percent - c / (float)intervals) * (intervals - c));
 		return Color.BLACK;
 	}
 	

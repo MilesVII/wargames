@@ -25,7 +25,7 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 	private Pixmap pm;
 	private Random r = new Random();
 	private ColorScheme cs;
-	
+
 	public HeightMap(Vector2 _size, ColorScheme _cs){
 		size = _size;
 		cs = _cs;

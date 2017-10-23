@@ -53,11 +53,10 @@ public class WG extends ApplicationAdapter {
 	private static final Vector2 GUI_BUTTON_POS_BUILD = new Vector2(5, 5),//Position
 	                             GUI_BUTTON_SIZ_BUILD = new Vector2(UI_W * .05f, UI_W * .05f),//Size
 	                             GUI_BUTTON_CNT_BUILD = GUI_BUTTON_POS_BUILD.cpy().add(GUI_BUTTON_SIZ_BUILD.cpy().scl(.5f));//Center
-	private static final Runnable GUI_BUTTON_ACT_BUILD = new Runnable(){
+	private final Croupfuck GUI_BUTTON_ACT_BUILD = new Croupfuck(){
 		@Override
-		public void run() {
-			System.out.println("BUILD pressed");
-			//WG.antistatic.gpstate = WG.GameplayState.BUILDING;
+		public void action(int source) {
+			camera.zoom = Math.max(camera.zoom -= CAM_ZOOM_STEP, CAM_ZOOM_MIN);
 		}
 	};
 	public static final Vector2 GUI_BUTTON_SIZ_CLOSE = new Vector2(UI_W * .1f, UI_H * .05f),//Close dialog button
@@ -97,7 +96,7 @@ public class WG extends ApplicationAdapter {
 		FreeTypeFontGenerator ftfg = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Prototype.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = 17;
-		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.-<>!?";
+		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.-<>!?/";
 		font = ftfg.generateFont(parameter);
 		parameter.size = 50;
 		
@@ -112,7 +111,7 @@ public class WG extends ApplicationAdapter {
 		
 		batch = new SpriteBatch();
 		
-		map = new HeightMap(new Vector2(WORLD_W, WORLD_H), new HeightMap.ColorScheme(Color.GREEN, Color.LIME, Color.BROWN, Color.LIME));
+		map = new HeightMap(new Vector2(WORLD_W, WORLD_H), new HeightMap.ColorScheme(Color.GREEN, Color.LIME, Color.BROWN, Color.WHITE));
 		landOutline = new Marching(map, map.getSize(), MARCHING_STEP, Marching.Mode.PRERENDERED);
 		_marchT = new Texture(landOutline.getRendered());
 		//unitsOutline = new Marching(t, map.getSize(), MARCHING_STEP, Marching.Mode.RAW);
@@ -156,7 +155,6 @@ public class WG extends ApplicationAdapter {
 		preTouched = Gdx.input.isTouched();
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		
 		update();
 		camera.update();
 		batch.setProjectionMatrix(camera.combined);
@@ -209,7 +207,7 @@ public class WG extends ApplicationAdapter {
 				}
 			}
 		};
-		//gui.button(hsr, GUI_BUTTON_POS_BUILD, GUI_BUTTON_SIZ_BUILD, GUI_BUTTON_ACT_BUILD, GUI_BUTTON_DEFAULT_COLORS);
+		gui.button(GUI_BUTTON_POS_BUILD, GUI_BUTTON_SIZ_BUILD, Utils.NULL_ID, GUI_BUTTON_ACT_BUILD, GUI_BUTTON_DEFAULT_COLORS);
 		for (Fraction runhorsey: sm.getFractions()){
 			for (Structure neverlookback: runhorsey.getStructs()){
 				hsr.setColor(runhorsey.getColor());
