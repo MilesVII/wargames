@@ -9,29 +9,24 @@ import com.badlogic.gdx.math.Vector2;
 import net.jlibnoise.generator.Perlin;
 
 public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
-	public static class ColorScheme{
-		public Color WATER, GROUND, MOUNTAIN, TOP;
-		public ColorScheme(Color _w, Color _g, Color _m, Color _t){
-			WATER = _w;
-			GROUND = _g;
-			MOUNTAIN = _m;
-			TOP = _t;
-		}
-	}
+	public static final Color[] DEFAULT_SCHEME = {
+		Color.ORANGE,
+		//Color.LIME,
+		Color.GREEN,
+		Color.BROWN,
+		Color.WHITE
+	};
 	
 	//private static Color workingColor = Color.BLACK;
 	private float[][] noiseMap;
 	private Vector2 size, center;
 	private Pixmap pm;
 	private Random r = new Random();
-	private ColorScheme cs;
 
-	public HeightMap(Vector2 _size, ColorScheme _cs){
+	public HeightMap(Vector2 _size, Color[] cs){
 		size = _size;
-		cs = _cs;
 		center = size.cpy().scl(.5f);
 		
-		Color[] _c = {cs.GROUND, cs.MOUNTAIN, cs.TOP};
 		noiseMap = new float[getWidth()][getHeight()];
 		pm = new Pixmap(getWidth(), getHeight(), Pixmap.Format.RGBA8888);
 		float _noise;
@@ -53,9 +48,10 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 						_noise = 1;
 					if (_noise < 0f)
 						_noise = 0;
-					pm.setColor(Utils.getGradColor(_c, _noise));
+					pm.setColor(Utils.getGradColor(cs, _noise));
 					noiseMap[x][getHeight() - y - 1] = _noise;//getHeight() - y - 1
 					pm.drawPixel(x, y);
+					WG.antistatic.updateLoadingBar((x * getHeight() + y) / (float)(getWidth() * getHeight()));
 			}
 	}
 

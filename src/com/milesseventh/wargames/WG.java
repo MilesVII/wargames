@@ -89,6 +89,13 @@ public class WG extends ApplicationAdapter {
 	//public GameplayState gpstate = GameplayState.DEFAULT;
 	private Structure pieMenuState = null; // null if no pie menu opened
 	public Dialog currentDialog = Dialog.NONE;
+	
+	private float loadingProgress = 0;
+	private long dtholder;//(float)(System.currentTimeMillis()
+	public synchronized void updateLoadingBar(float set){
+		loadingProgress = set;
+	}
+	
 	@Override
 	public void create () {
 		antistatic = this;
@@ -111,18 +118,24 @@ public class WG extends ApplicationAdapter {
 		
 		batch = new SpriteBatch();
 		
-		map = new HeightMap(new Vector2(WORLD_W, WORLD_H), new HeightMap.ColorScheme(Color.GREEN, Color.LIME, Color.BROWN, Color.WHITE));
-		landOutline = new Marching(map, map.getSize(), MARCHING_STEP, Marching.Mode.PRERENDERED);
-		_marchT = new Texture(landOutline.getRendered());
+		Thread mapInit = new Thread(new Runnable(){
+			@Override
+			public void run() {
+				map = new HeightMap(new Vector2(WORLD_W, WORLD_H), HeightMap.DEFAULT_SCHEME);
+				System.out.println("Map generated in " + (System.currentTimeMillis() - dtholder) + "ms");
+				landOutline = new Marching(map, map.getSize(), MARCHING_STEP, Marching.Mode.PRERENDERED);
+				loadingProgress = -1;
+			}
+		});
+		dtholder = System.currentTimeMillis();
+		mapInit.start();
+		
 		//unitsOutline = new Marching(t, map.getSize(), MARCHING_STEP, Marching.Mode.RAW);
 		
-		_noiseT = new Texture(map.getPixmap());
 		//landWalker = new Pathfinder(map, 4);
 		//landWalker.isAccessible(new Vector2(20, 20),  new Vector2(40, 40));
 		
 		//Game mechanics
-		Fraction[] _ = {new Fraction(0, Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
-		sm = new SessionManager(_);
 		gui = new GUI(this);
 	}
 
@@ -144,6 +157,7 @@ public class WG extends ApplicationAdapter {
 		gui.font = font;
 	}
 	
+	private static final float LOADINGBAR_W = .7f, LOADINGBAR_H = .05f;
 	@Override
 	public void render () {
 		//Cursor coordinates update
@@ -153,9 +167,29 @@ public class WG extends ApplicationAdapter {
 		Utils.WorldMousePosition.y = getWorldMouseY();
 		Utils.isTouchJustReleased = (preTouched != Gdx.input.isTouched() && !Gdx.input.justTouched());
 		preTouched = Gdx.input.isTouched();
+		
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		
+		if (loadingProgress >= 0){
+			hsr.setColor(Color.BLACK);
+			hsr.setAutoShapeType(true);
+			hsr.begin(ShapeType.Filled);
+			hsr.rect(UI_W * (1 - LOADINGBAR_W) / 2f, UI_H * (1 - LOADINGBAR_H) / 2f, LOADINGBAR_W * loadingProgress * UI_W, LOADINGBAR_H * UI_H);
+			hsr.set(ShapeType.Line);
+			hsr.rect(UI_W * (1 - LOADINGBAR_W) / 2f, UI_H * (1 - LOADINGBAR_H) / 2f, LOADINGBAR_W * UI_W, LOADINGBAR_H * UI_H);
+			hsr.end();
+			return;
+		} else if (loadingProgress == -1){//Map generated
+			_noiseT = new Texture(map.getPixmap());
+			_marchT = new Texture(landOutline.getRendered());
+			Fraction[] _ = {new Fraction(0, Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
+			sm = new SessionManager(_);
+			loadingProgress = -2;
+		};
+		
 		update();
+		
 		camera.update();
 		batch.setProjectionMatrix(camera.combined);
 		sr.setProjectionMatrix(camera.combined);
@@ -234,12 +268,12 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	private void update(){
-		//Debug controls
+		/*//Debug controls
 		if (Gdx.input.isKeyPressed(Input.Keys.M)){
 			//Generate new map
 			map = new HeightMap(new Vector2(WORLD_W, WORLD_H), new HeightMap.ColorScheme(Color.GREEN, Color.LIME, Color.BROWN, Color.WHITE));
 			_noiseT = new Texture(map.getPixmap());
-		}
+		}*/
 		if (Gdx.input.isKeyPressed(Input.Keys.C)){
 			//Try to build a city
 			Vector2 _np = new Vector2(getWorldMouseX(), getWorldMouseY());
