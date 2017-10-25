@@ -11,9 +11,9 @@ import net.jlibnoise.generator.Perlin;
 public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 	public static final Color[] DEFAULT_SCHEME = {
 		Color.ORANGE,
-		//Color.LIME,
 		Color.GREEN,
 		Color.BROWN,
+		Color.WHITE,
 		Color.WHITE
 	};
 	
