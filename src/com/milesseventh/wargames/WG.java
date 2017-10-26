@@ -22,7 +22,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class WG extends ApplicationAdapter {
 	public enum Dialog{
-		NONE, UNITS_BUILDING, RESOURCE_MANAGER, UNITS_ASSEMBLY
+		NONE, LABORATORY
 	}
 	public enum UnitsTechnology{
 		COLUMN_INTERCEPTION, SIEGE, DEFENCE, MOBILE_ATTACK
@@ -32,8 +32,8 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	//Game constants
-	public static final int WORLD_W = 1200, WORLD_H = 1200,
-	                        UI_W = 700, UI_H = 700;
+	public static final int WORLD_W = 700, WORLD_H = 700,
+	                        UI_W = 512, UI_H = 512;
 	public static final int MARCHING_STEP = 4;
 	public static final float CAM_ZOOM_MIN = .2f,
 	                          CAM_ZOOM_STEP = .02f;
@@ -172,11 +172,12 @@ public class WG extends ApplicationAdapter {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		
 		if (loadingProgress >= 0){
-			hsr.setColor(Color.BLACK);
 			hsr.setAutoShapeType(true);
 			hsr.begin(ShapeType.Filled);
+			hsr.setColor(218/255f, 64/255f, 0, 1);
 			hsr.rect(UI_W * (1 - LOADINGBAR_W) / 2f, UI_H * (1 - LOADINGBAR_H) / 2f, LOADINGBAR_W * loadingProgress * UI_W, LOADINGBAR_H * UI_H);
 			hsr.set(ShapeType.Line);
+			hsr.setColor(Color.BLACK);
 			hsr.rect(UI_W * (1 - LOADINGBAR_W) / 2f, UI_H * (1 - LOADINGBAR_H) / 2f, LOADINGBAR_W * UI_W, LOADINGBAR_H * UI_H);
 			hsr.end();
 			return;
@@ -208,7 +209,7 @@ public class WG extends ApplicationAdapter {
 		//uiBatch.flush();
 		
 		
-		Runnable[] r = {
+		/*Runnable[] r = {
 			new Runnable(){
 				@Override
 				public void run(){
@@ -240,7 +241,7 @@ public class WG extends ApplicationAdapter {
 					System.out.println("4");
 				}
 			}
-		};
+		};*/
 		gui.button(GUI_BUTTON_POS_BUILD, GUI_BUTTON_SIZ_BUILD, Utils.NULL_ID, GUI_BUTTON_ACT_BUILD, GUI_BUTTON_DEFAULT_COLORS);
 		for (Fraction runhorsey: sm.getFractions()){
 			for (Structure neverlookback: runhorsey.getStructs()){
@@ -256,7 +257,7 @@ public class WG extends ApplicationAdapter {
 			}
 		}
 		if (pieMenuState != null)
-			gui.piemenu(hsr, getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, r);
+			gui.piemenu(getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, pieMenuState.getPieMenuActionsNumber(), Structure.PIEMENU_ACTIONS_CITY);
 		if (currentDialog != Dialog.NONE){
 			gui.dialog(currentDialog);
 		}
@@ -278,11 +279,11 @@ public class WG extends ApplicationAdapter {
 			//Try to build a city
 			Vector2 _np = new Vector2(getWorldMouseX(), getWorldMouseY());
 			if (Utils.debugCheckPlaceForNewStructure(map, sm.getCurrent(), _np)){
-				sm.getCurrent().registerStructure(new Structure(_np, sm.getCurrent()));
+				sm.getCurrent().registerStructure(new Structure(_np, Structure.StructureType.CITY, sm.getCurrent()));
 			}
 		}
 		//Debug mechanics
-		sm.getFractions()[0].getStructs().get(0).addResource(Structure.RES_ORE, .001f);
+		sm.getFractions()[0].getStructs().get(0).addResource(Structure.Resource.ORE, .001f);
 		
 		//Camera controls
 		if (Gdx.input.isKeyPressed(Input.Keys.A)){

@@ -17,7 +17,7 @@ public class Fraction {
 		name = _name;
 		fractionColor = _color;
 		
-		capital = new Structure(_pos, this);
+		capital = new Structure(_pos, Structure.StructureType.CITY, this);
 		structs.add(capital);
 	}
 	
@@ -35,5 +35,9 @@ public class Fraction {
 	
 	public Color getColor(){
 		return fractionColor;
+	}
+	
+	public Structure getCapital(){
+		return capital;
 	}
 }

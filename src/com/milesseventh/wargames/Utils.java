@@ -34,18 +34,8 @@ public class Utils {
 	
 	public static Color getGradColor(Color[] colors, float percent){
 		float step = 1 / (float) (colors.length - 1);
-		int c = Math.round(exactDivision(percent, step) / step) - (percent == 1 ? 1 : 0);
-		return getGradColor(colors[c], colors[c + 1], modulus(percent, step) / step);
-	}
-	
-	public static float modulus(float a, float b){
-		while (a >= b)
-			a -= b;
-		return a;
-	}
-	
-	public static float exactDivision(float a, float b){
-		return a - modulus(a, b);
+		int c = Math.round((percent - percent % step) / step) - (percent == 1 ? 1 : 0);
+		return getGradColor(colors[c], colors[c + 1], (percent % step) / step);
 	}
 	
 	private static final float DBG_MIN_CITY_H = .10f, DBG_MAX_CITY_H = .32f;

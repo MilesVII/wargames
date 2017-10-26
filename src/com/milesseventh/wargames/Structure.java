@@ -1,89 +1,95 @@
 package com.milesseventh.wargames;
 
-import java.util.ArrayList;
-
 import com.badlogic.gdx.math.Vector2;
 
 public class Structure{
-	///////////////////////////////////////
-	//MERGED WITH StationaryUnit.java
-	//TO BE REVIEWED
+	//////////////////////////////////////////////////////////////////
+	//STRUCTURE TYPES:
+	//> City: WLUCIT;           Universal sructure. Medium defence
+	//> Miner: WL               Ore miner. Improved resource loader, no defence
+	//> Missile Launcher: WLM   Missile silo. Weak defence, has weak radar
+	//> Radar: none             Radar. Controls missile's flight, weak defence
+	//> AMD: WL                 Anti-Missile Defence. Weak defence, can shoot down incoming missiles.
+	//> Military Base: WLUC     Military forification. Can build own units, strong defence
+	//COMPONENTS OF STRUCTURE:
+	//> W = Warehouse (no own dialog)
+	//> L = Column loading
+	//> U = Units building (Cities and MB's only)
+	//> C = Column management (Cities only)
+	//> T = Lab (Capital city only)
+	//> I = Industrial management (Cities only)
+	//> M = Missile launch
 	
-	//private ArrayList<Mine> mines = new ArrayList<Mine>();
-	private float[] resources = {0, 0, 0};
-	public static final int RES_ORE = 0, RES_MET = 1, RES_AMMO = 2;
-	public static final float DEFAULT_RANGE = 27, DEFAULT_CONDITION = 100;
+	private float[] resources = {0, 0, 0, 0, 0, 0};
+	public enum Resource {
+		ORE, METAL, AMMO, MISSILE, OIL, FUEL
+	}
 	
-	//Imported block
-	private float ownRange;//Radius of circle that will be added to fraction's territory
-	private Fraction ownerFraction;//ID of fraction that owns this unit
+	public enum StructureType{
+		CITY, MINER, ML, RADAR, AMD, MB 
+	}
+	//                                             C   M   ML   R  AMD   MB
+	public static final float[] DEFAULT_RANGES = { 22,  0, 17, 12,  27,  42};
+	public static final float[] DEFAULT_MAXCDS = {420, 70, 42, 70, 120, 200};
+	public static final int[]   PIEMENU_ACTCNT = {  5,  0,  0,  0,   0,   0};
+	
+	private float range;//Radius of circle that will be added to fraction's territory
+	public Fraction ownerFraction;//ID of fraction that owns this unit
 	private float condition, maxCondition;
 	private Vector2 position;
-	/////////////////
+	public StructureType type;
 	
-	public Structure(Vector2 _pos, Fraction _owner) {
-		position = _pos;
-		ownerFraction = _owner;
-	}
-
-	/*public float getGroupResource(int _resType){
-		if (_resType >= 0 && _resType < 3)
-			//TO: Recursively sum up resources of all neighbours
-			return 0;
-		else {
-			System.err.println("City.java: Wrong _resType");
-			return 0;
+	public static final Croupfuck PIEMENU_ACTIONS_CITY = new Croupfuck(){
+		@Override
+		public void action(int source) {
+			switch(source){
+			case(0):
+				System.out.println("Cancelled");
+				break;
+			case(1):
+				WG.antistatic.currentDialog = WG.Dialog.LABORATORY;
+			}
 		}
-	}*/
+	};
 	
-	/*public void addMine(Mine _m){
-		mines.add(_m);
+	public Structure(Vector2 pos, StructureType st, Fraction owner) {
+		position = pos;
+		ownerFraction = owner;
+		type = st;
+		range = DEFAULT_RANGES[type.ordinal()];//Assign firing range and condition on the assumption of type
+		condition = maxCondition = DEFAULT_MAXCDS[type.ordinal()];
 	}
 	
-	public void mineDestroyed(Mine _m){
-		mines.remove(_m);
-	}*/
-	
-	public float getResource(int _resType){
-		if (_resType >= 0 && _resType < 3)
-			return resources[_resType];
-		else {
-			System.err.println("City.java: Wrong _resType");
-			return 0;
-		}
+	public static int getPieMenuActionsNumber(StructureType st){
+		return PIEMENU_ACTCNT[st.ordinal()];
 	}
 	
-	public void addResource(int _resType, float _add){
-		if (_resType >= 0 && _resType < 3)
-			resources[_resType] += _add;
+	public int getPieMenuActionsNumber(){
+		return PIEMENU_ACTCNT[type.ordinal()];
 	}
 	
-	public boolean tryRemoveResource(int _resType, float _subtr){
-		if (_resType >= 0 && _resType < 3)
-			if (resources[_resType] >= _subtr){
-				resources[_resType] -= _subtr;
-				return true;
-			} else
-				return false;
-		return false;
+	public float getResource(Resource _resType){
+		return resources[_resType.ordinal()];
 	}
 	
-	//Imported block
-	public void changeOwner(Fraction _newMaster){
-		ownerFraction = _newMaster;
+	public void addResource(Resource _resType, float _add){
+		resources[_resType.ordinal()] += _add;
 	}
 	
-	public Fraction getFraction(){
-		return ownerFraction;
+	public boolean tryRemoveResource(Resource _resType, float _subtr){
+		if (resources[_resType.ordinal()] >= _subtr){
+			resources[_resType.ordinal()] -= _subtr;
+			return true;
+		} else
+			return false;
 	}
 	
-	public void onDestroy() {
+	protected void onDestroy() {
 		ownerFraction.unregisterStructure(this);
-		//And do some unique city destructive stuff
 	}
 	
-	public float getOwnRange(){
-		return (ownRange);
+	public float getRange(){
+		return range;
 	}
 	
 	public void hit(float _damage){
@@ -104,15 +110,7 @@ public class Structure{
 		return position;
 	}
 
-	public void setPosition(Vector2 _n){
+	/*public void setPosition(Vector2 _n){
 		position = _n;
-	}
-	
-	public float getX(){
-		return position.x;
-	}
-	
-	public float getY(){
-		return position.y;
-	}
+	}*/
 }

@@ -61,17 +61,17 @@ public class GUI {
 	}
 	
 	private static final int PIE_MENU_SECTOR_MARGIN = 5;
-	public void piemenu(ShapeRenderer sr, Vector2 position, float radius, Color unselected, Color selected, Runnable[] actions){
-		for(int i = 0; i < actions.length; i++){
+	public void piemenu(Vector2 position, float radius, Color unselected, Color selected, int size, Croupfuck action){
+		for(int i = 0; i < size; i++){
 			float angle = Utils.getAngle(context.getUIFromWorldV(Utils.WorldMousePosition).sub(position));
-			if (angle > i * (360 / (float) actions.length) + PIE_MENU_SECTOR_MARGIN &&
-			    angle < (i + 1) * (360 / (float) actions.length) + PIE_MENU_SECTOR_MARGIN){
+			if (angle > i * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN &&
+			    angle < (i + 1) * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN){
 				if (Utils.isTouchJustReleased)
-					actions[i].run();
+					action.action(i);;
 				sr.setColor(selected);
 			} else
 				sr.setColor(unselected);
-			Utils.drawTrueArc(sr, position, 20, i * (360 / (float) actions.length) + PIE_MENU_SECTOR_MARGIN, (360 / (float) actions.length) - 2 * PIE_MENU_SECTOR_MARGIN, 70);
+			Utils.drawTrueArc(sr, position, 20, i * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN, (360 / (float) size) - 2 * PIE_MENU_SECTOR_MARGIN, 70);
 		}
 	}
 
@@ -84,7 +84,7 @@ public class GUI {
 		button(WG.GUI_BUTTON_POS_CLOSE, WG.GUI_BUTTON_SIZ_CLOSE, Utils.NULL_ID, WG.GUI_BUTTON_ACT_CLOSE, GUI_BUTTON_CLOSE_COLORS);
 		
 		switch (dialog){
-		case UNITS_BUILDING:
+		case LABORATORY:
 			String[] str = {"1", "2", "3", "4", "5", "1", "2", "3", "4", "5", "1", "2", "3", "4", "5"};
 			
 			//scrollableList(DBG_DIM_SL_POS, DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
@@ -92,12 +92,8 @@ public class GUI {
 			//scrollableList(DBG_DIM_SL_POS.cpy().add(DBG_DIM_SL_SIZ.x * 1.7f, 0), DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
 			//           str, run, dbg_sb2);
 			hscroller(dbg_sb3, .1f, -1);
-			buttonWithCaption(Utils.getVector(DBG_DIM_SL_POS.x + DBG_DIM_SL_SIZ.x * 1.7f, DBG_DIM_SL_POS.y), Utils.getVector(200, 20), null, GUI_BUTTON_CLOSE_COLORS, "" + currentDialogStruct.getResource(Structure.RES_ORE));
+			buttonWithCaption(Utils.getVector(DBG_DIM_SL_POS.x + DBG_DIM_SL_SIZ.x * 1.7f, DBG_DIM_SL_POS.y), Utils.getVector(200, 20), null, GUI_BUTTON_CLOSE_COLORS, "" + currentDialogStruct.getResource(Structure.Resource.ORE));
 		//caption(font, batch, new Vector2(200, 200), "KFNIE");
-			break;
-		case RESOURCE_MANAGER:
-			break;
-		case UNITS_ASSEMBLY:
 			break;
 		default:
 			break;

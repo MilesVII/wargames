@@ -9,7 +9,7 @@ public class Unit {
 	
 	public Unit(Structure _city, Type _type) {
 		city = _city;
-		owner = city.getFraction();
+		owner = city.ownerFraction;
 		type = _type;
 	}
 
