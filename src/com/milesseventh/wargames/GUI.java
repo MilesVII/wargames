@@ -37,7 +37,13 @@ public class GUI {
 	public ShapeRenderer sr;
 	public BitmapFont font;
 	public Structure currentDialogStruct;
-	private UIScrollbar vsb1 = new UIScrollbar(), vsb2 = new UIScrollbar(), dbg_sb3 = new UIScrollbar();
+	//Occupied: 0-7
+	private UIScrollbar[] sb = {new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
+					            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
+					            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
+					            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
+					            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
+					            new UIScrollbar(), new UIScrollbar(), new UIScrollbar()};//bleh
 	
 	public static final Vector2 DIM_DIALOG_REFPOINT = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2);
 	public static final Vector2 DIM_DIALOG_SIZE = new Vector2(WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
@@ -92,6 +98,8 @@ public class GUI {
 		}
 	}
 	
+	private static final float DIM_SCROLLLIST_WIDTH_235 = DIM_DIALOG_SIZE.x * .235f,
+	                           DIM_X_50 = DIM_DIALOG_SIZE.x * .5f;
 	public void dialog(WG.Dialog dialog){
 		sr.setColor(WG.GUI_DIALOG_BGD);
 		sr.rect(DIM_DIALOG_REFPOINT.x, DIM_DIALOG_REFPOINT.y, DIM_DIALOG_SIZE.x, DIM_DIALOG_SIZE.y);
@@ -99,9 +107,21 @@ public class GUI {
 		
 		switch (dialog){
 		case LABORATORY:
-			scrollableList(Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_MARGIN, DIM_MARGIN), Utils.getVector(DIM_DIALOG_SIZE).scl(.235f, DIM_DIALOG_HEIGHT_REL), DIM_SCROLLBAR_WIDTH, WG.GUI_BUTTON_DEFAULT_COLORS,
-			               Fraction.specialTechnologyTitles, DBG_LIST_ACT, vsb1);
-			//hscroller(dbg_sb3, .1f, -1);
+			scrollableList(Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_MARGIN, DIM_MARGIN), 
+			               Utils.getVector(DIM_DIALOG_SIZE).scl(.235f, DIM_DIALOG_HEIGHT_REL), 
+			               DIM_SCROLLBAR_WIDTH, WG.GUI_BUTTON_DEFAULT_COLORS,
+			               Fraction.specialTechnologyTitles, DBG_LIST_ACT, sb[0]);
+			scrollableList(Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_MARGIN * 2 + DIM_SCROLLLIST_WIDTH_235, DIM_MARGIN), 
+			               Utils.getVector(DIM_DIALOG_SIZE).scl(.235f, DIM_DIALOG_HEIGHT_REL), 
+			               DIM_SCROLLBAR_WIDTH, WG.GUI_BUTTON_DEFAULT_COLORS,
+			               Fraction.specialTechnologyTitles, DBG_LIST_ACT, sb[1]);
+			for (int i = 0; i < Fraction.Technology.values().length; i++){
+				hscroller(Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_X_50, DIM_DIALOG_SIZE.y * (DIM_DIALOG_HEIGHT_REL - .06f * (float) i)), 
+				          Utils.getVector(DIM_DIALOG_SIZE.x * .2f, DIM_DIALOG_SIZE.y * .05f), sb[2 + i], .42f, (int)Fraction.MAXTECH);//Maxprior
+				caption(Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_X_50 + DIM_DIALOG_SIZE.x * .25f, DIM_DIALOG_SIZE.y * (DIM_DIALOG_HEIGHT_REL - .06f * (float) i)), 
+				        Fraction.technologyTitles[i] + ": " + WG.antistatic.sm.getCurrent().techLevel(Fraction.Technology.values()[i]) * 100  + '%');
+				WG.antistatic.sm.getCurrent().tech[i] = sb[2 + i].offset;
+			}
 			//buttonWithCaption(Utils.getVector(DBG_DIM_SL_POS.x + DBG_DIM_SL_SIZ.x * 1.7f, DBG_DIM_SL_POS.y), Utils.getVector(200, 20), null, GUI_BUTTON_CLOSE_COLORS, "" + currentDialogStruct.getResource(Structure.Resource.ORE));
 		//caption(font, batch, new Vector2(200, 200), "KFNIE");
 			break;
@@ -113,10 +133,6 @@ public class GUI {
 	private static final int SCROLL_LIST_MARGIN = 2;
 	public void scrollableList(Vector2 position, Vector2 size, float scrollbarWidth, 
 	                           Color[] entryColor, String[] captions, Croupfuck actions, UIScrollbar bar){
-		/*if (captions.length != actions.length){
-			System.err.println("GUI.java:scrollableList(): Invalid list content");
-			return;
-		}*/
 		int entriesPerPage = (int) Math.floor(size.y / (font.getLineHeight() + SCROLL_LIST_MARGIN));
 		if (entriesPerPage < captions.length){
 			//Нивлезаит
@@ -139,7 +155,7 @@ public class GUI {
 			for (int i = 0; i < captions.length; i++){
 				button(Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
 						Utils.getVector(size).scl(1, 1 / (float) entriesPerPage), i + bar.offset, actions, entryColor);
-				caption(Utils.getVector(position).add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i]);
+				caption(Utils.getVector(position).add(2, size.y * (1 - i / (float) entriesPerPage) - 3), captions[i]);
 			}
 		}
 	}
@@ -169,15 +185,13 @@ public class GUI {
 		sr.rect(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.max - 1)) * (sb.size.y - sb_h), sb.size.x, sb_h);
 	}	
 	
-	private void hscroller(UIScrollbar sb, float widthPart, int limit){
+	private void hscroller(Vector2 position, Vector2 size, UIScrollbar sb, float widthPart, int max){
 		if (sb.firstUse){
-			sb.max = 7;
-			//sb.position = new Vector2(20, DBG_DIM_SL_POS.y + 40);
-			sb.size = new Vector2(270, 20);
+			sb.max = max;
+			sb.position = position.cpy();
+			sb.size = size.cpy();
 			sb.firstUse = false;
 		}
-		
-		caption(Utils.getVector(sb.position).add(sb.size.x, 0), "Off: " + sb.offset + "/" + sb.max);
 		
 		if (!Gdx.input.isTouched())
 			sb.isActive = false;

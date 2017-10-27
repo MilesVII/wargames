@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 
 public class Fraction {
-	public float[] tech         = {0, 0, 0, 0, 0};
+	public float[] tech         = {0, 0, 0, 0, 0, 0};
 	public static final float MAXTECH = 1000;
 	public int[] techPriorities = {1, 1, 1, 1, 1};
 	public static final int MAXPRIOR = 100;
