@@ -37,7 +37,24 @@ public class GUI {
 	public ShapeRenderer sr;
 	public BitmapFont font;
 	public Structure currentDialogStruct;
-	private UIScrollbar dbg_sb1 = new UIScrollbar(), dbg_sb2 = new UIScrollbar(), dbg_sb3 = new UIScrollbar();
+	private UIScrollbar vsb1 = new UIScrollbar(), vsb2 = new UIScrollbar(), dbg_sb3 = new UIScrollbar();
+	
+	public static final Vector2 DIM_DIALOG_REFPOINT = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2);
+	public static final Vector2 DIM_DIALOG_SIZE = new Vector2(WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
+	
+	public static final Vector2 DIM_BUTTON_SIZ_CLOSE = new Vector2(WG.UI_W * .1f, WG.UI_H * .05f),//Close dialog button
+	                            DIM_BUTTON_POS_CLOSE = new Vector2(WG.UI_W, WG.UI_H - (WG.UI_H - WG.UI_H * WG.DIALOG_HEIGHT) / 2).sub(DIM_BUTTON_SIZ_CLOSE),
+	                            DIM_BUTTON_CNT_CLOSE = DIM_BUTTON_POS_CLOSE.cpy().sub(DIM_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
+	public static final float DIM_MARGIN = WG.UI_W * .010f, 
+	                          DIM_DIALOG_HEIGHT_REL = (DIM_DIALOG_SIZE.y - DIM_MARGIN * 2 - DIM_BUTTON_SIZ_CLOSE.y) / DIM_DIALOG_SIZE.y,
+	                          DIM_SCROLLBAR_WIDTH = .2f; 
+	public static final Croupfuck GUI_BUTTON_ACT_CLOSE = new Croupfuck(){
+		@Override
+			public void action(int source) {
+			WG.antistatic.currentDialog = WG.Dialog.NONE;
+		}
+	};
+	
 	public GUI(WG _context){
 		context = _context;
 	}
@@ -67,32 +84,25 @@ public class GUI {
 			if (angle > i * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN &&
 			    angle < (i + 1) * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN){
 				if (Utils.isTouchJustReleased)
-					action.action(i);;
+					action.action(i);
 				sr.setColor(selected);
 			} else
 				sr.setColor(unselected);
 			Utils.drawTrueArc(sr, position, 20, i * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN, (360 / (float) size) - 2 * PIE_MENU_SECTOR_MARGIN, 70);
 		}
 	}
-
-	private static final Vector2 DBG_DIM_SL_POS = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2).add(10, 10);
-	private static final Vector2 DBG_DIM_SL_SIZ = new Vector2(WG.UI_W * .3f, WG.DIALOG_HEIGHT * WG.UI_H / 2 - 20);
-	private static final float DBG_DIM_SB_W = .12f;
+	
 	public void dialog(WG.Dialog dialog){
 		sr.setColor(WG.GUI_DIALOG_BGD);
-		sr.rect(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2, WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
-		button(WG.GUI_BUTTON_POS_CLOSE, WG.GUI_BUTTON_SIZ_CLOSE, Utils.NULL_ID, WG.GUI_BUTTON_ACT_CLOSE, GUI_BUTTON_CLOSE_COLORS);
+		sr.rect(DIM_DIALOG_REFPOINT.x, DIM_DIALOG_REFPOINT.y, DIM_DIALOG_SIZE.x, DIM_DIALOG_SIZE.y);
+		button(DIM_BUTTON_POS_CLOSE, DIM_BUTTON_SIZ_CLOSE, Utils.NULL_ID, GUI_BUTTON_ACT_CLOSE, GUI_BUTTON_CLOSE_COLORS);
 		
 		switch (dialog){
 		case LABORATORY:
-			String[] str = {"1", "2", "3", "4", "5", "1", "2", "3", "4", "5", "1", "2", "3", "4", "5"};
-			
-			//scrollableList(DBG_DIM_SL_POS, DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
-			//               str, DBG_LIST_ACT, dbg_sb1);
-			//scrollableList(DBG_DIM_SL_POS.cpy().add(DBG_DIM_SL_SIZ.x * 1.7f, 0), DBG_DIM_SL_SIZ, DBG_DIM_SB_W, WG.GUI_BUTTON_DEFAULT_COLORS,
-			//           str, run, dbg_sb2);
-			hscroller(dbg_sb3, .1f, -1);
-			buttonWithCaption(Utils.getVector(DBG_DIM_SL_POS.x + DBG_DIM_SL_SIZ.x * 1.7f, DBG_DIM_SL_POS.y), Utils.getVector(200, 20), null, GUI_BUTTON_CLOSE_COLORS, "" + currentDialogStruct.getResource(Structure.Resource.ORE));
+			scrollableList(Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_MARGIN, DIM_MARGIN), Utils.getVector(DIM_DIALOG_SIZE).scl(.235f, DIM_DIALOG_HEIGHT_REL), DIM_SCROLLBAR_WIDTH, WG.GUI_BUTTON_DEFAULT_COLORS,
+			               Fraction.specialTechnologyTitles, DBG_LIST_ACT, vsb1);
+			//hscroller(dbg_sb3, .1f, -1);
+			//buttonWithCaption(Utils.getVector(DBG_DIM_SL_POS.x + DBG_DIM_SL_SIZ.x * 1.7f, DBG_DIM_SL_POS.y), Utils.getVector(200, 20), null, GUI_BUTTON_CLOSE_COLORS, "" + currentDialogStruct.getResource(Structure.Resource.ORE));
 		//caption(font, batch, new Vector2(200, 200), "KFNIE");
 			break;
 		default:
@@ -162,7 +172,7 @@ public class GUI {
 	private void hscroller(UIScrollbar sb, float widthPart, int limit){
 		if (sb.firstUse){
 			sb.max = 7;
-			sb.position = new Vector2(20, DBG_DIM_SL_POS.y + 40);
+			//sb.position = new Vector2(20, DBG_DIM_SL_POS.y + 40);
 			sb.size = new Vector2(270, 20);
 			sb.firstUse = false;
 		}

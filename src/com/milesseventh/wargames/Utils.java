@@ -77,7 +77,7 @@ public class Utils {
 		}
 	}
 	
-	private static final int VECTORS_IN_POOL = 17;
+	private static final int VECTORS_IN_POOL = 64;
 	public static Vector2[] vpool = new Vector2[VECTORS_IN_POOL];
 	private static int vectorsCounter = 0, holder;
 	public static Vector2 getVector(){//new Vector2() alternative

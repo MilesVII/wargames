@@ -24,16 +24,10 @@ public class WG extends ApplicationAdapter {
 	public enum Dialog{
 		NONE, LABORATORY
 	}
-	public enum UnitsTechnology{
-		COLUMN_INTERCEPTION, SIEGE, DEFENCE, MOBILE_ATTACK
-	}
-	public enum MissilesTechnology{
-		WARHEAD_FRAGMENTATION, THERMAL_TRAPS
-	}
 	
 	//Game constants
 	public static final int WORLD_W = 700, WORLD_H = 700,
-	                        UI_W = 512, UI_H = 512;
+	                        UI_W = 700, UI_H = 700;
 	public static final int MARCHING_STEP = 4;
 	public static final float CAM_ZOOM_MIN = .2f,
 	                          CAM_ZOOM_STEP = .02f;
@@ -57,15 +51,6 @@ public class WG extends ApplicationAdapter {
 		@Override
 		public void action(int source) {
 			camera.zoom = Math.max(camera.zoom -= CAM_ZOOM_STEP, CAM_ZOOM_MIN);
-		}
-	};
-	public static final Vector2 GUI_BUTTON_SIZ_CLOSE = new Vector2(UI_W * .1f, UI_H * .05f),//Close dialog button
-	                            GUI_BUTTON_POS_CLOSE = new Vector2(UI_W, UI_H - (UI_H - UI_H * DIALOG_HEIGHT) / 2).sub(GUI_BUTTON_SIZ_CLOSE),
-	                            GUI_BUTTON_CNT_CLOSE = GUI_BUTTON_POS_CLOSE.cpy().sub(GUI_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
-	public static final Croupfuck GUI_BUTTON_ACT_CLOSE = new Croupfuck(){
-		@Override
-			public void action(int source) {
-			WG.antistatic.currentDialog = WG.Dialog.NONE;
 		}
 	};
 	
@@ -184,7 +169,7 @@ public class WG extends ApplicationAdapter {
 		} else if (loadingProgress == -1){//Map generated
 			_noiseT = new Texture(map.getPixmap());
 			_marchT = new Texture(landOutline.getRendered());
-			Fraction[] _ = {new Fraction(0, Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
+			Fraction[] _ = {new Fraction(Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
 			sm = new SessionManager(_);
 			loadingProgress = -2;
 		};
