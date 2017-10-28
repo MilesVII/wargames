@@ -77,6 +77,10 @@ public class Utils {
 		}
 	}
 	
+	public static Vector2 normalToUI(Vector2 in, boolean isCoordinate){
+		return in.scl(WG.UI_W, GUI.DIM_DIALOG_SIZE.y - GUI.DIM_BUTTON_SIZ_CLOSE.y - GUI.DIM_MARGIN * 2 * WG.UI_H).add(isCoordinate?GUI.DIM_DIALOG_REFPOINT:Vector2.Zero);
+	}
+	
 	private static final int VECTORS_IN_POOL = 64;
 	public static Vector2[] vpool = new Vector2[VECTORS_IN_POOL];
 	private static int vectorsCounter = 0, holder;

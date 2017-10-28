@@ -39,21 +39,20 @@ public class GUI {
 	public Structure currentDialogStruct;
 	//Occupied: 0-7
 	private UIScrollbar[] sb = {new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
-					            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
-					            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
-					            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
-					            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
-					            new UIScrollbar(), new UIScrollbar(), new UIScrollbar()};//bleh
+	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
+	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
+	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
+	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
+	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar()};//bleh
 	
-	public static final Vector2 DIM_DIALOG_REFPOINT = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2);
-	public static final Vector2 DIM_DIALOG_SIZE = new Vector2(WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
+	public static final Vector2 DIM_DIALOG_REFPOINT = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2),
+	                            DIM_DIALOG_SIZE = new Vector2(WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
 	
 	public static final Vector2 DIM_BUTTON_SIZ_CLOSE = new Vector2(WG.UI_W * .1f, WG.UI_H * .05f),//Close dialog button
 	                            DIM_BUTTON_POS_CLOSE = new Vector2(WG.UI_W, WG.UI_H - (WG.UI_H - WG.UI_H * WG.DIALOG_HEIGHT) / 2).sub(DIM_BUTTON_SIZ_CLOSE),
 	                            DIM_BUTTON_CNT_CLOSE = DIM_BUTTON_POS_CLOSE.cpy().sub(DIM_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
-	public static final float DIM_MARGIN = WG.UI_W * .010f, 
-	                          DIM_DIALOG_HEIGHT_REL = (DIM_DIALOG_SIZE.y - DIM_MARGIN * 2 - DIM_BUTTON_SIZ_CLOSE.y) / DIM_DIALOG_SIZE.y,
-	                          DIM_SCROLLBAR_WIDTH = .2f; 
+	
+	public static final float DIM_MARGIN = .01f,  DIM_VSCROLLBAR_WIDTH = .2f; 
 	public static final Croupfuck GUI_BUTTON_ACT_CLOSE = new Croupfuck(){
 		@Override
 			public void action(int source) {
@@ -98,8 +97,6 @@ public class GUI {
 		}
 	}
 	
-	private static final float DIM_SCROLLLIST_WIDTH_235 = DIM_DIALOG_SIZE.x * .235f,
-	                           DIM_X_50 = DIM_DIALOG_SIZE.x * .5f;
 	public void dialog(WG.Dialog dialog){
 		sr.setColor(WG.GUI_DIALOG_BGD);
 		sr.rect(DIM_DIALOG_REFPOINT.x, DIM_DIALOG_REFPOINT.y, DIM_DIALOG_SIZE.x, DIM_DIALOG_SIZE.y);
@@ -107,18 +104,20 @@ public class GUI {
 		
 		switch (dialog){
 		case LABORATORY:
-			scrollableList(Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_MARGIN, DIM_MARGIN), 
-			               Utils.getVector(DIM_DIALOG_SIZE).scl(.235f, DIM_DIALOG_HEIGHT_REL), 
-			               DIM_SCROLLBAR_WIDTH, WG.GUI_BUTTON_DEFAULT_COLORS,
+			scrollableList(Utils.normalToUI(Utils.getVector(DIM_MARGIN, DIM_MARGIN), true),//Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_MARGIN, DIM_MARGIN), 
+			               Utils.normalToUI(Utils.getVector(.235f, 1), false),//Utils.getVector(DIM_DIALOG_SIZE).scl(.235f, DIM_DIALOG_HEIGHT_REL), 
+			               DIM_VSCROLLBAR_WIDTH, WG.GUI_BUTTON_DEFAULT_COLORS,
 			               Fraction.specialTechnologyTitles, DBG_LIST_ACT, sb[0]);
-			scrollableList(Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_MARGIN * 2 + DIM_SCROLLLIST_WIDTH_235, DIM_MARGIN), 
-			               Utils.getVector(DIM_DIALOG_SIZE).scl(.235f, DIM_DIALOG_HEIGHT_REL), 
-			               DIM_SCROLLBAR_WIDTH, WG.GUI_BUTTON_DEFAULT_COLORS,
+			scrollableList(Utils.normalToUI(Utils.getVector(DIM_MARGIN * 2 + .235f, DIM_MARGIN), true),//Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_MARGIN * 2 + DIM_SCROLLLIST_WIDTH_235, DIM_MARGIN), 
+			               Utils.normalToUI(Utils.getVector(.235f, 1), false),//Utils.getVector(DIM_DIALOG_SIZE).scl(.235f, DIM_DIALOG_HEIGHT_REL), 
+			               DIM_VSCROLLBAR_WIDTH, WG.GUI_BUTTON_DEFAULT_COLORS,
 			               Fraction.specialTechnologyTitles, DBG_LIST_ACT, sb[1]);
 			for (int i = 0; i < Fraction.Technology.values().length; i++){
-				hscroller(Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_X_50, DIM_DIALOG_SIZE.y * (DIM_DIALOG_HEIGHT_REL - .06f * (float) i)), 
-				          Utils.getVector(DIM_DIALOG_SIZE.x * .2f, DIM_DIALOG_SIZE.y * .05f), sb[2 + i], .42f, (int)Fraction.MAXTECH);//Maxprior
-				caption(Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_X_50 + DIM_DIALOG_SIZE.x * .25f, DIM_DIALOG_SIZE.y * (DIM_DIALOG_HEIGHT_REL - .06f * (float) i)), 
+				//Utils.normalToUI(Utils.getVector()),//
+				hscroller(Utils.normalToUI(Utils.getVector(.5f, .95f - i * .06f), true),//Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_X_50, DIM_DIALOG_SIZE.y * (DIM_DIALOG_HEIGHT_REL - .06f * (float) i)), 
+				          Utils.normalToUI(Utils.getVector(.2f, .05f), false),//Utils.getVector(DIM_DIALOG_SIZE.x * .2f, DIM_DIALOG_SIZE.y * .05f), 
+				          sb[2 + i], .42f, (int)Fraction.MAXTECH);//Maxprior
+				caption(Utils.normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f), true),//Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_X_50 + DIM_DIALOG_SIZE.x * .25f, DIM_DIALOG_SIZE.y * (DIM_DIALOG_HEIGHT_REL - .06f * (float) i)), 
 				        Fraction.technologyTitles[i] + ": " + WG.antistatic.sm.getCurrent().techLevel(Fraction.Technology.values()[i]) * 100  + '%');
 				WG.antistatic.sm.getCurrent().tech[i] = sb[2 + i].offset;
 			}
@@ -133,6 +132,8 @@ public class GUI {
 	private static final int SCROLL_LIST_MARGIN = 2;
 	public void scrollableList(Vector2 position, Vector2 size, float scrollbarWidth, 
 	                           Color[] entryColor, String[] captions, Croupfuck actions, UIScrollbar bar){
+		sr.rect(position.x, position.y, size.x, size.y);
+		
 		int entriesPerPage = (int) Math.floor(size.y / (font.getLineHeight() + SCROLL_LIST_MARGIN));
 		if (entriesPerPage < captions.length){
 			//Нивлезаит
