@@ -34,7 +34,9 @@ public class Utils {
 	
 	public static Color getGradColor(Color[] colors, float percent){
 		float step = 1 / (float) (colors.length - 1);
-		int c = Math.round((percent - percent % step) / step) - (percent == 1 ? 1 : 0);
+		if (percent == 1)
+			return colors[colors.length - 1];
+		int c = Math.round((percent - percent % step) / step);
 		return getGradColor(colors[c], colors[c + 1], (percent % step) / step);
 	}
 	

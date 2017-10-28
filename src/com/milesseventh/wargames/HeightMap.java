@@ -4,16 +4,16 @@ import java.util.Random;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-
-import net.jlibnoise.generator.Perlin;
 
 public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 	public static final Color[] DEFAULT_SCHEME = {
-		Color.ORANGE,
-		Color.GREEN,
+			Color.RED,
+		new Color(1, .6824f, .2706f, 1),
+		new Color(1, .6824f, .2706f, 1),
 		Color.BROWN,
-		Color.WHITE,
+		Color.LIGHT_GRAY,
 		Color.WHITE
 	};
 	
@@ -29,29 +29,22 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 		
 		noiseMap = new float[getWidth()][getHeight()];
 		pm = new Pixmap(getWidth(), getHeight(), Pixmap.Format.RGBA8888);
-		float _noise;
-		Perlin _noiseGen = new Perlin();
-		_noiseGen.setSeed(r.nextInt());
+		float noiseValue;
+		SimplexNoise noise = new SimplexNoise();
 		for (int x = 0; x < getWidth(); x++)
 			for (int y = 0; y < getHeight(); y++){
-					_noise = 0;
-					_noise += (float) getNoise(_noiseGen, x, y, 4f);
-					//_noise += (float) getNoise(_noiseGen, x, y, 8f);
-					//_noise += (float) getNoise(_noiseGen, x, y, 16);
-					_noise += (float) getNoise(_noiseGen, x, y, 32f);
-					_noise += (float) getNoise(_noiseGen, x, y, 64f);
-					//_noise += (float) getNoise(_noiseGen, x, y, 128f);
-					//_noise += (float) getNoise(_noiseGen, x, y, 256f);
-					_noise *= 2.7f;//Damn gauss distribution
-					_noise = bulge(x, y, _noise);
-					if (_noise > 1f)
-						_noise = 1;
-					if (_noise < 0f)
-						_noise = 0;
-					pm.setColor(Utils.getGradColor(cs, _noise));
-					noiseMap[x][getHeight() - y - 1] = _noise;//getHeight() - y - 1
-					pm.drawPixel(x, y);
-					WG.antistatic.updateLoadingBar((x * getHeight() + y) / (float)(getWidth() * getHeight()));
+				noiseValue = getNoise(noise, x, y, 16f) * 7;
+				noiseValue += getNoise(noise, x, y, 32f);
+				noiseValue /= 8f;
+				noiseValue = bulge(x, y, noiseValue);
+				noiseValue = MathUtils.clamp(noiseValue, 0, 1);
+				noiseValue = fade(noiseValue);
+				noiseValue = MathUtils.clamp(noiseValue, 0, 1);
+				
+				pm.setColor(Utils.getGradColor(cs, noiseValue));
+				noiseMap[x][getHeight() - y - 1] = noiseValue;//getHeight() - y - 1
+				pm.drawPixel(x, y);
+				WG.antistatic.updateLoadingBar((x * getHeight() + y) / (float)(getWidth() * getHeight()));
 			}
 	}
 
@@ -71,11 +64,12 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 		return pm;
 	}
 	
-	private float getNoise(Perlin _noise, int x, int y, double _zoom){
-		return (float)((1 / _zoom) * 
-				(_noise.getValue(x / (double) getWidth() * _zoom, 
-								y / (double) getHeight() * _zoom, 
-															0f) + 1f) / 2f);
+	private float getNoise(SimplexNoise noise, int x, int y, double zoom){
+		return (float)((noise.eval(x / size.x * zoom, y / size.y * zoom) + 1) / 2f);
+	}
+	
+	private float fade(float t){
+		return t * t * t * (t * (t * 6 - 15) + 10); 
 	}
 	
 	private float bulge(int x, int y, float _n){

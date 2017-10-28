@@ -26,7 +26,7 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	//Game constants
-	public static final int WORLD_W = 700, WORLD_H = 700,
+	public static final int WORLD_W = 1000, WORLD_H = 1000,
 	                        UI_W = 700, UI_H = 700;
 	public static final int MARCHING_STEP = 4;
 	public static final float CAM_ZOOM_MIN = .2f,
@@ -169,8 +169,8 @@ public class WG extends ApplicationAdapter {
 		} else if (loadingProgress == -1){//Map generated
 			_noiseT = new Texture(map.getPixmap());
 			_marchT = new Texture(landOutline.getRendered());
-			Fraction[] _ = {new Fraction(Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
-			sm = new SessionManager(_);
+			//Fraction[] _ = {new Fraction(Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
+			//sm = new SessionManager(_);
 			loadingProgress = -2;
 		};
 		
@@ -228,7 +228,7 @@ public class WG extends ApplicationAdapter {
 			}
 		};*/
 		gui.button(GUI_BUTTON_POS_BUILD, GUI_BUTTON_SIZ_BUILD, Utils.NULL_ID, GUI_BUTTON_ACT_BUILD, GUI_BUTTON_DEFAULT_COLORS);
-		for (Fraction runhorsey: sm.getFractions()){
+		/*for (Fraction runhorsey: sm.getFractions()){
 			for (Structure neverlookback: runhorsey.getStructs()){
 				hsr.setColor(runhorsey.getColor());
 				//if (neverlookback.getPosition().dst(Utils.WorldMousePosition) < CITY_ICON_RADIUS * 1.2f){
@@ -240,7 +240,7 @@ public class WG extends ApplicationAdapter {
 				}
 				hsr.circle(this.getUIFromWorldX(neverlookback.getPosition().x), this.getUIFromWorldY(neverlookback.getPosition().y), CITY_ICON_RADIUS);
 			}
-		}
+		}*/
 		if (pieMenuState != null)
 			gui.piemenu(getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, pieMenuState.getPieMenuActionsNumber(), Structure.PIEMENU_ACTIONS_CITY);
 		if (currentDialog != Dialog.NONE){
@@ -254,12 +254,7 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	private void update(){
-		/*//Debug controls
-		if (Gdx.input.isKeyPressed(Input.Keys.M)){
-			//Generate new map
-			map = new HeightMap(new Vector2(WORLD_W, WORLD_H), new HeightMap.ColorScheme(Color.GREEN, Color.LIME, Color.BROWN, Color.WHITE));
-			_noiseT = new Texture(map.getPixmap());
-		}*/
+		//Debug controls
 		if (Gdx.input.isKeyPressed(Input.Keys.C)){
 			//Try to build a city
 			Vector2 _np = new Vector2(getWorldMouseX(), getWorldMouseY());
@@ -268,7 +263,7 @@ public class WG extends ApplicationAdapter {
 			}
 		}
 		//Debug mechanics
-		sm.getFractions()[0].getStructs().get(0).addResource(Structure.Resource.ORE, .001f);
+		//sm.getFractions()[0].getStructs().get(0).addResource(Structure.Resource.ORE, .001f);
 		
 		//Camera controls
 		if (Gdx.input.isKeyPressed(Input.Keys.A)){
