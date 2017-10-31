@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -26,8 +27,8 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	//Game constants
-	public static final int WORLD_W = 1000, WORLD_H = 1000,
-	                        UI_W = 700, UI_H = 700;
+	public static/* final*/ int WORLD_W = 1000, WORLD_H = 1000,
+	                        UI_W = 700, UI_H = -1;
 	public static final int MARCHING_STEP = 4;
 	public static final float CAM_ZOOM_MIN = .2f,
 	                          CAM_ZOOM_STEP = .02f;
@@ -71,9 +72,10 @@ public class WG extends ApplicationAdapter {
 	private boolean preTouched = false;
 	public SessionManager sm;
 	public GUI gui;
-	//public GameplayState gpstate = GameplayState.DEFAULT;
 	private Structure pieMenuState = null; // null if no pie menu opened
 	public Dialog currentDialog = Dialog.NONE;
+	public static float htowDisplayRatio;
+	public float prevPitchGestureDistance = -1;
 	
 	private float loadingProgress = 0;
 	private long dtholder;//(float)(System.currentTimeMillis()
@@ -84,6 +86,7 @@ public class WG extends ApplicationAdapter {
 	@Override
 	public void create () {
 		antistatic = this;
+		htowDisplayRatio = Gdx.graphics.getDisplayMode().height / (float) Gdx.graphics.getDisplayMode().width;
 		
 		FreeTypeFontGenerator ftfg = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Prototype.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
@@ -95,11 +98,12 @@ public class WG extends ApplicationAdapter {
 		font.setColor(Color.WHITE);
 		ftfg.dispose();
 
-		camera = new OrthographicCamera(WORLD_W, WORLD_H);
+		camera = new OrthographicCamera(WORLD_W, WORLD_W * htowDisplayRatio);
 		camera.translate(WORLD_W / 2.0f, WORLD_H / 2.0f);
-		viewport = new FitViewport(WORLD_W, WORLD_H, camera);
+		viewport = new FitViewport(WORLD_W, WORLD_W * htowDisplayRatio, camera);
 		sr = new ShapeRenderer(); 
 		sr.setColor(Color.RED);
+		UI_H = Math.round(UI_W * htowDisplayRatio);
 		
 		batch = new SpriteBatch();
 		
@@ -169,8 +173,8 @@ public class WG extends ApplicationAdapter {
 		} else if (loadingProgress == -1){//Map generated
 			_noiseT = new Texture(map.getPixmap());
 			_marchT = new Texture(landOutline.getRendered());
-			//Fraction[] _ = {new Fraction(Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
-			//sm = new SessionManager(_);
+			Fraction[] _ = {new Fraction(Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
+			sm = new SessionManager(_);
 			loadingProgress = -2;
 		};
 		
@@ -228,7 +232,7 @@ public class WG extends ApplicationAdapter {
 			}
 		};*/
 		gui.button(GUI_BUTTON_POS_BUILD, GUI_BUTTON_SIZ_BUILD, Utils.NULL_ID, GUI_BUTTON_ACT_BUILD, GUI_BUTTON_DEFAULT_COLORS);
-		/*for (Fraction runhorsey: sm.getFractions()){
+		for (Fraction runhorsey: sm.getFractions()){
 			for (Structure neverlookback: runhorsey.getStructs()){
 				hsr.setColor(runhorsey.getColor());
 				//if (neverlookback.getPosition().dst(Utils.WorldMousePosition) < CITY_ICON_RADIUS * 1.2f){
@@ -240,7 +244,7 @@ public class WG extends ApplicationAdapter {
 				}
 				hsr.circle(this.getUIFromWorldX(neverlookback.getPosition().x), this.getUIFromWorldY(neverlookback.getPosition().y), CITY_ICON_RADIUS);
 			}
-		}*/
+		}
 		if (pieMenuState != null)
 			gui.piemenu(getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, pieMenuState.getPieMenuActionsNumber(), Structure.PIEMENU_ACTIONS_CITY);
 		if (currentDialog != Dialog.NONE){
@@ -263,9 +267,9 @@ public class WG extends ApplicationAdapter {
 			}
 		}
 		//Debug mechanics
-		//sm.getFractions()[0].getStructs().get(0).addResource(Structure.Resource.ORE, .001f);
+		sm.getFractions()[0].getStructs().get(0).addResource(Structure.Resource.ORE, .001f);
 		
-		//Camera controls
+		//Camera debug controls
 		if (Gdx.input.isKeyPressed(Input.Keys.A)){
 			//Zoom in
 			camera.zoom = Math.max(camera.zoom -= CAM_ZOOM_STEP, CAM_ZOOM_MIN);
@@ -273,24 +277,41 @@ public class WG extends ApplicationAdapter {
 		if (Gdx.input.isKeyPressed(Input.Keys.Z)){
 			//Zoom out
 			camera.zoom = Math.min(camera.zoom += CAM_ZOOM_STEP, 1);
-
-			if (camera.position.x - WORLD_W / 2.0f * camera.zoom < 0)
-				camera.position.x  = 0 + WORLD_W / 2.0f * camera.zoom;
-			if (camera.position.x + WORLD_W / 2.0f * camera.zoom > WORLD_W)
-				camera.position.x = WORLD_W - WORLD_W / 2.0f * camera.zoom;
 		}
 		if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
-			if (camera.position.x - WORLD_W / 2.0f * camera.zoom >= 0)
-				camera.translate(-2, 0);
+			camera.translate(-2, 0);
 		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT))
-			if (camera.position.x + WORLD_W / 2.0f * camera.zoom < WORLD_W)
-				camera.translate(2, 0);
+			camera.translate(2, 0);
 		if (Gdx.input.isKeyPressed(Input.Keys.DOWN))
-			if (camera.position.y - WORLD_H / 2.0f * camera.zoom > 0)
-				camera.translate(0, -2);
+			camera.translate(0, -2);
 		if (Gdx.input.isKeyPressed(Input.Keys.UP))
-			if (camera.position.y + WORLD_H / 2.0f * camera.zoom < WORLD_H)
-				camera.translate(0, 2);
+			camera.translate(0, 2);
+		
+		//Camera gestures
+		if (!Gdx.input.isTouched())
+			prevPitchGestureDistance = -1;
+		if (pieMenuState == null && currentDialog == Dialog.NONE && Gdx.input.isTouched(0)){
+			if (Gdx.input.isTouched(1)){
+				if (prevPitchGestureDistance != -1)
+					camera.zoom += (prevPitchGestureDistance - Utils.getVector(getUIMouseX(1), getUIMouseY(1)).sub(getUIMouseX(0), getUIMouseY(0)).len()) / (float)UI_W;
+				prevPitchGestureDistance = Utils.getVector(getUIMouseX(1), getUIMouseY(1)).sub(getUIMouseX(0), getUIMouseY(0)).len();
+			} else
+				camera.translate(Gdx.input.getDeltaX() * -1 * camera.zoom, Gdx.input.getDeltaY() * camera.zoom);
+		}
+		
+		//Camera parameters clamping
+		camera.zoom = MathUtils.clamp(camera.zoom, CAM_ZOOM_MIN, 1);
+		camera.position.x = MathUtils.clamp(camera.position.x, camera.viewportWidth  / 2.0f * camera.zoom, WORLD_W - camera.viewportWidth  / 2.0f * camera.zoom);
+		camera.position.y = MathUtils.clamp(camera.position.y, camera.viewportHeight / 2.0f * camera.zoom, WORLD_H - camera.viewportHeight / 2.0f * camera.zoom);
+		/* To be deleted
+		if (camera.position.x - WORLD_W / 2.0f * camera.zoom < 0)
+			camera.position.x = WORLD_W / 2.0f * camera.zoom;
+		if (camera.position.x + WORLD_W / 2.0f * camera.zoom > WORLD_W)
+			camera.position.x = WORLD_W - WORLD_W / 2.0f * camera.zoom;
+		if (camera.position.y - camera.viewportHeight / 2.0f * camera.zoom < 0)
+			camera.position.y = camera.viewportHeight / 2.0f * camera.zoom;
+		if (camera.position.y + camera.viewportHeight / 2.0f * camera.zoom > WORLD_H)
+			camera.position.y = WORLD_H - camera.viewportHeight / 2.0f * camera.zoom;*/
 	}
 	
 	@Override
@@ -303,18 +324,18 @@ public class WG extends ApplicationAdapter {
 	}
 
 	private float getWorldMouseX(){
-		//Our goal is to project coordinates related to top-right corner of window to bottom-left of our world
+		//Our goal is to project coordinates related to top-left corner of window to bottom-left of our world
 		return (Gdx.input.getX() - (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2.0f) / viewport.getScreenWidth()//Here we have normalized cursor position related to camera view but not to world coordinates
-				* (WORLD_W * camera.zoom)//We multiply normalized coordinate by width of camera view related to world coordinates
-				+ camera.position.x - WORLD_W / 2.0f * camera.zoom;//And then we add position of camera
+				* (camera.viewportWidth * camera.zoom)//We multiply normalized coordinate by width of camera view related to world coordinates
+				+ camera.position.x - camera.viewportWidth / 2.0f * camera.zoom;//And then we add position of camera
 	}
 	
 	private float getWorldMouseY(){
 		return (viewport.getScreenHeight() - Gdx.input.getY() + (Gdx.graphics.getHeight() - viewport.getScreenHeight()) / 2.0f) / viewport.getScreenHeight()
-				* (WORLD_H * camera.zoom)
-				+ camera.position.y - WORLD_H / 2.0f * camera.zoom;
+				* (camera.viewportHeight * camera.zoom)
+				+ camera.position.y - camera.viewportHeight / 2.0f * camera.zoom;
 	}
-	
+
 	private float getUIMouseX(){
 		//Here we only do the first stage of conversion.
 		return (Gdx.input.getX() - (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2.0f) / viewport.getScreenWidth() * UI_W;//Here we have cursor position related to camera view but not to world coordinates
@@ -323,13 +344,22 @@ public class WG extends ApplicationAdapter {
 	private float getUIMouseY(){
 		return (viewport.getScreenHeight() - Gdx.input.getY() + (Gdx.graphics.getHeight() - viewport.getScreenHeight()) / 2.0f) / viewport.getScreenHeight() * UI_H;
 	}
+	
+	private float getUIMouseX(int p){
+		//Here we only do the first stage of conversion.
+		return (Gdx.input.getX(p) - (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2.0f) / viewport.getScreenWidth() * UI_W;//Here we have cursor position related to camera view but not to world coordinates
+	}
+	
+	private float getUIMouseY(int p){
+		return (viewport.getScreenHeight() - Gdx.input.getY(p) + (Gdx.graphics.getHeight() - viewport.getScreenHeight()) / 2.0f) / viewport.getScreenHeight() * UI_H;
+	}
 
 	public float getUIFromWorldX(float x){
-		return (x - camera.position.x + WORLD_W / 2.0f * camera.zoom) / (WORLD_W * camera.zoom) * UI_W;
+		return (x - camera.position.x + camera.viewportWidth  / 2.0f * camera.zoom) / (camera.viewportWidth  * camera.zoom) * UI_W;
 	}
 	
 	public float getUIFromWorldY(float y){
-		return (y - camera.position.y + WORLD_H / 2.0f * camera.zoom) / (WORLD_H * camera.zoom) * UI_H;
+		return (y - camera.position.y + camera.viewportHeight / 2.0f * camera.zoom) / (camera.viewportHeight * camera.zoom) * UI_H;
 	}
 	
 	public Vector2 getUIFromWorldV(Vector2 in){
