@@ -67,8 +67,8 @@ public class Utils {
 	}
 	
 	public static float getAngle(Vector2 point){
-		return point.angle();
-		//return (float) Math.toDegrees((Math.atan2(point.y, point.x) > 0 ? Math.atan2(point.y, point.x) : Math.atan2(point.y, point.x) + Math.PI * 2));
+		//return point.angle();
+		return (float) Math.toDegrees((Math.atan2(point.y, point.x) > 0 ? Math.atan2(point.y, point.x) : Math.atan2(point.y, point.x) + Math.PI * 2));
 	}
 	
 	public static void drawTrueArc(ShapeRenderer sr, Vector2 cnt, float radius, float start, float length, int segments){
@@ -78,10 +78,6 @@ public class Utils {
 			sr.rectLine((float) Math.cos(angle0) * radius + cnt.x, (float) Math.sin(angle0) * radius + cnt.y, 
 			            (float) Math.cos(angle1) * radius + cnt.x, (float) Math.sin(angle1) * radius + cnt.y, 3);
 		}
-	}
-	
-	public static Vector2 normalToUI(Vector2 in, boolean isCoordinate){
-		return in.scl(WG.UI_W, GUI.DIM_DIALOG_SIZE.y - GUI.DIM_BUTTON_SIZ_CLOSE.y - GUI.DIM_MARGIN * 2 * WG.UI_H).add(isCoordinate?GUI.DIM_DIALOG_REFPOINT:Vector2.Zero);
 	}
 	
 	private static final int VECTORS_IN_POOL = 64;
@@ -102,5 +98,9 @@ public class Utils {
 		vectorsCounter = (vectorsCounter == VECTORS_IN_POOL - 1) ? 0 : ++vectorsCounter;
 		return vpool[holder];
 	}
-	
+	private static Color color = new Color();
+	public static Color getColor(int r, int g, int b, int a){
+		color.set(r / 255f, g / 255f, b / 255f, a / 255f);
+		return color;
+	}
 }

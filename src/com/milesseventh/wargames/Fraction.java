@@ -8,7 +8,7 @@ import com.badlogic.gdx.math.Vector2;
 public class Fraction {
 	public float[] tech         = {0, 0, 0, 0, 0, 0};
 	public static final float MAXTECH = 1000;
-	public int[] techPriorities = {1, 1, 1, 1, 1};
+	public int[] techPriorities = {1, 1, 1, 1, 1, 1};
 	public static final int MAXPRIOR = 100;
 	public float investigationBudget = 0;
 	public static final float INVESTIGATION_PER_FRAME = .2f;
@@ -100,10 +100,12 @@ public class Fraction {
 	
 	public void doInvestigation(){
 		int prioSum = 0;
-		float budget = Math.min(INVESTIGATION_PER_FRAME, investigationBudget);
-		investigationBudget -= budget;
 		for (int p: techPriorities)
 			prioSum += p;
+		if (prioSum == 0)
+			return;
+		float budget = Math.min(INVESTIGATION_PER_FRAME, investigationBudget);
+		investigationBudget -= budget;
 		for (int i = 0; i < tech.length; i++)
 			tech[i] += (techPriorities[i] / (float) prioSum) * budget;
 	}

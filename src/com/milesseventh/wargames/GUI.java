@@ -37,7 +37,7 @@ public class GUI {
 	public ShapeRenderer sr;
 	public BitmapFont font;
 	public Structure currentDialogStruct;
-	//Occupied: 0-7
+	//Occupied: 0-7 ex: 1
 	private UIScrollbar[] sb = {new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
@@ -45,10 +45,10 @@ public class GUI {
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar()};//bleh
 	
-	public static final Vector2 DIM_DIALOG_REFPOINT = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2),
+	public Vector2 DIM_DIALOG_REFPOINT = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2),
 	                            DIM_DIALOG_SIZE = new Vector2(WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
 	
-	public static final Vector2 DIM_BUTTON_SIZ_CLOSE = new Vector2(WG.UI_W * .1f, WG.UI_H * .05f),//Close dialog button
+	public Vector2 DIM_BUTTON_SIZ_CLOSE = new Vector2(WG.UI_W * .1f, WG.UI_H * .05f),//Close dialog button
 	                            DIM_BUTTON_POS_CLOSE = new Vector2(WG.UI_W, WG.UI_H - (WG.UI_H - WG.UI_H * WG.DIALOG_HEIGHT) / 2).sub(DIM_BUTTON_SIZ_CLOSE),
 	                            DIM_BUTTON_CNT_CLOSE = DIM_BUTTON_POS_CLOSE.cpy().sub(DIM_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
 	
@@ -77,8 +77,8 @@ public class GUI {
 		sr.rect(position.x, position.y, size.x, size.y);
 	}
 	
-	public void buttonWithCaption(Vector2 position, Vector2 size, Croupfuck callback, Color[] colors, String caption){
-		button(position, size, Utils.NULL_ID, callback, colors);
+	public void buttonWithCaption(Vector2 position, Vector2 size, int id, Croupfuck callback, Color[] colors, String caption){
+		button(position, size, id, callback, colors);
 		caption(Utils.getVector(position).add(0, size.y * .9f), caption);
 	}
 	
@@ -104,25 +104,18 @@ public class GUI {
 		
 		switch (dialog){
 		case LABORATORY:
-			scrollableList(Utils.normalToUI(Utils.getVector(DIM_MARGIN, DIM_MARGIN), true),//Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_MARGIN, DIM_MARGIN), 
-			               Utils.normalToUI(Utils.getVector(.235f, 1), false),//Utils.getVector(DIM_DIALOG_SIZE).scl(.235f, DIM_DIALOG_HEIGHT_REL), 
-			               DIM_VSCROLLBAR_WIDTH, WG.GUI_BUTTON_DEFAULT_COLORS,
+			scrollableList(normalToUI(Utils.getVector(DIM_MARGIN, DIM_MARGIN), true),
+			               normalToUI(Utils.getVector(.3625f, 1), false),
+			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.LAB_SPECIALS, WG.GUI_BUTTON_DEFAULT_COLORS,
 			               Fraction.specialTechnologyTitles, DBG_LIST_ACT, sb[0]);
-			scrollableList(Utils.normalToUI(Utils.getVector(DIM_MARGIN * 2 + .235f, DIM_MARGIN), true),//Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_MARGIN * 2 + DIM_SCROLLLIST_WIDTH_235, DIM_MARGIN), 
-			               Utils.normalToUI(Utils.getVector(.235f, 1), false),//Utils.getVector(DIM_DIALOG_SIZE).scl(.235f, DIM_DIALOG_HEIGHT_REL), 
-			               DIM_VSCROLLBAR_WIDTH, WG.GUI_BUTTON_DEFAULT_COLORS,
-			               Fraction.specialTechnologyTitles, DBG_LIST_ACT, sb[1]);
 			for (int i = 0; i < Fraction.Technology.values().length; i++){
-				//Utils.normalToUI(Utils.getVector()),//
-				hscroller(Utils.normalToUI(Utils.getVector(.5f, .95f - i * .06f), true),//Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_X_50, DIM_DIALOG_SIZE.y * (DIM_DIALOG_HEIGHT_REL - .06f * (float) i)), 
-				          Utils.normalToUI(Utils.getVector(.2f, .05f), false),//Utils.getVector(DIM_DIALOG_SIZE.x * .2f, DIM_DIALOG_SIZE.y * .05f), 
-				          sb[2 + i], .42f, (int)Fraction.MAXTECH);//Maxprior
-				caption(Utils.normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f), true),//Utils.getVector(DIM_DIALOG_REFPOINT).add(DIM_X_50 + DIM_DIALOG_SIZE.x * .25f, DIM_DIALOG_SIZE.y * (DIM_DIALOG_HEIGHT_REL - .06f * (float) i)), 
-				        Fraction.technologyTitles[i] + ": " + WG.antistatic.sm.getCurrent().techLevel(Fraction.Technology.values()[i]) * 100  + '%');
-				WG.antistatic.sm.getCurrent().tech[i] = sb[2 + i].offset;
+				hscroller(normalToUI(Utils.getVector(.5f, .95f - i * .06f), true),
+				          normalToUI(Utils.getVector(.2f, .05f), false),
+				          sb[2 + i], .42f, (int)Fraction.MAXPRIOR);
+				caption(normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f), true),
+				        Fraction.technologyTitles[i] + ": " + String.format("%.2f", WG.antistatic.sm.getCurrent().techPriorities[i] / (float)Fraction.MAXPRIOR * 100  + '%'));
+				WG.antistatic.sm.getCurrent().techPriorities[i] = sb[2 + i].offset;
 			}
-			//buttonWithCaption(Utils.getVector(DBG_DIM_SL_POS.x + DBG_DIM_SL_SIZ.x * 1.7f, DBG_DIM_SL_POS.y), Utils.getVector(200, 20), null, GUI_BUTTON_CLOSE_COLORS, "" + currentDialogStruct.getResource(Structure.Resource.ORE));
-		//caption(font, batch, new Vector2(200, 200), "KFNIE");
 			break;
 		default:
 			break;
@@ -130,8 +123,9 @@ public class GUI {
 	}
 	
 	private static final int SCROLL_LIST_MARGIN = 2;
-	public void scrollableList(Vector2 position, Vector2 size, float scrollbarWidth, 
+	public void scrollableList(Vector2 position, Vector2 size, float scrollbarWidth, ScrollEntry type,
 	                           Color[] entryColor, String[] captions, Croupfuck actions, UIScrollbar bar){
+		sr.setColor(Utils.getColor(0, 0, 0, 17));
 		sr.rect(position.x, position.y, size.x, size.y);
 		
 		int entriesPerPage = (int) Math.floor(size.y / (font.getLineHeight() + SCROLL_LIST_MARGIN));
@@ -145,20 +139,22 @@ public class GUI {
 			}
 			
 			for (int i = 0; i < entriesPerPage; i++){
-				button(Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
-				       Utils.getVector(size).scl(1 - scrollbarWidth, 1 / (float) entriesPerPage),
-				       i + bar.offset, actions, entryColor);
-				caption(Utils.getVector(position).add(2, size.y * (1 - i / (float) entriesPerPage) - 1), captions[i + bar.offset]);
+				scrollEntry(type, Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
+				            Utils.getVector(size).scl(1 - scrollbarWidth, 1 / (float) entriesPerPage), i + bar.offset, actions, entryColor, captions[i + bar.offset]);
 			}
 			scrollbar(bar, entriesPerPage / (float) captions.length);
 		} else {
 			//Влезаит
 			for (int i = 0; i < captions.length; i++){
-				button(Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
-						Utils.getVector(size).scl(1, 1 / (float) entriesPerPage), i + bar.offset, actions, entryColor);
-				caption(Utils.getVector(position).add(2, size.y * (1 - i / (float) entriesPerPage) - 3), captions[i]);
+				scrollEntry(type, Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
+				            Utils.getVector(size).scl(1, 1 / (float) entriesPerPage), i + bar.offset, actions, entryColor, captions[i + bar.offset]);
 			}
 		}
+	}
+	
+	private enum ScrollEntry{ORDINARY, LAB_SPECIALS}
+	private void scrollEntry(ScrollEntry type, Vector2 position, Vector2 size, int id, Croupfuck action, Color[] entryColor, String caption){
+		buttonWithCaption(position, size, id, action, entryColor, caption);
 	}
 	
 	private void scrollbar(UIScrollbar sb, float eppLengthRatio){
@@ -241,5 +237,9 @@ public class GUI {
 	public boolean UIMouseHovered(float x, float y, float w, float h){
 		return (Utils.UIMousePosition.x > x && Utils.UIMousePosition.x < x + w &&
 		        Utils.UIMousePosition.y > y && Utils.UIMousePosition.y < y + h);
+	}
+	
+	public Vector2 normalToUI(Vector2 in, boolean isCoordinate){
+		return in.scl(WG.UI_W, DIM_DIALOG_SIZE.y - DIM_BUTTON_SIZ_CLOSE.y - GUI.DIM_MARGIN * 2 * WG.UI_H).add(isCoordinate?DIM_DIALOG_REFPOINT:Vector2.Zero);
 	}
 }

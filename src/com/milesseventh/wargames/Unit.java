@@ -12,5 +12,4 @@ public class Unit {
 		owner = city.ownerFraction;
 		type = _type;
 	}
-
 }

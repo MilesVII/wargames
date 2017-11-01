@@ -30,12 +30,13 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 		noiseMap = new float[getWidth()][getHeight()];
 		pm = new Pixmap(getWidth(), getHeight(), Pixmap.Format.RGBA8888);
 		float noiseValue;
-		SimplexNoise noise = new SimplexNoise();
+		SimplexNoise noise = new SimplexNoise(r.nextInt());
 		for (int x = 0; x < getWidth(); x++)
 			for (int y = 0; y < getHeight(); y++){
 				noiseValue = getNoise(noise, x, y, 16f) * 3;
 				noiseValue += getNoise(noise, x, y, 32f);
-				noiseValue /= 4f;
+				noiseValue += getNoise(noise, x, y, 64f);
+				noiseValue /= 5f;
 				noiseValue = bulge(x, y, noiseValue);
 				noiseValue = MathUtils.clamp(noiseValue, 0, 1);
 				noiseValue = fade(noiseValue);
