@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
 public class GUI {
@@ -45,12 +46,12 @@ public class GUI {
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar()};//bleh
 	
-	public Vector2 DIM_DIALOG_REFPOINT = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2),
-	                            DIM_DIALOG_SIZE = new Vector2(WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
+	public Vector2 DIM_DIALOG_REFPOINT,// = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2),
+	               DIM_DIALOG_SIZE;// = new Vector2(WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
 	
-	public Vector2 DIM_BUTTON_SIZ_CLOSE = new Vector2(WG.UI_W * .1f, WG.UI_H * .05f),//Close dialog button
-	                            DIM_BUTTON_POS_CLOSE = new Vector2(WG.UI_W, WG.UI_H - (WG.UI_H - WG.UI_H * WG.DIALOG_HEIGHT) / 2).sub(DIM_BUTTON_SIZ_CLOSE),
-	                            DIM_BUTTON_CNT_CLOSE = DIM_BUTTON_POS_CLOSE.cpy().sub(DIM_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
+	public Vector2 DIM_BUTTON_SIZ_CLOSE,// = new Vector2(WG.UI_W * .1f, WG.UI_H * .05f),//Close dialog button
+	               DIM_BUTTON_POS_CLOSE,// = new Vector2(WG.UI_W, WG.UI_H - (WG.UI_H - WG.UI_H * WG.DIALOG_HEIGHT) / 2).sub(DIM_BUTTON_SIZ_CLOSE),
+	               DIM_BUTTON_CNT_CLOSE;// = DIM_BUTTON_POS_CLOSE.cpy().sub(DIM_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
 	
 	public static final float DIM_MARGIN = .01f,  DIM_VSCROLLBAR_WIDTH = .2f; 
 	public static final Croupfuck GUI_BUTTON_ACT_CLOSE = new Croupfuck(){
@@ -62,6 +63,16 @@ public class GUI {
 	
 	public GUI(WG _context){
 		context = _context;
+	}
+	
+	public void init(){
+		DIM_DIALOG_REFPOINT = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2);
+		DIM_DIALOG_SIZE = new Vector2(WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
+		DIM_BUTTON_SIZ_CLOSE = new Vector2(WG.UI_W * .1f, WG.UI_H * .05f);
+		DIM_BUTTON_POS_CLOSE = new Vector2(WG.UI_W, WG.UI_H - (WG.UI_H - WG.UI_H * WG.DIALOG_HEIGHT) / 2).sub(DIM_BUTTON_SIZ_CLOSE);
+		DIM_BUTTON_CNT_CLOSE = DIM_BUTTON_POS_CLOSE.cpy().sub(DIM_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
+		for (UIScrollbar bar: sb)
+			bar.firstUse = true;
 	}
 	
 	public void button(Vector2 position, Vector2 size, int id, Croupfuck callback, Color[] colors){
@@ -138,6 +149,8 @@ public class GUI {
 				bar.firstUse = false;
 			}
 			
+			bar.offset = MathUtils.clamp(bar.offset, 0, bar.max - 1);
+			
 			for (int i = 0; i < entriesPerPage; i++){
 				scrollEntry(type, Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
 				            Utils.getVector(size).scl(1 - scrollbarWidth, 1 / (float) entriesPerPage), i + bar.offset, actions, entryColor, captions[i + bar.offset]);
@@ -147,7 +160,7 @@ public class GUI {
 			//Влезаит
 			for (int i = 0; i < captions.length; i++){
 				scrollEntry(type, Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
-				            Utils.getVector(size).scl(1, 1 / (float) entriesPerPage), i + bar.offset, actions, entryColor, captions[i + bar.offset]);
+				            Utils.getVector(size).scl(1, 1 / (float) entriesPerPage), i + bar.offset, actions, entryColor, captions[i]);
 			}
 		}
 	}

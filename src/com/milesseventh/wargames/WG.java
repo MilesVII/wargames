@@ -100,6 +100,7 @@ public class WG extends ApplicationAdapter {
 		hsr = new ShapeRenderer(); 
 		sr = new ShapeRenderer(); 
 		batch = new SpriteBatch();
+		gui = new GUI(this);
 		
 		
 		//unitsOutline = new Marching(t, map.getSize(), MARCHING_STEP, Marching.Mode.RAW);
@@ -133,7 +134,7 @@ public class WG extends ApplicationAdapter {
 		uiBatch.enableBlending();
 		hsr.setProjectionMatrix(hudCamera.combined);
 
-		gui = new GUI(this);
+		gui.init();
 		gui.batch = uiBatch;
 		gui.sr = hsr;
 		gui.font = font;
@@ -202,7 +203,6 @@ public class WG extends ApplicationAdapter {
 		for (Fraction runhorsey: sm.getFractions()){
 			for (Structure neverlookback: runhorsey.getStructs()){
 				hsr.setColor(runhorsey.getColor());
-				//if (neverlookback.getPosition().dst(Utils.WorldMousePosition) < CITY_ICON_RADIUS * 1.2f){
 				if (getUIFromWorldV(neverlookback.getPosition()).dst(Utils.UIMousePosition) < CITY_ICON_RADIUS * 1.7f){
 					hsr.setColor(runhorsey.getColor().r * 1.2f, runhorsey.getColor().g * 1.2f, runhorsey.getColor().b * 1.2f, 1f);
 					if (Gdx.input.justTouched() && currentDialog == Dialog.NONE){
@@ -262,22 +262,10 @@ public class WG extends ApplicationAdapter {
 			} else
 				camera.translate(Gdx.input.getDeltaX() * -1 * camera.zoom, Gdx.input.getDeltaY() * camera.zoom);
 		}
-
-		//Gdx.graphics.setResizable(Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT));
-		
 		//Camera parameters clamping
 		camera.zoom = MathUtils.clamp(camera.zoom, CAM_ZOOM_MIN, 1);
 		camera.position.x = MathUtils.clamp(camera.position.x, camera.viewportWidth  / 2.0f * camera.zoom, WORLD_W - camera.viewportWidth  / 2.0f * camera.zoom);
 		camera.position.y = MathUtils.clamp(camera.position.y, camera.viewportHeight / 2.0f * camera.zoom, WORLD_H - camera.viewportHeight / 2.0f * camera.zoom);
-		/* To be deleted
-		if (camera.position.x - WORLD_W / 2.0f * camera.zoom < 0)
-			camera.position.x = WORLD_W / 2.0f * camera.zoom;
-		if (camera.position.x + WORLD_W / 2.0f * camera.zoom > WORLD_W)
-			camera.position.x = WORLD_W - WORLD_W / 2.0f * camera.zoom;
-		if (camera.position.y - camera.viewportHeight / 2.0f * camera.zoom < 0)
-			camera.position.y = camera.viewportHeight / 2.0f * camera.zoom;
-		if (camera.position.y + camera.viewportHeight / 2.0f * camera.zoom > WORLD_H)
-			camera.position.y = WORLD_H - camera.viewportHeight / 2.0f * camera.zoom;*/
 	}
 	
 	@Override
