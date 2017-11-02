@@ -109,6 +109,13 @@ public class GUI {
 		}
 	}
 	private StringBuilder stb = new StringBuilder();
+	private static final float INVEST_DIV = 1000f;
+	private Croupfuck BUTTON_INVEST_ACT = new Croupfuck(){
+		public void action(int source) {
+			WG.antistatic.sm.getCurrent().investigationBudget += WG.antistatic.sm.getCurrent().getCapital().transfer(Structure.Resource.METAL, source / INVEST_DIV);
+			sb[1].offset = 0;
+		}
+	};
 	public void dialog(WG.Dialog dialog){
 		sr.setColor(WG.GUI_DIALOG_BGD);
 		sr.rect(DIM_DIALOG_REFPOINT.x, DIM_DIALOG_REFPOINT.y, DIM_DIALOG_SIZE.x, DIM_DIALOG_SIZE.y);
@@ -121,13 +128,19 @@ public class GUI {
 			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.LAB_SPECIALS, WG.GUI_BUTTON_DEFAULT_COLORS,
 			               Fraction.specialTechnologyTitles, DBG_LIST_ACT, sb[0]);
 			for (int i = 0; i < Fraction.Technology.values().length; i++){
-				hscroller(normalToUI(Utils.getVector(.3825f, 1 - i * .06f), true),
+				hscroller(normalToUI(Utils.getVector(.3825f, .95f - i * .06f), true),
 				          normalToUI(Utils.getVector(.3175f, .05f), false),
 				          sb[2 + i], .42f, (int)Fraction.MAXPRIOR);
 				caption(normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f), true),
 				        Fraction.technologyTitles[i] + ": " + WG.antistatic.sm.getCurrent().techPriorities[i] * 100 / Fraction.MAXPRIOR + "%");
 				WG.antistatic.sm.getCurrent().techPriorities[i] = sb[2 + i].offset;
 			}
+			sb[1].firstUse = true;
+			hscroller(normalToUI(Utils.getVector(.3825f, DIM_MARGIN), true), 
+			          normalToUI(Utils.getVector(.3175f, .05f), false), sb[1], .42f, Math.round(WG.antistatic.sm.getCurrent().getCapital().getResource(Structure.Resource.METAL) * INVEST_DIV));
+			buttonWithCaption(normalToUI(Utils.getVector(.7f + DIM_MARGIN, DIM_MARGIN), true), 
+			                  normalToUI(Utils.getVector(.28f, .05f), false), sb[1].offset, BUTTON_INVEST_ACT, WG.GUI_BUTTON_DEFAULT_COLORS, "Invest " + sb[1].offset);
+			
 			stb.setLength(0);
 			for (int i = 0; i < Fraction.Technology.values().length; i++){
 				stb.append(Fraction.technologyTitles[i]);
@@ -135,7 +148,10 @@ public class GUI {
 				stb.append(String.format("%.2f", WG.antistatic.sm.getCurrent().techLevel(Fraction.Technology.values()[i]) * 100));
 				stb.append("%\n");
 			}
-			stb.append(WG.antistatic.sm.getCurrent().getCapital().getResource(Structure.Resource.METAL));
+			stb.append("Metal in capital: ");
+			stb.append(String.format("%.2f", WG.antistatic.sm.getCurrent().getCapital().getResource(Structure.Resource.METAL)));
+			stb.append("\nInvestigation budget: ");
+			stb.append(String.format("%.2f", WG.antistatic.sm.getCurrent().investigationBudget));
 			caption(normalToUI(Utils.getVector(.3875f, .63f), true), stb.toString());
 			break;
 		default:
