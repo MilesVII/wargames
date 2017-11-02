@@ -99,6 +99,9 @@ public class Fraction {
 	}
 	
 	public void doInvestigation(){
+		//DEBUG
+		investigationBudget += capital.transfer(Structure.Resource.METAL, INVESTIGATION_PER_FRAME);
+		
 		int prioSum = 0;
 		for (int p: techPriorities)
 			prioSum += p;

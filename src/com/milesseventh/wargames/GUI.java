@@ -31,6 +31,7 @@ public class GUI {
 		public int max = -1, offset = 0;
 		public Vector2 position, size;
 		public Color[] color = GUI_SCROLLBAR_COLORS;//0 -- Bar bgd, 1 -- Bar normal, 2 -- Bar hovered/pressed
+		public float mouseDelta;
 	}
 	
 	private WG context;
@@ -46,12 +47,12 @@ public class GUI {
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar()};//bleh
 	
-	public Vector2 DIM_DIALOG_REFPOINT,// = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2),
-	               DIM_DIALOG_SIZE;// = new Vector2(WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
-	
-	public Vector2 DIM_BUTTON_SIZ_CLOSE,// = new Vector2(WG.UI_W * .1f, WG.UI_H * .05f),//Close dialog button
-	               DIM_BUTTON_POS_CLOSE,// = new Vector2(WG.UI_W, WG.UI_H - (WG.UI_H - WG.UI_H * WG.DIALOG_HEIGHT) / 2).sub(DIM_BUTTON_SIZ_CLOSE),
-	               DIM_BUTTON_CNT_CLOSE;// = DIM_BUTTON_POS_CLOSE.cpy().sub(DIM_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
+	public Vector2 DIM_DIALOG_REFPOINT,
+	               DIM_DIALOG_SIZE;
+
+	public Vector2 DIM_BUTTON_SIZ_CLOSE,
+	               DIM_BUTTON_POS_CLOSE,
+	               DIM_BUTTON_CNT_CLOSE;
 	
 	public static final float DIM_MARGIN = .01f,  DIM_VSCROLLBAR_WIDTH = .2f; 
 	public static final Croupfuck GUI_BUTTON_ACT_CLOSE = new Croupfuck(){
@@ -107,7 +108,7 @@ public class GUI {
 			Utils.drawTrueArc(sr, position, 20, i * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN, (360 / (float) size) - 2 * PIE_MENU_SECTOR_MARGIN, 70);
 		}
 	}
-	
+	private StringBuilder stb = new StringBuilder();
 	public void dialog(WG.Dialog dialog){
 		sr.setColor(WG.GUI_DIALOG_BGD);
 		sr.rect(DIM_DIALOG_REFPOINT.x, DIM_DIALOG_REFPOINT.y, DIM_DIALOG_SIZE.x, DIM_DIALOG_SIZE.y);
@@ -120,13 +121,22 @@ public class GUI {
 			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.LAB_SPECIALS, WG.GUI_BUTTON_DEFAULT_COLORS,
 			               Fraction.specialTechnologyTitles, DBG_LIST_ACT, sb[0]);
 			for (int i = 0; i < Fraction.Technology.values().length; i++){
-				hscroller(normalToUI(Utils.getVector(.5f, .95f - i * .06f), true),
-				          normalToUI(Utils.getVector(.2f, .05f), false),
+				hscroller(normalToUI(Utils.getVector(.3825f, 1 - i * .06f), true),
+				          normalToUI(Utils.getVector(.3175f, .05f), false),
 				          sb[2 + i], .42f, (int)Fraction.MAXPRIOR);
 				caption(normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f), true),
-				        Fraction.technologyTitles[i] + ": " + String.format("%.2f", WG.antistatic.sm.getCurrent().techPriorities[i] / (float)Fraction.MAXPRIOR * 100  + '%'));
+				        Fraction.technologyTitles[i] + ": " + WG.antistatic.sm.getCurrent().techPriorities[i] * 100 / Fraction.MAXPRIOR + "%");
 				WG.antistatic.sm.getCurrent().techPriorities[i] = sb[2 + i].offset;
 			}
+			stb.setLength(0);
+			for (int i = 0; i < Fraction.Technology.values().length; i++){
+				stb.append(Fraction.technologyTitles[i]);
+				stb.append(": ");
+				stb.append(String.format("%.2f", WG.antistatic.sm.getCurrent().techLevel(Fraction.Technology.values()[i]) * 100));
+				stb.append("%\n");
+			}
+			stb.append(WG.antistatic.sm.getCurrent().getCapital().getResource(Structure.Resource.METAL));
+			caption(normalToUI(Utils.getVector(.3875f, .63f), true), stb.toString());
 			break;
 		default:
 			break;
@@ -167,7 +177,19 @@ public class GUI {
 	
 	private enum ScrollEntry{ORDINARY, LAB_SPECIALS}
 	private void scrollEntry(ScrollEntry type, Vector2 position, Vector2 size, int id, Croupfuck action, Color[] entryColor, String caption){
-		buttonWithCaption(position, size, id, action, entryColor, caption);
+		switch(type){
+		case ORDINARY:
+			buttonWithCaption(position, size, id, action, entryColor, caption);
+			break;
+		case LAB_SPECIALS:
+			button(position, size, id, action, entryColor);
+			Color c = Color.RED;
+			if (WG.antistatic.sm.getCurrent().isInvestigated(Fraction.SpecialTechnology.values()[id]))
+				c = Color.LIME;
+			else if (WG.antistatic.sm.getCurrent().isInvestigationAllowed(Fraction.SpecialTechnology.values()[id]))
+				c = Color.ORANGE;
+			captionColored(Utils.getVector(position).add(0, size.y), caption, c);
+		}
 	}
 	
 	private void scrollbar(UIScrollbar sb, float eppLengthRatio){
@@ -178,21 +200,23 @@ public class GUI {
 		float sb_h = sb.size.y * eppLengthRatio;
 		if (UIMouseHovered(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.max)) * (sb.size.y - sb_h), sb.size.x, sb_h)){
 			sr.setColor(sb.color[2]);
-			if (Gdx.input.justTouched())
+			if (Gdx.input.justTouched()){
+				sb.mouseDelta = sb.position.y + sb_h / 2f + (1 - sb.offset / (float)(sb.max - 1)) * (sb.size.y - sb_h) - Utils.UIMousePosition.y;// center of sb.slider - mouse position
 				sb.isActive = true;
+			}
 		} else 
 			sr.setColor(sb.color[1]);
 		
 		if (sb.isActive){
 			sr.setColor(sb.color[2]);
-			float yy = Utils.UIMousePosition.y;
+			float yy = Utils.UIMousePosition.y + sb.mouseDelta;
 			yy = Math.min(yy, sb.position.y + sb.size.y - sb_h / 2f);
 			yy = Math.max(yy, sb.position.y + sb_h / 2f);
 			yy = 1 - (yy - sb.position.y - sb_h / 2f) / (float) (sb.size.y - sb_h);
 			sb.offset = (int) Math.round(yy * (sb.max - 1));
 		}
 		
-		sr.rect(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.max - 1)) * (sb.size.y - sb_h), sb.size.x, sb_h);
+		sr.rect(sb.position.x, sb.position.y + (1 - sb.offset / (float)(sb.max - 1)) * (sb.size.y - sb_h), sb.size.x, sb_h);
 	}	
 	
 	private void hscroller(Vector2 position, Vector2 size, UIScrollbar sb, float widthPart, int max){
@@ -214,14 +238,16 @@ public class GUI {
 		
 		if (UIMouseHovered(sb.position.x + sb_offx, sb.position.y, sb_w, sb.size.y)){
 			sr.setColor(sb.color[2]);
-			if (Gdx.input.justTouched())
+			if (Gdx.input.justTouched()){
+				sb.mouseDelta = sb.position.x + sb_w / 2f + sb_offx - Utils.UIMousePosition.x;
 				sb.isActive = true;
+			}
 		} else 
 			sr.setColor(sb.color[1]);
 		
 		if (sb.isActive){
 			sr.setColor(sb.color[2]);
-			float xx = Utils.UIMousePosition.x - sb_w / 2;
+			float xx = Utils.UIMousePosition.x - sb_w / 2 + sb.mouseDelta;
 			xx -= sb.position.x;
 			xx = Math.min(xx, sb.size.x - sb_w);
 			xx = Math.max(xx, 0);
@@ -230,6 +256,13 @@ public class GUI {
 		}
 		
 		sr.rect(sb.position.x + sb_offx, sb.position.y, sb_w, sb.size.y);
+	}
+	
+	public void captionColored(Vector2 position, String text, Color color){
+		Color holder = font.getColor().cpy();
+		font.setColor(color);
+		caption(position, text);
+		font.setColor(holder);
 	}
 	
 	public void caption(Vector2 position, String text){

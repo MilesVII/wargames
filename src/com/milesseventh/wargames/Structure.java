@@ -84,6 +84,12 @@ public class Structure{
 			return false;
 	}
 	
+	public float transfer(Resource _resType, float trans){
+		float transaction = Math.min(trans, resources[_resType.ordinal()]);
+		resources[_resType.ordinal()] -= transaction;
+		return transaction;
+	}
+	
 	protected void onDestroy() {
 		ownerFraction.unregisterStructure(this);
 	}
