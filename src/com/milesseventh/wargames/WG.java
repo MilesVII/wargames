@@ -40,22 +40,6 @@ public class WG extends ApplicationAdapter {
 	                          DIALOG_HEIGHT = .8f;
 	public static final Color GUI_DIALOG_BGD = new Color(0, 0, 0, .7f);
 	
-	//GUI constants
-	public static final Color[] GUI_BUTTON_DEFAULT_COLORS = {
-		new Color(0, 0, 0, .5f), 
-		new Color(0, 0, 0, 1), 
-		new Color(.5f, .5f, .5f, .8f)
-	};
-	private static final Vector2 GUI_BUTTON_POS_BUILD = new Vector2(5, 5),//Position
-	                             GUI_BUTTON_SIZ_BUILD = new Vector2(UI_W * .05f, UI_W * .05f),//Size
-	                             GUI_BUTTON_CNT_BUILD = GUI_BUTTON_POS_BUILD.cpy().add(GUI_BUTTON_SIZ_BUILD.cpy().scl(.5f));//Center
-	private final Croupfuck GUI_BUTTON_ACT_BUILD = new Croupfuck(){
-		@Override
-		public void action(int source) {
-			camera.zoom = Math.max(camera.zoom -= CAM_ZOOM_STEP, CAM_ZOOM_MIN);
-		}
-	};
-	
 	//Variables
 	public static WG antistatic;
 	private SpriteBatch batch; 
@@ -91,8 +75,10 @@ public class WG extends ApplicationAdapter {
 		parameter.size = 22;
 		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.-<>!?/%";
 		font = ftfg.generateFont(parameter);
-		parameter.size = 50;
 		font.setColor(Color.WHITE);
+		gui = new GUI(this);
+		parameter.size = 17;
+		gui.subFont = ftfg.generateFont(parameter);
 		ftfg.dispose();
 		
 		uiBatch = new SpriteBatch();
@@ -100,7 +86,6 @@ public class WG extends ApplicationAdapter {
 		hsr = new ShapeRenderer(); 
 		sr = new ShapeRenderer(); 
 		batch = new SpriteBatch();
-		gui = new GUI(this);
 		
 		
 		//unitsOutline = new Marching(t, map.getSize(), MARCHING_STEP, Marching.Mode.RAW);

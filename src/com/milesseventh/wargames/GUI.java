@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -20,10 +21,24 @@ public class GUI {
 			new Color(.42f, .42f, .42f, 1), 
 			new Color(.97f, .97f, .97f, 1)
 		};
+	public static final Color[] GUI_BUTTON_DEFAULT_COLORS = {
+			new Color(0, 0, 0, .5f), 
+			new Color(0, 0, 0, 1), 
+			new Color(.5f, .5f, .5f, .8f)
+		};
+	public static Color GUI_DEF_BLACK = new Color(0, 0, 0, .5f);
 	public static final Croupfuck DBG_LIST_ACT = new Croupfuck(){
 		@Override
 		public void action(int source) {
 			System.out.println("" + source + " pressed");
+		}
+	};
+	public static final Croupfuck SPECTECHINV_ACT = new Croupfuck(){
+		@Override
+		public void action(int source) {
+			System.out.println(Fraction.specialTechnologyTitles[source] + " pressed");
+			if (WG.antistatic.sm.getCurrent().isInvestigationAllowed(Fraction.SpecialTechnology.values()[source]))
+				WG.antistatic.sm.getCurrent().specTech.add(Fraction.SpecialTechnology.values()[source]);
 		}
 	};
 	public class UIScrollbar{
@@ -37,9 +52,10 @@ public class GUI {
 	private WG context;
 	public Batch batch;
 	public ShapeRenderer sr;
-	public BitmapFont font;
+	public BitmapFont font, subFont;
+	private static GlyphLayout glay = new GlyphLayout();
 	public Structure currentDialogStruct;
-	//Occupied: 0-7 ex: 1
+	//Occupied: 0-7
 	private UIScrollbar[] sb = {new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
@@ -94,6 +110,15 @@ public class GUI {
 		caption(Utils.getVector(position).add(0, size.y * .9f), caption);
 	}
 	
+	public void buttonWithPrompt(Vector2 position, Vector2 size, int id, Croupfuck callback, Color[] colors, String prompt){
+		button(position, size, id, callback, colors);
+		if (UIMouseHovered(position, size)){
+			glay.setText(subFont, prompt);
+			sr.rect(Utils.UIMousePosition.x, Utils.UIMousePosition.y - glay.height, glay.width, glay.height);
+			captionSub(Utils.UIMousePosition, prompt);
+		}
+	}
+	
 	private static final int PIE_MENU_SECTOR_MARGIN = 5;
 	public void piemenu(Vector2 position, float radius, Color unselected, Color selected, int size, Croupfuck action){
 		for(int i = 0; i < size; i++){
@@ -116,6 +141,13 @@ public class GUI {
 			sb[1].offset = 0;
 		}
 	};
+	private Croupfuck BUTTON_DEINVEST_ACT = new Croupfuck(){
+		public void action(int source) {
+			WG.antistatic.sm.getCurrent().getCapital().addResource(Structure.Resource.METAL, WG.antistatic.sm.getCurrent().investigationBudget);
+			WG.antistatic.sm.getCurrent().investigationBudget = 0;
+			sb[1].offset = 0;
+		}
+	};
 	public void dialog(WG.Dialog dialog){
 		sr.setColor(WG.GUI_DIALOG_BGD);
 		sr.rect(DIM_DIALOG_REFPOINT.x, DIM_DIALOG_REFPOINT.y, DIM_DIALOG_SIZE.x, DIM_DIALOG_SIZE.y);
@@ -125,8 +157,8 @@ public class GUI {
 		case LABORATORY:
 			scrollableList(normalToUI(Utils.getVector(DIM_MARGIN, DIM_MARGIN), true),
 			               normalToUI(Utils.getVector(.3625f, 1), false),
-			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.LAB_SPECIALS, WG.GUI_BUTTON_DEFAULT_COLORS,
-			               Fraction.specialTechnologyTitles, DBG_LIST_ACT, sb[0]);
+			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.LAB_SPECIALS, GUI_BUTTON_DEFAULT_COLORS,
+			               Fraction.specialTechnologyTitles, SPECTECHINV_ACT, sb[0]);
 			for (int i = 0; i < Fraction.Technology.values().length; i++){
 				hscroller(normalToUI(Utils.getVector(.3825f, .95f - i * .06f), true),
 				          normalToUI(Utils.getVector(.3175f, .05f), false),
@@ -139,7 +171,9 @@ public class GUI {
 			hscroller(normalToUI(Utils.getVector(.3825f, DIM_MARGIN), true), 
 			          normalToUI(Utils.getVector(.3175f, .05f), false), sb[1], .42f, Math.round(WG.antistatic.sm.getCurrent().getCapital().getResource(Structure.Resource.METAL) * INVEST_DIV));
 			buttonWithCaption(normalToUI(Utils.getVector(.7f + DIM_MARGIN, DIM_MARGIN), true), 
-			                  normalToUI(Utils.getVector(.28f, .05f), false), sb[1].offset, BUTTON_INVEST_ACT, WG.GUI_BUTTON_DEFAULT_COLORS, "Invest " + sb[1].offset);
+			                  normalToUI(Utils.getVector(.28f, .05f), false), sb[1].offset, BUTTON_INVEST_ACT, GUI_BUTTON_DEFAULT_COLORS, "Invest " + String.format("%.2f", sb[1].offset / INVEST_DIV));
+			buttonWithCaption(normalToUI(Utils.getVector(.7f + DIM_MARGIN, DIM_MARGIN * 2 + .05f), true), 
+			                  normalToUI(Utils.getVector(.28f, .05f), false), sb[1].offset, BUTTON_DEINVEST_ACT, GUI_BUTTON_DEFAULT_COLORS, "Recall investition");
 			
 			stb.setLength(0);
 			for (int i = 0; i < Fraction.Technology.values().length; i++){
@@ -198,7 +232,7 @@ public class GUI {
 			buttonWithCaption(position, size, id, action, entryColor, caption);
 			break;
 		case LAB_SPECIALS:
-			button(position, size, id, action, entryColor);
+			buttonWithPrompt(position, size, id, action, entryColor, Fraction.specialTechnologyPrompts[id]);
 			Color c = Color.RED;
 			if (WG.antistatic.sm.getCurrent().isInvestigated(Fraction.SpecialTechnology.values()[id]))
 				c = Color.LIME;
@@ -280,12 +314,21 @@ public class GUI {
 		caption(position, text);
 		font.setColor(holder);
 	}
-	
 	public void caption(Vector2 position, String text){
 		sr.flush();
 		
 		batch.begin();
 		font.draw(batch, text, position.x, position.y);
+		batch.end();
+
+		Gdx.gl.glEnable(GL20.GL_BLEND);
+		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+	}	
+	public void captionSub(Vector2 position, String text){
+		sr.flush();
+		
+		batch.begin();
+		subFont.draw(batch, text, position.x, position.y);
 		batch.end();
 
 		Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -296,6 +339,10 @@ public class GUI {
 		return null;
 	}
 
+	public boolean UIMouseHovered(Vector2 position, Vector2 size){
+		return UIMouseHovered(position.x, position.y, size.x, size.y);
+	}
+	
 	public boolean UIMouseHovered(float x, float y, float w, float h){
 		return (Utils.UIMousePosition.x > x && Utils.UIMousePosition.x < x + w &&
 		        Utils.UIMousePosition.y > y && Utils.UIMousePosition.y < y + h);

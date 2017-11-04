@@ -28,7 +28,7 @@ public class Fraction {
 		MOBILE_ATTACK,          //Allows squads to attack other squads; Req: BASIC_WARFARE, ACC(5%)
 		ADVANCED_WARFARE,       //Allows building of MB; Req: BASIC_WARFARE, ENG(10%), FP(30%)
 		RADIO,                  //Allows building of radars; Req: ADVANCED_WARFARE, ENG(15%)
-		AMD_I, AMD_II,          //Allows building of AMD stations; Req_1: RADIO, ENG(25%), ACC(60%); Allows building of laser AMD stations; Req_2: AMD_I, ENG(45%), ACC(75%) 
+		AMD_I, AMD_II,          //Allows building of AMD stations; Req_1: ADVANCED_WARFARE, ENG(25%), ACC(30%); Allows building of laser AMD stations; Req_2: AMD_I, ENG(45%), ACC(60%) 
 		ESPIONAGE,              //Allows fraction to steal foreign special tecnologies by capturing enemy's radars; Req: RADIO, SIEGE, ENG(30%)
 		STRATEGIC_WARFARE,      //Allows building of missile silos and missile crafting; Req: ADVANCED_WARFARE, ENG(40%), ACC(25%), FP(50%), SPD(25%)
 		WARHEAD_FRAGMENTATION_I,//Allows missiles' payload to fragmentate, increasing effective area and reducing chance to be shotdown by AMD; Req: SW, ENG(60%), FP(60%)
@@ -40,6 +40,98 @@ public class Fraction {
 			"Advanced warfare", "Electronic warfare", "Anti-Missile Defence I", "Anti-Missile Defence II", 
 			"Industrial espionage", "Strategic warfare", "Warhead fragmentation I", "Warhead fragmentation II", "Decoy flares"
 		};
+	public static String[] specialTechnologyPrompts = {
+			"Reqs:\n"//Basic warfare
+			+ "> ENG: 5%\n"
+			+ "Allows building of fighters, ammo crafting;", 
+			
+			"Reqs:\n> "//Column interception
+			+ specialTechnologyTitles[SpecialTechnology.BASIC_WARFARE.ordinal()] + "\n"
+			+ "> ACC: 20%\n"
+			+ "Allows squads to intercept other squads;", 
+			
+			"Reqs:\n> "//Siege I
+			+ specialTechnologyTitles[SpecialTechnology.BASIC_WARFARE.ordinal()] + "\n"
+			+ "> ARM: 10%\n"
+			+ "> ACC: 10%\n"
+			+ "Allows squads to siege structures and capture them;", 
+			
+			"Reqs:\n> "//Siege II
+			+ specialTechnologyTitles[SpecialTechnology.BASIC_WARFARE.ordinal()] + "\n"
+			+ "> ARM: 40%\n"
+			+ "Allows squads to siege structures and capture them;", 
+			
+			"Reqs:\n> "//Fortification
+			+ specialTechnologyTitles[SpecialTechnology.BASIC_WARFARE.ordinal()] + "\n"
+			+ "> FPW: 10%\n"
+			+ "> ARM: 30%\n"
+			+ "Allows squads to fortify position and defend a spot, "
+			+ "acting like a portable military base;", 
+			
+			"Reqs:\n> "//Column attack
+			+ specialTechnologyTitles[SpecialTechnology.BASIC_WARFARE.ordinal()] + "\n"
+			+ "> ACC: 10%\n"
+			+ "Allows squads to attack other squads;", 
+			
+			"Reqs:\n> "//Advanced warfare
+			+ specialTechnologyTitles[SpecialTechnology.BASIC_WARFARE.ordinal()] + "\n"
+			+ "> ENG: 10%\n"
+			+ "> FPW: 30%\n"
+			+ "Allows bulding of military bases;", 
+			
+			"Reqs:\n> "//Electronic warfare
+			+ specialTechnologyTitles[SpecialTechnology.ADVANCED_WARFARE.ordinal()] + "\n"
+			+ "> ENG: 15%\n"
+			+ "Allows building of radars", 
+			
+			"Reqs:\n> "//AMD I
+			+ specialTechnologyTitles[SpecialTechnology.ADVANCED_WARFARE.ordinal()] + "\n"
+			+ "> ENG: 25%\n"
+			+ "> ACC: 30%\n"
+			+ "Allows building of anti-missile defence systems;",
+			
+			"Reqs:\n> "//AMD II
+			+ specialTechnologyTitles[SpecialTechnology.RADIO.ordinal()] + "\n"
+			+ "> ENG: 45%\n"
+			+ "> ACC: 60%\n"
+			+ "Allows building of laser AMD systems;",
+			
+			"Reqs:\n> "//Espionage
+			+ specialTechnologyTitles[SpecialTechnology.RADIO.ordinal()] + "\n> "
+			+ specialTechnologyTitles[SpecialTechnology.SIEGE_I.ordinal()] + "\n"
+			+ "> ENG: 30%\n"
+			+ "Allows fraction to steal foreign special tecnologies "
+			+ "by capturing enemy's radars",
+			
+			"Reqs:\n> "//Strategic warfare
+			+ specialTechnologyTitles[SpecialTechnology.ADVANCED_WARFARE.ordinal()] + "\n"
+			+ "> ENG: 40%\n"
+			+ "> ACC: 25%\n"
+			+ "> FPW: 50%\n"
+			+ "> SPD: 25%\n"
+			+ "Allows building of missile silos and missile crafting;",
+			
+			"Reqs:\n> "//Warhead fragmentation I
+			+ specialTechnologyTitles[SpecialTechnology.STRATEGIC_WARFARE.ordinal()] + "\n"
+			+ "> ENG: 60%\n"
+			+ "> FPW: 60%\n"
+			+ "Allows missiles' payload to fragmentate, increasing "
+			+ "effective area and reducing chance to be shotdown by AMD;",
+			
+			"Reqs:\n> "//Warhead fragmentation II
+			+ specialTechnologyTitles[SpecialTechnology.WARHEAD_FRAGMENTATION_I.ordinal()] + "\n"
+			+ "> ACC: 35%\n"
+			+ "> SPD: 40%\n"
+			+ "Allows missiles' payload to fragmentate, increasing "
+			+ "effective area and reducing chance to be shotdown by AMD;",
+			
+			"Reqs:\n> "//Decoy flares
+			+ specialTechnologyTitles[SpecialTechnology.RADIO.ordinal()] + "\n> "
+			+ specialTechnologyTitles[SpecialTechnology.STRATEGIC_WARFARE.ordinal()] + "\n"
+			+ "> ENG: 50%\n"
+			+ "Allows missiles to use decoy flares;",
+		};
+	
 	
 	private String name;
 	private Color fractionColor;
@@ -81,9 +173,9 @@ public class Fraction {
 		case RADIO:
 			return (isInvestigated(SpecialTechnology.ADVANCED_WARFARE)        && techLevel(Technology.ENGINEERING) > .15f);
 		case AMD_I:
-			return (isInvestigated(SpecialTechnology.RADIO)                   && techLevel(Technology.ACCURACY)    > .60f   && techLevel(Technology.ENGINEERING) > .25f);
+			return (isInvestigated(SpecialTechnology.ADVANCED_WARFARE)        && techLevel(Technology.ACCURACY)    > .30f   && techLevel(Technology.ENGINEERING) > .25f);
 		case AMD_II:
-			return (isInvestigated(SpecialTechnology.AMD_I)                   && techLevel(Technology.ACCURACY)    > .75f   && techLevel(Technology.ENGINEERING) > .45f);
+			return (isInvestigated(SpecialTechnology.AMD_I)                   && isInvestigated(SpecialTechnology.RADIO)    && techLevel(Technology.ACCURACY)    > .60f   && techLevel(Technology.ENGINEERING) > .45f);
 		case ESPIONAGE:
 			return (isInvestigated(SpecialTechnology.RADIO)                   && isInvestigated(SpecialTechnology.SIEGE_II) && techLevel(Technology.ENGINEERING) > .3f);
 		case STRATEGIC_WARFARE:
