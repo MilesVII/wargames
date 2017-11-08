@@ -7,7 +7,6 @@ import com.badlogic.gdx.math.Vector2;
 
 public class Fraction {
 	public float[] tech         = {0, 0, 0, 0, 0, 0};
-	public static final float MAXTECH = 1000;
 	public int[] techPriorities = {1, 1, 1, 1, 1, 1};
 	public static final int MAXPRIOR = 100;
 	public float investigationBudget = 0;
@@ -33,7 +32,7 @@ public class Fraction {
 		STRATEGIC_WARFARE,      //Allows building of missile silos and missile crafting; Req: ADVANCED_WARFARE, ENG(40%), ACC(25%), FP(50%), SPD(25%)
 		WARHEAD_FRAGMENTATION_I,//Allows missiles' payload to fragmentate, increasing effective area and reducing chance to be shotdown by AMD; Req: SW, ENG(60%), FP(60%)
 		WARHEAD_FRAGMENTATION_II,//Req: WF_I, ACC(35%), SPD(40%)
-		FLARES,                  //Allows missiles to use decoy flares; Req: SW, RADIO, ENG(50%)
+		FLARES,                 //Allows missiles to use decoy flares; Req: SW, RADIO, ENG(50%)
 	}
 	public static String[] specialTechnologyTitles = {
 			"Basic warfare", "Column interception", "Siege I", "Siege II", "Fortification", "Column attack", 
@@ -151,7 +150,7 @@ public class Fraction {
 	}
 	
 	public float techLevel(Technology t){
-		return tech[t.ordinal()] / MAXTECH;
+		return tech[t.ordinal()];
 	}
 	
 	public boolean isInvestigationAllowed(SpecialTechnology st){
@@ -165,7 +164,7 @@ public class Fraction {
 		case SIEGE_II: 
 			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.ARMOR)       > .4f);
 		case FORTIFICATION: 
-			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.FIREPOWER)   > .3f    && techLevel(Technology.ARMOR)       > .3f);
+			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.FIREPOWER)   > .1f    && techLevel(Technology.ARMOR)       > .3f);
 		case MOBILE_ATTACK: 
 			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.ACCURACY)    > .05f);
 		case ADVANCED_WARFARE:
@@ -192,14 +191,19 @@ public class Fraction {
 	
 	public void doInvestigation(){
 		int prioSum = 0;
-		for (int p: techPriorities)
-			prioSum += p;
+		for (int i = 0; i < techPriorities.length; i++){
+			if (tech[i] >= 1){
+				tech[i] = 1;
+				techPriorities[i] = 0;
+			}
+			prioSum += techPriorities[i];
+		}
 		if (prioSum == 0)
 			return;
 		float budget = Math.min(INVESTIGATION_PER_FRAME, investigationBudget);
 		investigationBudget -= budget;
 		for (int i = 0; i < tech.length; i++)
-			tech[i] += (techPriorities[i] / (float) prioSum) * budget;
+			tech[i] += (techPriorities[i] / (float) prioSum) * budget / 1000f;
 	}
 	
 	public void unregisterStructure(Structure _victim){

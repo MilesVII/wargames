@@ -55,6 +55,7 @@ public class GUI {
 	public BitmapFont font, subFont;
 	private static GlyphLayout glay = new GlyphLayout();
 	public Structure currentDialogStruct;
+	private String promptMeta;
 	//Occupied: 0-7
 	private UIScrollbar[] sb = {new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
@@ -113,10 +114,22 @@ public class GUI {
 	public void buttonWithPrompt(Vector2 position, Vector2 size, int id, Croupfuck callback, Color[] colors, String prompt){
 		button(position, size, id, callback, colors);
 		if (UIMouseHovered(position, size)){
-			glay.setText(subFont, prompt);
-			sr.rect(Utils.UIMousePosition.x, Utils.UIMousePosition.y - glay.height, glay.width, glay.height);
-			captionSub(Utils.UIMousePosition, prompt);
+			promptMeta = prompt;
 		}
+	}
+	
+	private void postponedPrompt(){
+		if (promptMeta != null){
+			prompt(Utils.getColor(0, 0, 0, 192), promptMeta);
+			promptMeta = null;
+		}
+	}
+	
+	private void prompt(Color back, String prompt){
+		glay.setText(subFont, prompt);
+		sr.setColor(back);
+		sr.rect(Utils.UIMousePosition.x - 5, Utils.UIMousePosition.y - glay.height - 5, glay.width + 5 * 2, glay.height + 5 * 2);
+		captionSub(Utils.UIMousePosition, prompt);
 	}
 	
 	private static final int PIE_MENU_SECTOR_MARGIN = 5;
@@ -155,10 +168,6 @@ public class GUI {
 		
 		switch (dialog){
 		case LABORATORY:
-			scrollableList(normalToUI(Utils.getVector(DIM_MARGIN, DIM_MARGIN), true),
-			               normalToUI(Utils.getVector(.3625f, 1), false),
-			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.LAB_SPECIALS, GUI_BUTTON_DEFAULT_COLORS,
-			               Fraction.specialTechnologyTitles, SPECTECHINV_ACT, sb[0]);
 			for (int i = 0; i < Fraction.Technology.values().length; i++){
 				hscroller(normalToUI(Utils.getVector(.3825f, .95f - i * .06f), true),
 				          normalToUI(Utils.getVector(.3175f, .05f), false),
@@ -187,10 +196,15 @@ public class GUI {
 			stb.append("\nInvestigation budget: ");
 			stb.append(String.format("%.2f", WG.antistatic.sm.getCurrent().investigationBudget));
 			caption(normalToUI(Utils.getVector(.3875f, .63f), true), stb.toString());
+			scrollableList(normalToUI(Utils.getVector(DIM_MARGIN, DIM_MARGIN), true),
+			               normalToUI(Utils.getVector(.3625f, 1), false),
+			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.LAB_SPECIALS, GUI_BUTTON_DEFAULT_COLORS,
+			               Fraction.specialTechnologyTitles, SPECTECHINV_ACT, sb[0]);
 			break;
 		default:
 			break;
 		}
+		postponedPrompt();
 	}
 	
 	private static final int SCROLL_LIST_MARGIN = 2;
