@@ -23,7 +23,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class WG extends ApplicationAdapter {
 	public enum Dialog{
-		NONE, LABORATORY
+		NONE, LABORATORY, CRAFTING
 	}
 	
 	//Game constants
@@ -73,7 +73,7 @@ public class WG extends ApplicationAdapter {
 		FreeTypeFontGenerator ftfg = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Prototype.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = 22;
-		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.-<>!?/%";
+		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.,-<>!?/%\"";
 		font = ftfg.generateFont(parameter);
 		font.setColor(Color.WHITE);
 		gui = new GUI(this);
@@ -104,6 +104,8 @@ public class WG extends ApplicationAdapter {
 			UI_H = UI_H_DEF;
 			UI_W = Math.round(UI_H * width / (float)height);
 		}
+		System.out.println(""+UI_W+"x"+UI_H);
+		
 		camera.translate(WORLD_W / 2.0f, WORLD_H / 2.0f);
 		//viewport = new FitViewport(WORLD_W, VP_H, camera);
 		

@@ -48,6 +48,10 @@ public class Structure{
 				break;
 			case(1):
 				WG.antistatic.currentDialog = WG.Dialog.LABORATORY;
+				break;
+			case(2):
+				WG.antistatic.currentDialog = WG.Dialog.CRAFTING;
+				break;
 			}
 		}
 	};

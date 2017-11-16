@@ -114,15 +114,14 @@ public class Fraction {
 			+ specialTechnologyTitles[SpecialTechnology.STRATEGIC_WARFARE.ordinal()] + "\n"
 			+ "> ENG: 60%\n"
 			+ "> FPW: 60%\n"
-			+ "Allows missiles' payload to fragmentate, increasing "
+			+ "Allows missiles' payload to fragmentate, increasing\n"
 			+ "effective area and reducing chance to be shotdown by AMD;",
 			
 			"Reqs:\n> "//Warhead fragmentation II
 			+ specialTechnologyTitles[SpecialTechnology.WARHEAD_FRAGMENTATION_I.ordinal()] + "\n"
 			+ "> ACC: 35%\n"
 			+ "> SPD: 40%\n"
-			+ "Allows missiles' payload to fragmentate, increasing "
-			+ "effective area and reducing chance to be shotdown by AMD;",
+			+ "\"HIGH JACK THIS FAGS\";",
 			
 			"Reqs:\n> "//Decoy flares
 			+ specialTechnologyTitles[SpecialTechnology.RADIO.ordinal()] + "\n> "

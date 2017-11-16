@@ -125,11 +125,13 @@ public class GUI {
 		}
 	}
 	
+	private static final int PROMPT_BORDER = 10;
 	private void prompt(Color back, String prompt){
 		glay.setText(subFont, prompt);
 		sr.setColor(back);
-		sr.rect(Utils.UIMousePosition.x - 5, Utils.UIMousePosition.y - glay.height - 5, glay.width + 5 * 2, glay.height + 5 * 2);
-		captionSub(Utils.UIMousePosition, prompt);
+		Vector2 corner = Utils.getVector(Utils.UIMousePosition.x + 5, Math.max(Utils.UIMousePosition.y - glay.height - 5, 0));
+		sr.rect(corner.x, corner.y, glay.width + PROMPT_BORDER * 2, glay.height + PROMPT_BORDER * 2);
+		captionSub(corner.add(PROMPT_BORDER, glay.height + PROMPT_BORDER), prompt);
 	}
 	
 	private static final int PIE_MENU_SECTOR_MARGIN = 5;
@@ -148,6 +150,7 @@ public class GUI {
 	}
 	private StringBuilder stb = new StringBuilder();
 	private static final float INVEST_DIV = 1000f;
+	private static String title;
 	private Croupfuck BUTTON_INVEST_ACT = new Croupfuck(){
 		public void action(int source) {
 			WG.antistatic.sm.getCurrent().investigationBudget += WG.antistatic.sm.getCurrent().getCapital().transfer(Structure.Resource.METAL, source / INVEST_DIV);
@@ -167,7 +170,11 @@ public class GUI {
 		button(DIM_BUTTON_POS_CLOSE, DIM_BUTTON_SIZ_CLOSE, Utils.NULL_ID, GUI_BUTTON_ACT_CLOSE, GUI_BUTTON_CLOSE_COLORS);
 		
 		switch (dialog){
+		case CRAFTING:
+			title = "Crafting";
+			break;
 		case LABORATORY:
+			title = "Research and Development";
 			for (int i = 0; i < Fraction.Technology.values().length; i++){
 				hscroller(normalToUI(Utils.getVector(.3825f, .95f - i * .06f), true),
 				          normalToUI(Utils.getVector(.3175f, .05f), false),
@@ -204,6 +211,8 @@ public class GUI {
 		default:
 			break;
 		}
+		
+		caption(normalToUI(Utils.getVector(.01f, 1f), true).add(0, DIM_BUTTON_SIZ_CLOSE.y - 2), title);
 		postponedPrompt();
 	}
 	
