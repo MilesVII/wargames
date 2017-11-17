@@ -19,6 +19,11 @@ public class Structure{
 	//> T = Lab (Capital city only)
 	//> I = Industrial management (Cities only)
 	//> M = Missile launch
+	//CRAFTABLES
+	//Units: Fighters, Transporters, Builders: Metal
+	//Missiles: Metal, fuel
+	//Science data: Metal, ammo
+	//Ammo: Metal, fuel
 	
 	private float[] resources = {0, 0, 0, 0, 0, 0};
 	public enum Resource {

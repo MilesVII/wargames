@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 
 public class Fraction {
+	public static Fraction debug;
 	public float[] tech         = {0, 0, 0, 0, 0, 0};
 	public int[] techPriorities = {1, 1, 1, 1, 1, 1};
 	public static final int MAXPRIOR = 100;
@@ -18,7 +19,11 @@ public class Fraction {
 		"Firepower", "Armor", "Accuracy", "Speed", "Cargo load", "Engineering"
 	};
 	
-	public ArrayList<SpecialTechnology> specTech = new ArrayList<SpecialTechnology>();
+	private ArrayList<Craftable> availableCraftables = new ArrayList<Craftable>();
+	public enum Craftable{
+		SCIENCE, TRANSPORTER, BUILDER, FIGHTER, AMMO, MISSILE
+	}
+	private ArrayList<SpecialTechnology> specTech = new ArrayList<SpecialTechnology>();
 	public enum SpecialTechnology{
 		BASIC_WARFARE,          //Allows building of fighters, ammo crafting; Req: ENG(5%)
 		COLUMN_INTERCEPTION,    //Allows squads to intercept other squads; Req: BASIC_WARFARE, ACC(20%)
@@ -56,7 +61,7 @@ public class Fraction {
 			+ "Allows squads to siege structures and capture them;", 
 			
 			"Reqs:\n> "//Siege II
-			+ specialTechnologyTitles[SpecialTechnology.BASIC_WARFARE.ordinal()] + "\n"
+			+ specialTechnologyTitles[SpecialTechnology.SIEGE_I.ordinal()] + "\n"
 			+ "> ARM: 40%\n"
 			+ "Allows squads to siege structures and capture them;", 
 			
@@ -137,9 +142,12 @@ public class Fraction {
 	private Structure capital;
 	
 	public Fraction (Color _color, String _name, Vector2 _pos){
+		debug = this;
 		name = _name;
 		fractionColor = _color;
-		
+		availableCraftables.add(Craftable.SCIENCE);
+		availableCraftables.add(Craftable.TRANSPORTER);
+		availableCraftables.add(Craftable.BUILDER);
 		capital = new Structure(_pos, Structure.StructureType.CITY, this);
 		structs.add(capital);
 	}
@@ -161,7 +169,7 @@ public class Fraction {
 		case SIEGE_I: 
 			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.ARMOR)       > .1f    && techLevel(Technology.ACCURACY)    > .1f);
 		case SIEGE_II: 
-			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.ARMOR)       > .4f);
+			return (isInvestigated(SpecialTechnology.SIEGE_I)                 && techLevel(Technology.ARMOR)       > .4f);
 		case FORTIFICATION: 
 			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.FIREPOWER)   > .1f    && techLevel(Technology.ARMOR)       > .3f);
 		case MOBILE_ATTACK: 
@@ -188,7 +196,38 @@ public class Fraction {
 		return false;
 	}
 	
+
+	public void investigateSpecialTechnology(int st){
+		try{
+			investigateSpecialTechnology(SpecialTechnology.values()[st]);
+		} catch (ArrayIndexOutOfBoundsException e){
+			e.printStackTrace();
+		}
+	}
+	public void investigateSpecialTechnology(SpecialTechnology st){
+		if (isInvestigationAllowed(st) && !specTech.contains(st)){
+			specTech.add(st);
+			if (st.equals(SpecialTechnology.BASIC_WARFARE)){
+				availableCraftables.add(Craftable.FIGHTER);
+				availableCraftables.add(Craftable.AMMO);
+			} else if (st.equals(SpecialTechnology.STRATEGIC_WARFARE)){
+				availableCraftables.add(Craftable.MISSILE);
+			}
+			generateCraftTitles();
+		}
+	}
+	
 	public void doInvestigation(){
+		int prioSum = getPrioSum();
+		if (prioSum == 0)
+			return;
+		float budget = Math.min(INVESTIGATION_PER_FRAME, investigationBudget);
+		investigationBudget -= budget;
+		for (int i = 0; i < tech.length; i++)
+			tech[i] += (techPriorities[i] / (float) prioSum) * budget / 1000f;
+	}
+	
+	public int getPrioSum(){
 		int prioSum = 0;
 		for (int i = 0; i < techPriorities.length; i++){
 			if (tech[i] >= 1){
@@ -197,12 +236,38 @@ public class Fraction {
 			}
 			prioSum += techPriorities[i];
 		}
-		if (prioSum == 0)
-			return;
-		float budget = Math.min(INVESTIGATION_PER_FRAME, investigationBudget);
-		investigationBudget -= budget;
-		for (int i = 0; i < tech.length; i++)
-			tech[i] += (techPriorities[i] / (float) prioSum) * budget / 1000f;
+		return prioSum;
+	}
+	
+	public String getCraftableTitle(Craftable c){
+		switch(c){
+		case AMMO:
+			return "Ammo";
+		case BUILDER:
+			return "Builder";
+		case FIGHTER:
+			return "Fighter";
+		case MISSILE:
+			return "Missile";
+		case SCIENCE:
+			return "Science data";
+		case TRANSPORTER:
+			return "Transporter";
+		}
+		return "nu;;";
+	}
+	
+	private String[] tempCraftTitles;
+	private String[] generateCraftTitles(){
+		tempCraftTitles = new String[availableCraftables.size()];
+		for (int i = 0; i < tempCraftTitles.length; i++)
+			tempCraftTitles[i] = getCraftableTitle(availableCraftables.get(i));
+		return tempCraftTitles;
+	}
+	public String[] getCraftTitles(){
+		if (tempCraftTitles == null)
+			generateCraftTitles();
+		return tempCraftTitles;
 	}
 	
 	public void unregisterStructure(Structure _victim){

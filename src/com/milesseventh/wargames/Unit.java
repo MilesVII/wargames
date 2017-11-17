@@ -1,15 +1,46 @@
 package com.milesseventh.wargames;
 
+import com.badlogic.gdx.math.MathUtils;
+
 public class Unit {
 	public enum Type {FIGHTER, TRANSPORTER, BUILDER};
 	
+	public float[] techLevel = {0, 0, 0, 0, 0, 0};
 	public Fraction owner;
 	public Type type;
-	public Structure city;
+	public Structure manufacturer;
 	
-	public Unit(Structure _city, Type _type) {
-		city = _city;
-		owner = city.ownerFraction;
+	public Unit(Structure _manufacturer, Type _type) {
+		manufacturer = _manufacturer;
+		owner = manufacturer.ownerFraction;
 		type = _type;
+	}
+	
+	public void setTechLevel(Fraction.Technology t, float in){
+		techLevel[t.ordinal()] = MathUtils.clamp(in, 0, 1);
+	}
+	
+	@Override
+	public int hashCode(){
+		int h = 17;
+		for (float r: techLevel)
+			h = h * 71 + (int)(r * 100);
+		h = h * 71 + manufacturer.hashCode();
+		h = h * 71 + type.ordinal();
+		return h;
+	}
+	
+	@Override
+	public boolean equals(Object o){
+		if (o == this)
+			return true;
+		if (!(o instanceof Unit))
+			return false;
+		Unit u = (Unit) o;
+		
+		for (int i = 0; i < techLevel.length; i++)
+			if (techLevel[i] != u.techLevel[i])
+				return false;
+		return (type == u.type);
 	}
 }

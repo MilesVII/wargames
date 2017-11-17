@@ -38,7 +38,7 @@ public class GUI {
 		public void action(int source) {
 			System.out.println(Fraction.specialTechnologyTitles[source] + " pressed");
 			if (WG.antistatic.sm.getCurrent().isInvestigationAllowed(Fraction.SpecialTechnology.values()[source]))
-				WG.antistatic.sm.getCurrent().specTech.add(Fraction.SpecialTechnology.values()[source]);
+				WG.antistatic.sm.getCurrent().investigateSpecialTechnology(source);
 		}
 	};
 	public class UIScrollbar{
@@ -56,7 +56,7 @@ public class GUI {
 	private static GlyphLayout glay = new GlyphLayout();
 	public Structure currentDialogStruct;
 	private String promptMeta;
-	//Occupied: 0-7
+	//Occupied: 0-9
 	private UIScrollbar[] sb = {new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
@@ -170,17 +170,16 @@ public class GUI {
 		button(DIM_BUTTON_POS_CLOSE, DIM_BUTTON_SIZ_CLOSE, Utils.NULL_ID, GUI_BUTTON_ACT_CLOSE, GUI_BUTTON_CLOSE_COLORS);
 		
 		switch (dialog){
-		case CRAFTING:
-			title = "Crafting";
-			break;
 		case LABORATORY:
 			title = "Research and Development";
 			for (int i = 0; i < Fraction.Technology.values().length; i++){
 				hscroller(normalToUI(Utils.getVector(.3825f, .95f - i * .06f), true),
 				          normalToUI(Utils.getVector(.3175f, .05f), false),
 				          sb[2 + i], .42f, (int)Fraction.MAXPRIOR);
-				caption(normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f), true),
-				        Fraction.technologyTitles[i] + ": " + WG.antistatic.sm.getCurrent().techPriorities[i] * 100 / Fraction.MAXPRIOR + "%");
+				try {
+					caption(normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f), true),
+					        Fraction.technologyTitles[i] + ": " + WG.antistatic.sm.getCurrent().techPriorities[i] * 100 / WG.antistatic.sm.getCurrent().getPrioSum() + "%");
+				} catch (ArithmeticException e){}
 				WG.antistatic.sm.getCurrent().techPriorities[i] = sb[2 + i].offset;
 			}
 			sb[1].firstUse = true;
@@ -207,6 +206,17 @@ public class GUI {
 			               normalToUI(Utils.getVector(.3625f, 1), false),
 			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.LAB_SPECIALS, GUI_BUTTON_DEFAULT_COLORS,
 			               Fraction.specialTechnologyTitles, SPECTECHINV_ACT, sb[0]);
+			break;
+		case CRAFTING:
+			title = "Crafting";
+			scrollableList(normalToUI(Utils.getVector(DIM_MARGIN, .5f + DIM_MARGIN / 2f), true),
+			               normalToUI(Utils.getVector(.32f, (1 - DIM_MARGIN * 3f) / 2f), false),
+			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.ORDINARY, GUI_BUTTON_DEFAULT_COLORS,
+			               Fraction.debug.getCraftTitles(), null, sb[8]);
+			scrollableList(normalToUI(Utils.getVector(DIM_MARGIN, DIM_MARGIN), true),
+			               normalToUI(Utils.getVector(.32f, .5f - DIM_MARGIN * 3), false),
+			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.ORDINARY, GUI_BUTTON_DEFAULT_COLORS,
+			               Fraction.debug.specialTechnologyTitles, null, sb[9]);
 			break;
 		default:
 			break;
@@ -248,7 +258,7 @@ public class GUI {
 		}
 	}
 	
-	private enum ScrollEntry{ORDINARY, LAB_SPECIALS}
+	private enum ScrollEntry{ORDINARY, LAB_SPECIALS, CRAFT_ABLES, CRAFT_ST}
 	private void scrollEntry(ScrollEntry type, Vector2 position, Vector2 size, int id, Croupfuck action, Color[] entryColor, String caption){
 		switch(type){
 		case ORDINARY:
@@ -262,6 +272,12 @@ public class GUI {
 			else if (WG.antistatic.sm.getCurrent().isInvestigationAllowed(Fraction.SpecialTechnology.values()[id]))
 				c = Color.ORANGE;
 			captionColored(Utils.getVector(position).add(0, size.y), caption, c);
+		case CRAFT_ABLES:
+			break;
+		case CRAFT_ST:
+			break;
+		default:
+			break;
 		}
 	}
 	
