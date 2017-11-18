@@ -47,7 +47,7 @@ public class GUI {
 			if (cd.selected != cd.fraction.availableCraftables.get(source)){
 				cd.select(cd.fraction.availableCraftables.get(source));
 				cd.selectedST.clear();
-				System.out.println(Fraction.getCraftableTitle(cd.selected) + " selected");
+				sb[16].offset = 0;
 			}
 		}
 	};
@@ -76,13 +76,12 @@ public class GUI {
 	public Structure currentDialogStruct;
 	public CraftableDialog cd;
 	private String promptMeta;
-	//Occupied: 0-9
-	private UIScrollbar[] sb = {new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
-	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
-	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
-	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
-	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
-	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar()};//TODO: bleh
+	//  0,1:LAB:ST list scrollbar and investitions
+	//  2-7:LAB:Technology scrollers
+	//  8,9:CFT:Craftables and ST list scrollbars
+	//10-15:CFT:Technology scrollers
+	//   16:CFT:Count
+	private UIScrollbar[] sb = new UIScrollbar[32];
 	
 	public Vector2 DIM_DIALOG_REFPOINT,
 	               DIM_DIALOG_SIZE;
@@ -94,12 +93,14 @@ public class GUI {
 	public static final float DIM_MARGIN = .01f,  DIM_VSCROLLBAR_WIDTH = .2f; 
 	public static final Croupfuck GUI_BUTTON_ACT_CLOSE = new Croupfuck(){
 		@Override
-			public void action(int source) {
+		public void action(int source) {
 			WG.antistatic.currentDialog = WG.Dialog.NONE;
 		}
 	};
 	
 	public GUI(WG _context){
+		for (int i = 0; i < sb.length; i++)
+			sb[i] = new UIScrollbar();
 		context = _context;
 	}
 	
@@ -239,6 +240,20 @@ public class GUI {
 			               normalToUI(Utils.getVector(.32f, .5f - DIM_MARGIN * 3), false),
 			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.CRAFT_ST, GUI_BUTTON_DEFAULT_COLORS,
 			               cd.availableSTTitles, CRAFT_ST_ACT, sb[9]);
+			for (int i = 0; i < Fraction.availableCraftableTechs[cd.selected.ordinal()].length; i++){
+				hscroller(normalToUI(Utils.getVector(.3825f, .95f - i * .06f - DIM_MARGIN), true),
+				          normalToUI(Utils.getVector(.3175f, .05f), false),
+				          sb[10 + i], .42f, 100);
+				caption(normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f - DIM_MARGIN), true),
+				        Fraction.technologyTitles[Fraction.availableCraftableTechs[cd.selected.ordinal()][i].ordinal()] +
+				        ": " + sb[10 + i].offset + "%");
+			}
+			hscroller(normalToUI(Utils.getVector(.3825f, .59f - DIM_MARGIN), true),
+			          normalToUI(Utils.getVector(.3175f, .05f), false),
+			          sb[16], .42f, (int)Math.floor(Fraction.debug.getCapital().getResource(Structure.Resource.METAL) / Fraction.craftableRelativeCosts[cd.selected.ordinal()][0]));
+			caption(normalToUI(Utils.getVector(.5f + .25f, .64f - DIM_MARGIN), true),
+			        "Count: " + sb[16].offset);
+			sb[16].firstUse = true;
 			break;
 		default:
 			break;
@@ -297,7 +312,7 @@ public class GUI {
 			captionColored(Utils.getVector(position).add(0, size.y), caption, c);
 			break;
 		case CRAFT_ABLES:
-			buttonWithPrompt(position, size, id, action, entryColor, Fraction.specialTechnologyPrompts[id]);
+			buttonWithPrompt(position, size, id, action, entryColor, Fraction.craftablePrompts[id]);
 			captionColored(Utils.getVector(position).add(0, size.y), caption, (cd.selected == context.sm.getCurrent().availableCraftables.get(id))?Utils.getColor(218, 64, 0, 255):Color.WHITE);
 			break;
 		case CRAFT_ST:
@@ -400,10 +415,6 @@ public class GUI {
 
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-	}
-	
-	public <T> T radio(T[] list, String caps, Vector2 position, Vector2 size){
-		return null;
 	}
 
 	public boolean UIMouseHovered(Vector2 position, Vector2 size){

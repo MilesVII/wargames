@@ -23,6 +23,96 @@ public class Fraction {
 	public enum Craftable{
 		SCIENCE, TRANSPORTER, BUILDER, FIGHTER, AMMO, MISSILE
 	}
+	public static String[] craftableTitles = {
+			"Science data",
+			"Transporter",
+			"Builder",
+			"Fighter",
+			"Ammo",
+			"Missile"
+	};
+	public static String[] craftablePrompts = {
+			"Allows doing investigations",//Science data
+			"Transports cargo between structures, such as ore, metal, oil, fuel, ammo, or missiles",//Transporter
+			"Special vehicle that is able to create new structures \nusing resources that are being transported using transporters",//Builder
+			"Protects column and is able to attack structures using ammo",//Fighter
+			"Allows fighters to do their job, transported via Transporters",//Ammo
+			"Nuclear missile, being launched by silos"//Missile
+	};
+	public static Technology[][] availableCraftableTechs = {
+			{//Science
+				Technology.ENGINEERING
+			},
+			{//Transporter
+				Technology.ARMOR,
+				Technology.SPEED,
+				Technology.CARGO,
+			},
+			{//Builder
+				Technology.ARMOR,
+				Technology.SPEED,
+				Technology.ENGINEERING,
+			},
+			{//Fighter
+				Technology.ACCURACY,
+				Technology.ARMOR,
+				Technology.FIREPOWER,
+				Technology.SPEED,
+			},
+			{//Ammmo
+				Technology.FIREPOWER
+			},
+			{//Missile
+				Technology.ACCURACY,
+				Technology.SPEED,
+				Technology.FIREPOWER
+			}
+	};
+	public static Structure.Resource[][] craftableIngridients = {
+			{//Science
+				Structure.Resource.METAL,
+				Structure.Resource.FUEL
+			},
+			{//Transporter
+				Structure.Resource.METAL
+			},
+			{//Builder
+				Structure.Resource.METAL
+			},
+			{//Fighter
+				Structure.Resource.METAL
+			},
+			{//Ammmo
+				Structure.Resource.METAL,
+				Structure.Resource.FUEL
+			},
+			{//Missile
+				Structure.Resource.METAL
+			}
+	};
+	public static float[][] craftableRelativeCosts = {
+			{//Science
+				1.2f,//M
+				0.7f//F
+			},
+			{//Transporter
+				32f//M
+			},
+			{//Builder
+				420f//M
+			},
+			{//Fighter
+				70f
+			},
+			{//Ammmo
+				.7f,//M
+				.1f//F
+			},
+			{//Missile
+				700f//M
+			}
+	};
+	
 	public SpecialTechnology[][] availableCraftablesST = { 
 			{},//Science
 			{},//Transporter
@@ -234,7 +324,7 @@ public class Fraction {
 			} else if (st.equals(SpecialTechnology.STRATEGIC_WARFARE)){
 				availableCraftables.add(Craftable.MISSILE);
 			}
-			generateCraftTitles();
+			tempCraftTitles = null;//Used to rebuild array
 		}
 	}
 	
@@ -260,34 +350,13 @@ public class Fraction {
 		return prioSum;
 	}
 	
-	public static String getCraftableTitle(Craftable c){
-		switch(c){
-		case AMMO:
-			return "Ammo";
-		case BUILDER:
-			return "Builder";
-		case FIGHTER:
-			return "Fighter";
-		case MISSILE:
-			return "Missile";
-		case SCIENCE:
-			return "Science data";
-		case TRANSPORTER:
-			return "Transporter";
-		}
-		return "nu;;";
-	}
-	
 	private String[] tempCraftTitles;
-	private String[] generateCraftTitles(){
-		tempCraftTitles = new String[availableCraftables.size()];
-		for (int i = 0; i < tempCraftTitles.length; i++)
-			tempCraftTitles[i] = getCraftableTitle(availableCraftables.get(i));
-		return tempCraftTitles;
-	}
 	public String[] getCraftTitles(){
-		if (tempCraftTitles == null)
-			generateCraftTitles();
+		if (tempCraftTitles == null){
+			tempCraftTitles = new String[availableCraftables.size()];
+			for (int i = 0; i < tempCraftTitles.length; i++)
+				tempCraftTitles[i] = craftableTitles[availableCraftables.get(i).ordinal()];
+		}
 		return tempCraftTitles;
 	}
 	
