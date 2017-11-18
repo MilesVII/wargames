@@ -11,7 +11,7 @@ public class Fraction {
 	public int[] techPriorities = {1, 1, 1, 1, 1, 1};
 	public static final int MAXPRIOR = 100;
 	public float investigationBudget = 0;
-	public static final float INVESTIGATION_PER_FRAME = .2f;
+	public static final float INVESTIGATION_PER_FRAME = 7f;//.2f;
 	public enum Technology{
 		FIREPOWER, ARMOR, ACCURACY, SPEED, CARGO, ENGINEERING
 	}
@@ -19,10 +19,29 @@ public class Fraction {
 		"Firepower", "Armor", "Accuracy", "Speed", "Cargo load", "Engineering"
 	};
 	
-	private ArrayList<Craftable> availableCraftables = new ArrayList<Craftable>();
+	public ArrayList<Craftable> availableCraftables = new ArrayList<Craftable>();
 	public enum Craftable{
 		SCIENCE, TRANSPORTER, BUILDER, FIGHTER, AMMO, MISSILE
 	}
+	public SpecialTechnology[][] availableCraftablesST = { 
+			{},//Science
+			{},//Transporter
+			{},//Builder
+			{//Fighter
+				SpecialTechnology.COLUMN_INTERCEPTION,
+				SpecialTechnology.ESPIONAGE,
+				SpecialTechnology.FORTIFICATION,
+				SpecialTechnology.MOBILE_ATTACK,
+				SpecialTechnology.SIEGE_I,
+				SpecialTechnology.SIEGE_II
+			},
+			{},//Ammmo
+			{//Missile
+				SpecialTechnology.WARHEAD_FRAGMENTATION_I,
+				SpecialTechnology.WARHEAD_FRAGMENTATION_II,
+				SpecialTechnology.FLARES
+			}
+	};
 	private ArrayList<SpecialTechnology> specTech = new ArrayList<SpecialTechnology>();
 	public enum SpecialTechnology{
 		BASIC_WARFARE,          //Allows building of fighters, ammo crafting; Req: ENG(5%)
@@ -200,6 +219,8 @@ public class Fraction {
 	public void investigateSpecialTechnology(int st){
 		try{
 			investigateSpecialTechnology(SpecialTechnology.values()[st]);
+			if (WG.antistatic.gui.cd != null)
+				WG.antistatic.gui.cd.generateAvailableSTBySelected();
 		} catch (ArrayIndexOutOfBoundsException e){
 			e.printStackTrace();
 		}
@@ -239,7 +260,7 @@ public class Fraction {
 		return prioSum;
 	}
 	
-	public String getCraftableTitle(Craftable c){
+	public static String getCraftableTitle(Craftable c){
 		switch(c){
 		case AMMO:
 			return "Ammo";

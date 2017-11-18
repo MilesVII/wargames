@@ -218,7 +218,7 @@ public class WG extends ApplicationAdapter {
 			}
 		}
 		//Debug mechanics
-		sm.getFractions()[0].getStructs().get(0).addResource(Structure.Resource.METAL, 70f);
+		sm.getFractions()[0].getStructs().get(0).addResource(Structure.Resource.METAL, 7f);
 		sm.getCurrent().doInvestigation();
 		//Camera debug controls
 		if (Gdx.input.isKeyPressed(Input.Keys.A)){

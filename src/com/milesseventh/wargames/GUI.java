@@ -41,6 +41,25 @@ public class GUI {
 				WG.antistatic.sm.getCurrent().investigateSpecialTechnology(source);
 		}
 	};
+	public final Croupfuck CRAFT_TYPE_ACT = new Croupfuck(){
+		@Override
+		public void action(int source) {
+			if (cd.selected != cd.fraction.availableCraftables.get(source)){
+				cd.select(cd.fraction.availableCraftables.get(source));
+				cd.selectedST.clear();
+				System.out.println(Fraction.getCraftableTitle(cd.selected) + " selected");
+			}
+		}
+	};
+	public final Croupfuck CRAFT_ST_ACT = new Croupfuck(){
+		@Override
+		public void action(int source) {
+			if (!cd.selectedST.contains(cd.availableST[source]))
+				cd.selectedST.add(cd.availableST[source]);
+			else
+				cd.selectedST.remove(cd.availableST[source]);
+		}
+	};
 	public class UIScrollbar{
 		public boolean isActive = false, firstUse = true;
 		public int max = -1, offset = 0;
@@ -55,6 +74,7 @@ public class GUI {
 	public BitmapFont font, subFont;
 	private static GlyphLayout glay = new GlyphLayout();
 	public Structure currentDialogStruct;
+	public CraftableDialog cd;
 	private String promptMeta;
 	//Occupied: 0-9
 	private UIScrollbar[] sb = {new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
@@ -62,7 +82,7 @@ public class GUI {
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
 	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar(), 
-	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar()};//bleh
+	                            new UIScrollbar(), new UIScrollbar(), new UIScrollbar()};//TODO: bleh
 	
 	public Vector2 DIM_DIALOG_REFPOINT,
 	               DIM_DIALOG_SIZE;
@@ -209,14 +229,16 @@ public class GUI {
 			break;
 		case CRAFTING:
 			title = "Crafting";
+			if (cd == null)
+				cd = new CraftableDialog(WG.antistatic.sm.getCurrent());
 			scrollableList(normalToUI(Utils.getVector(DIM_MARGIN, .5f + DIM_MARGIN / 2f), true),
 			               normalToUI(Utils.getVector(.32f, (1 - DIM_MARGIN * 3f) / 2f), false),
-			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.ORDINARY, GUI_BUTTON_DEFAULT_COLORS,
-			               Fraction.debug.getCraftTitles(), null, sb[8]);
+			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.CRAFT_ABLES, GUI_BUTTON_DEFAULT_COLORS,
+			               Fraction.debug.getCraftTitles(), CRAFT_TYPE_ACT, sb[8]);
 			scrollableList(normalToUI(Utils.getVector(DIM_MARGIN, DIM_MARGIN), true),
 			               normalToUI(Utils.getVector(.32f, .5f - DIM_MARGIN * 3), false),
-			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.ORDINARY, GUI_BUTTON_DEFAULT_COLORS,
-			               Fraction.debug.specialTechnologyTitles, null, sb[9]);
+			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.CRAFT_ST, GUI_BUTTON_DEFAULT_COLORS,
+			               cd.availableSTTitles, CRAFT_ST_ACT, sb[9]);
 			break;
 		default:
 			break;
@@ -226,6 +248,7 @@ public class GUI {
 		postponedPrompt();
 	}
 	
+	//TODO: do something with String[] caption and review crafting mechanics then
 	private static final int SCROLL_LIST_MARGIN = 2;
 	public void scrollableList(Vector2 position, Vector2 size, float scrollbarWidth, ScrollEntry type,
 	                           Color[] entryColor, String[] captions, Croupfuck actions, UIScrollbar bar){
@@ -272,9 +295,14 @@ public class GUI {
 			else if (WG.antistatic.sm.getCurrent().isInvestigationAllowed(Fraction.SpecialTechnology.values()[id]))
 				c = Color.ORANGE;
 			captionColored(Utils.getVector(position).add(0, size.y), caption, c);
+			break;
 		case CRAFT_ABLES:
+			buttonWithPrompt(position, size, id, action, entryColor, Fraction.specialTechnologyPrompts[id]);
+			captionColored(Utils.getVector(position).add(0, size.y), caption, (cd.selected == context.sm.getCurrent().availableCraftables.get(id))?Utils.getColor(218, 64, 0, 255):Color.WHITE);
 			break;
 		case CRAFT_ST:
+			buttonWithPrompt(position, size, id, action, entryColor, Fraction.specialTechnologyPrompts[cd.availableST[id].ordinal()]);
+			captionColored(Utils.getVector(position).add(0, size.y), caption, cd.selectedST.contains(cd.availableST[id])?Utils.getColor(218, 64, 0, 255):Color.WHITE);
 			break;
 		default:
 			break;
