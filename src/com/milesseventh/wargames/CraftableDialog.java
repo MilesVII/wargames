@@ -2,37 +2,39 @@ package com.milesseventh.wargames;
 
 import java.util.ArrayList;
 
+import com.milesseventh.wargames.Heartstrings.Craftable;
+import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
+
 public class CraftableDialog {
 	public Fraction fraction;
-	public Fraction.Craftable selected;
-	public ArrayList<Fraction.SpecialTechnology> selectedST = new ArrayList<Fraction.SpecialTechnology>();
+	public Craftable selected;
+	public ArrayList<SpecialTechnology> selectedST = new ArrayList<SpecialTechnology>();
 	public String[] availableSTTitles;
-	public Fraction.SpecialTechnology[] availableST;
+	public SpecialTechnology[] availableST;
 	
 	public CraftableDialog(Fraction f) {
 		fraction = f;
-		select(Fraction.Craftable.TRANSPORTER);
+		select(Craftable.TRANSPORTER);
 	}
 	
-	public void select(Fraction.Craftable c){
+	public void select(Craftable c){
 		selected = c;
 		generateAvailableSTBySelected();
 	}
 	
 	public void generateAvailableSTBySelected(){
 		int len = 0, j = 0;
-
-		for (int i = 0; i < fraction.availableCraftablesST[selected.ordinal()].length; i++)
-			if (fraction.isInvestigated(fraction.availableCraftablesST[selected.ordinal()][i]))
+		for (int i = 0; i < Heartstrings.get(selected, Heartstrings.availableCraftablesST).length; i++)
+			if (fraction.isInvestigated(Heartstrings.get(selected, Heartstrings.availableCraftablesST)[i]))
 				len++;
-		availableST = new Fraction.SpecialTechnology[len];
-		for (int i = 0; i < fraction.availableCraftablesST[selected.ordinal()].length; i++)
-			if (fraction.isInvestigated(fraction.availableCraftablesST[selected.ordinal()][i])){
-				availableST[j] = fraction.availableCraftablesST[selected.ordinal()][i];
+		availableST = new SpecialTechnology[len];
+		for (int i = 0; i < Heartstrings.get(selected, Heartstrings.availableCraftablesST).length; i++)
+			if (fraction.isInvestigated(Heartstrings.get(selected, Heartstrings.availableCraftablesST)[i])){
+				availableST[j] = Heartstrings.get(selected, Heartstrings.availableCraftablesST)[i];
 				j++;
 			}
 		availableSTTitles = new String[availableST.length];
 		for (int i = 0; i < availableST.length; i++)
-			availableSTTitles[i] = Fraction.specialTechnologyTitles[availableST[i].ordinal()];
+			availableSTTitles[i] = Heartstrings.get(availableST[i], Heartstrings.specialTechnologyTitles);
 	}
 }

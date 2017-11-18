@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.milesseventh.wargames.Heartstrings.Technology;
 
 public class GUI {
 	private static final Color[] GUI_BUTTON_CLOSE_COLORS = {
@@ -36,8 +37,8 @@ public class GUI {
 	public static final Croupfuck SPECTECHINV_ACT = new Croupfuck(){
 		@Override
 		public void action(int source) {
-			System.out.println(Fraction.specialTechnologyTitles[source] + " pressed");
-			if (WG.antistatic.sm.getCurrent().isInvestigationAllowed(Fraction.SpecialTechnology.values()[source]))
+			System.out.println(Heartstrings.specialTechnologyTitles[source] + " pressed");
+			if (WG.antistatic.sm.getCurrent().isInvestigationAllowed(Heartstrings.SpecialTechnology.values()[source]))
 				WG.antistatic.sm.getCurrent().investigateSpecialTechnology(source);
 		}
 	};
@@ -193,13 +194,13 @@ public class GUI {
 		switch (dialog){
 		case LABORATORY:
 			title = "Research and Development";
-			for (int i = 0; i < Fraction.Technology.values().length; i++){
+			for (int i = 0; i < Technology.values().length; i++){
 				hscroller(normalToUI(Utils.getVector(.3825f, .95f - i * .06f), true),
 				          normalToUI(Utils.getVector(.3175f, .05f), false),
 				          sb[2 + i], .42f, (int)Fraction.MAXPRIOR);
 				try {
 					caption(normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f), true),
-					        Fraction.technologyTitles[i] + ": " + WG.antistatic.sm.getCurrent().techPriorities[i] * 100 / WG.antistatic.sm.getCurrent().getPrioSum() + "%");
+					        Heartstrings.technologyTitles[i] + ": " + Fraction.debug.techPriorities[i] * 100 / WG.antistatic.sm.getCurrent().getPrioSum() + "%");
 				} catch (ArithmeticException e){}
 				WG.antistatic.sm.getCurrent().techPriorities[i] = sb[2 + i].offset;
 			}
@@ -212,10 +213,10 @@ public class GUI {
 			                  normalToUI(Utils.getVector(.28f, .05f), false), sb[1].offset, BUTTON_DEINVEST_ACT, GUI_BUTTON_DEFAULT_COLORS, "Recall investition");
 			
 			stb.setLength(0);
-			for (int i = 0; i < Fraction.Technology.values().length; i++){
-				stb.append(Fraction.technologyTitles[i]);
+			for (int i = 0; i < Technology.values().length; i++){
+				stb.append(Heartstrings.technologyTitles[i]);
 				stb.append(": ");
-				stb.append(String.format("%.2f", WG.antistatic.sm.getCurrent().techLevel(Fraction.Technology.values()[i]) * 100));
+				stb.append(String.format("%.2f", WG.antistatic.sm.getCurrent().techLevel(Technology.values()[i]) * 100));
 				stb.append("%\n");
 			}
 			stb.append("Metal in capital: ");
@@ -226,7 +227,7 @@ public class GUI {
 			scrollableList(normalToUI(Utils.getVector(DIM_MARGIN, DIM_MARGIN), true),
 			               normalToUI(Utils.getVector(.3625f, 1), false),
 			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.LAB_SPECIALS, GUI_BUTTON_DEFAULT_COLORS,
-			               Fraction.specialTechnologyTitles, SPECTECHINV_ACT, sb[0]);
+			               Heartstrings.specialTechnologyTitles, SPECTECHINV_ACT, sb[0]);
 			break;
 		case CRAFTING:
 			title = "Crafting";
@@ -240,17 +241,17 @@ public class GUI {
 			               normalToUI(Utils.getVector(.32f, .5f - DIM_MARGIN * 3), false),
 			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.CRAFT_ST, GUI_BUTTON_DEFAULT_COLORS,
 			               cd.availableSTTitles, CRAFT_ST_ACT, sb[9]);
-			for (int i = 0; i < Fraction.availableCraftableTechs[cd.selected.ordinal()].length; i++){
+			for (int i = 0; i < Heartstrings.get(cd.selected, Heartstrings.availableCraftableTechs).length; i++){
 				hscroller(normalToUI(Utils.getVector(.3825f, .95f - i * .06f - DIM_MARGIN), true),
 				          normalToUI(Utils.getVector(.3175f, .05f), false),
 				          sb[10 + i], .42f, 100);
 				caption(normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f - DIM_MARGIN), true),
-				        Fraction.technologyTitles[Fraction.availableCraftableTechs[cd.selected.ordinal()][i].ordinal()] +
-				        ": " + sb[10 + i].offset + "%");
+				        Heartstrings.get(Heartstrings.get(cd.selected, Heartstrings.availableCraftableTechs)[i], Heartstrings.technologyTitles) +
+				        ": " + sb[10 + i].offset * Fraction.debug.techLevel(Heartstrings.get(cd.selected, Heartstrings.availableCraftableTechs)[i]) + "%");
 			}
 			hscroller(normalToUI(Utils.getVector(.3825f, .59f - DIM_MARGIN), true),
 			          normalToUI(Utils.getVector(.3175f, .05f), false),
-			          sb[16], .42f, (int)Math.floor(Fraction.debug.getCapital().getResource(Structure.Resource.METAL) / Fraction.craftableRelativeCosts[cd.selected.ordinal()][0]));
+			          sb[16], .42f, (int)Math.floor(Fraction.debug.getCapital().getResource(Structure.Resource.METAL) / Heartstrings.get(cd.selected, Heartstrings.craftableRelativeCosts)[0]));
 			caption(normalToUI(Utils.getVector(.5f + .25f, .64f - DIM_MARGIN), true),
 			        "Count: " + sb[16].offset);
 			sb[16].firstUse = true;
@@ -303,20 +304,20 @@ public class GUI {
 			buttonWithCaption(position, size, id, action, entryColor, caption);
 			break;
 		case LAB_SPECIALS:
-			buttonWithPrompt(position, size, id, action, entryColor, Fraction.specialTechnologyPrompts[id]);
+			buttonWithPrompt(position, size, id, action, entryColor, Heartstrings.specialTechnologyPrompts[id]);
 			Color c = Color.RED;
-			if (WG.antistatic.sm.getCurrent().isInvestigated(Fraction.SpecialTechnology.values()[id]))
+			if (WG.antistatic.sm.getCurrent().isInvestigated(Heartstrings.SpecialTechnology.values()[id]))
 				c = Color.LIME;
-			else if (WG.antistatic.sm.getCurrent().isInvestigationAllowed(Fraction.SpecialTechnology.values()[id]))
+			else if (WG.antistatic.sm.getCurrent().isInvestigationAllowed(Heartstrings.SpecialTechnology.values()[id]))
 				c = Color.ORANGE;
 			captionColored(Utils.getVector(position).add(0, size.y), caption, c);
 			break;
 		case CRAFT_ABLES:
-			buttonWithPrompt(position, size, id, action, entryColor, Fraction.craftablePrompts[id]);
+			buttonWithPrompt(position, size, id, action, entryColor, Heartstrings.craftablePrompts[id]);
 			captionColored(Utils.getVector(position).add(0, size.y), caption, (cd.selected == context.sm.getCurrent().availableCraftables.get(id))?Utils.getColor(218, 64, 0, 255):Color.WHITE);
 			break;
 		case CRAFT_ST:
-			buttonWithPrompt(position, size, id, action, entryColor, Fraction.specialTechnologyPrompts[cd.availableST[id].ordinal()]);
+			buttonWithPrompt(position, size, id, action, entryColor, Heartstrings.get(cd.availableST[id], Heartstrings.specialTechnologyPrompts));
 			captionColored(Utils.getVector(position).add(0, size.y), caption, cd.selectedST.contains(cd.availableST[id])?Utils.getColor(218, 64, 0, 255):Color.WHITE);
 			break;
 		default:

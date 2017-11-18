@@ -12,6 +12,7 @@ public class Utils {
 	public static Vector2 WorldMousePosition = new Vector2(), UIMousePosition = new Vector2();//Updated via WG.java, update();
 	public static boolean isTouchJustReleased = false;
 	public static final int NULL_ID = -1;
+	public static final Heartstrings heartstrings = new Heartstrings();
 	
 	public static float projectX(float _len, float _dir){
 		return (float)(_len * Math.cos(Math.toRadians(_dir)));

@@ -1,6 +1,7 @@
 package com.milesseventh.wargames;
 
 import com.badlogic.gdx.math.MathUtils;
+import com.milesseventh.wargames.Heartstrings.Technology;
 
 public class Unit {
 	public enum Type {FIGHTER, TRANSPORTER, BUILDER};
@@ -16,7 +17,7 @@ public class Unit {
 		type = _type;
 	}
 	
-	public void setTechLevel(Fraction.Technology t, float in){
+	public void setTechLevel(Technology t, float in){
 		techLevel[t.ordinal()] = MathUtils.clamp(in, 0, 1);
 	}
 	
