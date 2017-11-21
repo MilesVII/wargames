@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
+import com.milesseventh.wargames.Heartstrings.Technology;
 
 public class CraftableDialog {
 	public Fraction fraction;
@@ -11,6 +12,7 @@ public class CraftableDialog {
 	public ArrayList<SpecialTechnology> selectedST = new ArrayList<SpecialTechnology>();
 	public String[] availableSTTitles;
 	public SpecialTechnology[] availableST;
+	public float selectedT[] = new float[Technology.values().length];
 	
 	public CraftableDialog(Fraction f) {
 		fraction = f;
@@ -20,6 +22,9 @@ public class CraftableDialog {
 	public void select(Craftable c){
 		selected = c;
 		generateAvailableSTBySelected();
+		selectedST.clear();
+		for (int i = 0; i < selectedT.length; i++)
+			selectedT[i] = 0;
 	}
 	
 	public void generateAvailableSTBySelected(){

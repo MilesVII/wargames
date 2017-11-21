@@ -1,5 +1,6 @@
 package com.milesseventh.wargames;
 
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
 public class Structure{
@@ -43,6 +44,7 @@ public class Structure{
 	private float condition, maxCondition;
 	private Vector2 position;
 	public StructureType type;
+	public int unitsCrafted = 0;
 	
 	public static final Croupfuck PIEMENU_ACTIONS_CITY = new Croupfuck(){
 		@Override
@@ -97,6 +99,15 @@ public class Structure{
 		float transaction = Math.min(trans, resources[_resType.ordinal()]);
 		resources[_resType.ordinal()] -= transaction;
 		return transaction;
+	}
+	
+	public static final int MAX_UNITS_FOR_BONUS = 1200;// Number of units being crafted when craftingBonus stops to grow
+	public static final float MAX_CRAFTING_BONUS = .42f;// Max discount for crafting 
+	public float getCraftingBonus(){
+		return getCraftingBonus(unitsCrafted);
+	}
+	public static float getCraftingBonus(int unitsCrafted){
+		return MathUtils.clamp(unitsCrafted / (float) MAX_UNITS_FOR_BONUS, 0, MAX_CRAFTING_BONUS);
 	}
 	
 	protected void onDestroy() {

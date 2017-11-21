@@ -48,7 +48,7 @@ public class Fraction {
 		case BASIC_WARFARE: 
 			return (techLevel(Technology.ENGINEERING) > .05f);
 		case COLUMN_INTERCEPTION: 
-			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.ACCURACY)    > .2f);
+			return (isInvestigated(SpecialTechnology.MOBILE_ATTACK)           && techLevel(Technology.ACCURACY)    > .2f);
 		case SIEGE_I: 
 			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.ARMOR)       > .1f    && techLevel(Technology.ACCURACY)    > .1f);
 		case SIEGE_II: 

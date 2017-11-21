@@ -1,6 +1,7 @@
 package com.milesseventh.wargames;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -9,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
 
 public class GUI {
@@ -47,7 +49,6 @@ public class GUI {
 		public void action(int source) {
 			if (cd.selected != cd.fraction.availableCraftables.get(source)){
 				cd.select(cd.fraction.availableCraftables.get(source));
-				cd.selectedST.clear();
 				sb[16].offset = 0;
 			}
 		}
@@ -248,13 +249,27 @@ public class GUI {
 				caption(normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f - DIM_MARGIN), true),
 				        Heartstrings.get(Heartstrings.get(cd.selected, Heartstrings.availableCraftableTechs)[i], Heartstrings.technologyTitles) +
 				        ": " + sb[10 + i].offset * Fraction.debug.techLevel(Heartstrings.get(cd.selected, Heartstrings.availableCraftableTechs)[i]) + "%");
+				cd.selectedT[Heartstrings.get(cd.selected, Heartstrings.availableCraftableTechs)[i].ordinal()] = sb[10 + i].offset * Fraction.debug.tech[i] / 100f;
 			}
 			hscroller(normalToUI(Utils.getVector(.3825f, .59f - DIM_MARGIN), true),
 			          normalToUI(Utils.getVector(.3175f, .05f), false),
-			          sb[16], .42f, (int)Math.floor(Fraction.debug.getCapital().getResource(Structure.Resource.METAL) / Heartstrings.get(cd.selected, Heartstrings.craftableRelativeCosts)[0]));
+			          sb[16], .42f, Heartstrings.getMaxCraftingOrder(cd.selected, currentDialogStruct, cd.selectedT, cd.selectedST));
 			caption(normalToUI(Utils.getVector(.5f + .25f, .64f - DIM_MARGIN), true),
 			        "Count: " + sb[16].offset);
 			sb[16].firstUse = true;
+			//TODO: DEBUG
+			if (Gdx.input.isKeyJustPressed(Input.Keys.Q)){
+				String x = "Selected T:\n";
+				for(int i = 0; i < Technology.values().length; i++){
+					x += Heartstrings.technologyTitles[i] + ": " + cd.selectedT[i] + "; Costs: " + cd.selectedT[i] * Heartstrings.technologyMaxCost[i] + "M\n";
+				}
+				x += "\nSelected ST: \n";
+				for(SpecialTechnology st: cd.selectedST){
+					x += Heartstrings.get(st, Heartstrings.specialTechnologyTitles) + ": " + Heartstrings.specialTechnologyCost[st.ordinal()] + "M\n";
+				}
+				x += "\nTech price total: " + Heartstrings.getTechCost(cd.selectedT, cd.selectedST) + "\n" + Heartstrings.getMaxCraftingOrder(cd.selected, this.currentDialogStruct, cd.selectedT, cd.selectedST) + "\n__________________________";
+				System.out.println(x);
+			}
 			break;
 		default:
 			break;
@@ -365,6 +380,7 @@ public class GUI {
 		
 		sr.setColor(sb.color[0]);
 		sr.rect(sb.position.x, sb.position.y, sb.size.x, sb.size.y);
+		sb.offset = MathUtils.clamp(sb.offset, 0, sb.max);
 		
 		float sb_w = sb.size.x * widthPart, 
 		      sb_offx = (sb.offset / (float) (sb.max)) * (sb.size.x - sb_w);
