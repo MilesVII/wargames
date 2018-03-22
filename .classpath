@@ -2,7 +2,11 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/Miles Seventh/.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.9.6/47d1e9b890e364ec28f128e9bb3b9a12a94c164/gdx-1.9.6.jar" sourcepath="C:/Users/Miles Seventh/.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.9.6/7d903ecd6b0df2ec334814b8e70618e4c93fd37c/gdx-1.9.6-sources.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Miles Seventh/.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-freetype/1.9.6/69187cc3c8062f191df435b43671b0e5ffcbf353/gdx-freetype-1.9.6.jar" sourcepath="C:/Users/Miles Seventh/.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-freetype/1.9.6/4b5600df790e2798b21d6e5decdf752698c05013/gdx-freetype-1.9.6-sources.jar"/>
+	<classpathentry kind="lib" path="D:/home/dev/code/stuff/gdx/gdx-1.9.8.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/D:/home/dev/code/stuff/gdx/gdx-1.9.8-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="D:/home/dev/code/stuff/gdx/gdx-freetype-1.9.8.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

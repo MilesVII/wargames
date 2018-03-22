@@ -3,7 +3,6 @@ package com.milesseventh.wargames;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -16,10 +15,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFont
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class WG extends ApplicationAdapter {
 	public enum Dialog{
@@ -52,7 +48,6 @@ public class WG extends ApplicationAdapter {
 	//private Pathfinder landWalker;
 	private BitmapFont font;
 	private boolean preTouched = false;
-	public SessionManager sm;
 	public GUI gui;
 	private Structure pieMenuState = null; // null if no pie menu opened
 	public Dialog currentDialog = Dialog.NONE;
@@ -74,8 +69,10 @@ public class WG extends ApplicationAdapter {
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = 22;
 		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.,-<>!?/%\"";
+		
 		font = ftfg.generateFont(parameter);
 		font.setColor(Color.WHITE);
+		
 		gui = new GUI(this);
 		parameter.size = 17;
 		gui.subFont = ftfg.generateFont(parameter);
@@ -149,7 +146,7 @@ public class WG extends ApplicationAdapter {
 		Utils.UIMousePosition.y = getUIMouseY();
 		Utils.WorldMousePosition.x = getWorldMouseX();
 		Utils.WorldMousePosition.y = getWorldMouseY();
-		Utils.isTouchJustReleased = (preTouched != Gdx.input.isTouched() && !Gdx.input.justTouched());
+		Utils.isTouchJustReleased = (preTouched != Gdx.input.isTouched() && !Gdx.input.justTouched());//&& pretouched == true instead?
 		preTouched = Gdx.input.isTouched();
 		
 		Gdx.gl.glClearColor(1, 1, 1, 1);
@@ -168,9 +165,9 @@ public class WG extends ApplicationAdapter {
 		} else if (loadingProgress == -1){//Map generated
 			_noiseT = new Texture(map.getPixmap());
 			_marchT = new Texture(landOutline.getRendered());
-			Fraction[] _ = {new Fraction(Color.ORANGE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
-			sm = new SessionManager(_);
-			Fraction.debug.getCapital().addResource(Structure.Resource.METAL, 70000f);
+			//Fraction[] _ = {new Fraction(Color.BLUE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
+			new Fraction(Color.BLUE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map));
+			Fraction.debug.capital.addResource(Structure.Resource.METAL, 70000f);
 			loadingProgress = -2;
 		};
 		
@@ -188,18 +185,17 @@ public class WG extends ApplicationAdapter {
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		
-		for (Fraction runhorsey: sm.getFractions()){
-			for (Structure neverlookback: runhorsey.getStructs()){
-				hsr.setColor(runhorsey.getColor());
+		//for (Fraction runhorsey: sm.getFractions())
+			for (Structure neverlookback: Fraction.debug.structs){
+				hsr.setColor(Fraction.debug.fractionColor);
 				if (getUIFromWorldV(neverlookback.getPosition()).dst(Utils.UIMousePosition) < CITY_ICON_RADIUS * 1.7f){
-					hsr.setColor(runhorsey.getColor().r * 1.2f, runhorsey.getColor().g * 1.2f, runhorsey.getColor().b * 1.2f, 1f);
+					hsr.setColor(Fraction.debug.fractionColor.r + .2f, Fraction.debug.fractionColor.g + .2f, Fraction.debug.fractionColor.b + .2f, 1f);
 					if (Gdx.input.justTouched() && currentDialog == Dialog.NONE){
 						gui.currentDialogStruct = pieMenuState = neverlookback;
 					}
 				}
 				hsr.circle(this.getUIFromWorldX(neverlookback.getPosition().x), this.getUIFromWorldY(neverlookback.getPosition().y), CITY_ICON_RADIUS);
 			}
-		}
 		if (pieMenuState != null)
 			gui.piemenu(getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, pieMenuState.getPieMenuActionsNumber(), Structure.PIEMENU_ACTIONS_CITY);
 		if (currentDialog != Dialog.NONE)
@@ -214,12 +210,16 @@ public class WG extends ApplicationAdapter {
 		if (Gdx.input.isKeyPressed(Input.Keys.C)){
 			//Try to build a city
 			Vector2 _np = new Vector2(getWorldMouseX(), getWorldMouseY());
-			if (Utils.debugCheckPlaceForNewStructure(map, sm.getCurrent(), _np)){
-				sm.getCurrent().registerStructure(new Structure(_np, Structure.StructureType.CITY, sm.getCurrent()));
+			if (Utils.debugCheckPlaceForNewStructure(map, Fraction.debug, _np)){
+				Fraction.debug.registerStructure(new Structure(_np, Structure.StructureType.CITY, Fraction.debug));
 			}
 		}
 		//Debug mechanics
-		sm.getCurrent().doInvestigation();
+		//sm.getCurrent().doInvestigation();
+		
+		//...
+		Fraction.debug.doInvestigation(Gdx.graphics.getDeltaTime() * 1000f);
+		
 		//Camera debug controls
 		if (Gdx.input.isKeyPressed(Input.Keys.A)){
 			//Zoom in

@@ -29,17 +29,17 @@ public class CraftableDialog {
 	
 	public void generateAvailableSTBySelected(){
 		int len = 0, j = 0;
-		for (int i = 0; i < Heartstrings.get(selected, Heartstrings.availableCraftablesST).length; i++)
-			if (fraction.isInvestigated(Heartstrings.get(selected, Heartstrings.availableCraftablesST)[i]))
+		for (int i = 0; i < Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs.length; i++)
+			if (fraction.isInvestigated(Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs[i]))
 				len++;
 		availableST = new SpecialTechnology[len];
-		for (int i = 0; i < Heartstrings.get(selected, Heartstrings.availableCraftablesST).length; i++)
-			if (fraction.isInvestigated(Heartstrings.get(selected, Heartstrings.availableCraftablesST)[i])){
-				availableST[j] = Heartstrings.get(selected, Heartstrings.availableCraftablesST)[i];
+		for (int i = 0; i < Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs.length; i++)
+			if (fraction.isInvestigated(Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs[i])){
+				availableST[j] = Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs[i];
 				j++;
 			}
 		availableSTTitles = new String[availableST.length];
 		for (int i = 0; i < availableST.length; i++)
-			availableSTTitles[i] = Heartstrings.get(availableST[i], Heartstrings.specialTechnologyTitles);
+			availableSTTitles[i] = Heartstrings.get(availableST[i], Heartstrings.stProperties).title;
 	}
 }

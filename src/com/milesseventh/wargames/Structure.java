@@ -35,18 +35,19 @@ public class Structure{
 		CITY, MINER, ML, RADAR, AMD, MB 
 	}
 	//                                             C   M   ML   R  AMD   MB
-	public static final float[] DEFAULT_RANGES = { 22,  0, 17, 12,  27,  42};
-	public static final float[] DEFAULT_MAXCDS = {420, 70, 42, 70, 120, 200};
-	public static final int[]   PIEMENU_ACTCNT = {  5,  0,  0,  0,   0,   0};
+	public static final float[] DEFAULT_RANGES = { 22,  0, 17, 12,  27,  42};//Firing range
+	public static final float[] DEFAULT_MAXCDS = {420, 70, 42, 70, 120, 200};//Max vitality
+	public static final int[]   PIEMENU_ACTCNT = {  5,  0,  0,  0,   0,   0};//Pie-menu actions counter
 	
 	private float range;//Radius of circle that will be added to fraction's territory
 	public Fraction ownerFraction;//ID of fraction that owns this unit
-	private float condition, maxCondition;
+	private float vitality, maxVitality;
 	private Vector2 position;
 	public StructureType type;
-	public int unitsCrafted = 0;
+	public int unitsCrafted = 0;//
+	public float evolution = 0; //Evolution factor defines the speed of crafting and firepower of defence systems
 	
-	public static final Croupfuck PIEMENU_ACTIONS_CITY = new Croupfuck(){
+	public static final Callback PIEMENU_ACTIONS_CITY = new Callback(){
 		@Override
 		public void action(int source) {
 			switch(source){
@@ -68,7 +69,7 @@ public class Structure{
 		ownerFraction = owner;
 		type = st;
 		range = DEFAULT_RANGES[type.ordinal()];//Assign firing range and condition on the assumption of type
-		condition = maxCondition = DEFAULT_MAXCDS[type.ordinal()];
+		vitality = maxVitality = DEFAULT_MAXCDS[type.ordinal()];
 	}
 	
 	public static int getPieMenuActionsNumber(StructureType st){
@@ -101,13 +102,13 @@ public class Structure{
 		return transaction;
 	}
 	
-	public static final int MAX_UNITS_FOR_BONUS = 1200;// Number of units being crafted when craftingBonus stops to grow
-	public static final float MAX_CRAFTING_BONUS = .42f;// Max discount for crafting 
+	public static final int MAX_UNITS_FOR_DISCOUNT = 1200;// Number of units being crafted when craftingBonus stops to grow
+	public static final float MAX_CRAFTING_DISCOUNT = .42f;// Max discount for crafting 
 	public float getCraftingBonus(){
 		return getCraftingBonus(unitsCrafted);
 	}
 	public static float getCraftingBonus(int unitsCrafted){
-		return MathUtils.clamp(unitsCrafted / (float) MAX_UNITS_FOR_BONUS, 0, MAX_CRAFTING_BONUS);
+		return MathUtils.clamp(unitsCrafted / (float) MAX_UNITS_FOR_DISCOUNT, 0, MAX_CRAFTING_DISCOUNT);
 	}
 	
 	protected void onDestroy() {
@@ -119,16 +120,16 @@ public class Structure{
 	}
 	
 	public void hit(float _damage){
-		condition -= _damage;
-		if (condition <= 0){
+		vitality -= _damage;
+		if (vitality <= 0){
 			onDestroy();
 		}
 	}
 	
 	public void repair(float _repair){
-		condition += _repair;
-		if (condition > maxCondition){
-			condition = maxCondition;
+		vitality += _repair;
+		if (vitality > maxVitality){
+			vitality = maxVitality;
 		}
 	}
 	

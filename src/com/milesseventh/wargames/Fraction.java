@@ -4,25 +4,31 @@ import java.util.ArrayList;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
 
 public class Fraction {
 	public static Fraction debug;
+
 	public float[] tech         = {0, 0, 0, 0, 0, 0};
 	public int[] techPriorities = {1, 1, 1, 1, 1, 1};
 	public static final int MAXPRIOR = 100;
-	public float investigationBudget = 0;
-	public static final float INVESTIGATION_PER_FRAME = 7f;//.2f;
 	public ArrayList<Craftable> availableCraftables = new ArrayList<Craftable>();
-	private ArrayList<SpecialTechnology> specTech = new ArrayList<SpecialTechnology>();
+	public ArrayList<SpecialTechnology> specTech = new ArrayList<SpecialTechnology>();
+	private Queue<SpecialTechnology> pendingST = new Queue<SpecialTechnology>();
+	private float stInvestigationDone = 0;
 	
-	
-	private String name;
-	private Color fractionColor;
-	private ArrayList<Structure> structs = new ArrayList<Structure>();
-	private Structure capital;
+	public static final float INVESTIGATION_PER_MS = .2f,
+	                          INITIAL_CAPITAL_EVOLUTION = .2f,
+	                          ST_INVESTIGATION_PER_MS = .2f;
+		
+	public String name;
+	public Color fractionColor;
+	public ArrayList<Structure> structs = new ArrayList<Structure>();
+	public Structure capital;
+	public float scienceDataAvailable = 0;
 	
 	public Fraction (Color _color, String _name, Vector2 _pos){
 		debug = this;
@@ -33,6 +39,7 @@ public class Fraction {
 		availableCraftables.add(Craftable.BUILDER);
 		capital = new Structure(_pos, Structure.StructureType.CITY, this);
 		structs.add(capital);
+		capital.evolution = INITIAL_CAPITAL_EVOLUTION;
 	}
 	
 	public boolean isInvestigated(SpecialTechnology st){
@@ -43,54 +50,34 @@ public class Fraction {
 		return tech[t.ordinal()];
 	}
 	
-	public boolean isInvestigationAllowed(SpecialTechnology st){
-		switch(st){
-		case BASIC_WARFARE: 
-			return (techLevel(Technology.ENGINEERING) > .05f);
-		case COLUMN_INTERCEPTION: 
-			return (isInvestigated(SpecialTechnology.MOBILE_ATTACK)           && techLevel(Technology.ACCURACY)    > .2f);
-		case SIEGE_I: 
-			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.ARMOR)       > .1f    && techLevel(Technology.ACCURACY)    > .1f);
-		case SIEGE_II: 
-			return (isInvestigated(SpecialTechnology.SIEGE_I)                 && techLevel(Technology.ARMOR)       > .4f);
-		case FORTIFICATION: 
-			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.FIREPOWER)   > .1f    && techLevel(Technology.ARMOR)       > .3f);
-		case MOBILE_ATTACK: 
-			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.ACCURACY)    > .05f);
-		case ADVANCED_WARFARE:
-			return (isInvestigated(SpecialTechnology.BASIC_WARFARE)           && techLevel(Technology.ENGINEERING) > .1f    && techLevel(Technology.FIREPOWER)   > .3f);
-		case RADIO:
-			return (isInvestigated(SpecialTechnology.ADVANCED_WARFARE)        && techLevel(Technology.ENGINEERING) > .15f);
-		case AMD_I:
-			return (isInvestigated(SpecialTechnology.ADVANCED_WARFARE)        && techLevel(Technology.ACCURACY)    > .30f   && techLevel(Technology.ENGINEERING) > .25f);
-		case AMD_II:
-			return (isInvestigated(SpecialTechnology.AMD_I)                   && isInvestigated(SpecialTechnology.RADIO)    && techLevel(Technology.ACCURACY)    > .60f   && techLevel(Technology.ENGINEERING) > .45f);
-		case ESPIONAGE:
-			return (isInvestigated(SpecialTechnology.RADIO)                   && isInvestigated(SpecialTechnology.SIEGE_II) && techLevel(Technology.ENGINEERING) > .3f);
-		case STRATEGIC_WARFARE:
-			return (isInvestigated(SpecialTechnology.ADVANCED_WARFARE)        && techLevel(Technology.ENGINEERING) > .4f    && techLevel(Technology.ACCURACY)    > .25f && techLevel(Technology.FIREPOWER) > .5f && techLevel(Technology.SPEED) > .25f);
-		case WARHEAD_FRAGMENTATION_I:
-			return (isInvestigated(SpecialTechnology.STRATEGIC_WARFARE)       && techLevel(Technology.ENGINEERING) > .6f    && techLevel(Technology.FIREPOWER)   > .6f);
-		case WARHEAD_FRAGMENTATION_II:
-			return (isInvestigated(SpecialTechnology.WARHEAD_FRAGMENTATION_I) && techLevel(Technology.ACCURACY)    > .35f   && techLevel(Technology.SPEED)       > .4f);
-		case FLARES:
-			return (isInvestigated(SpecialTechnology.STRATEGIC_WARFARE)       && isInvestigated(SpecialTechnology.RADIO)    && techLevel(Technology.ENGINEERING) > .5f);
-		}
-		return false;
+	public boolean isSTInvestigationPossibleRightNow(int st){
+		//Check if ST is already investigated/ing
+		if (specTech.contains(st))
+			return false;
+		for (int i = 0; i < pendingST.size; ++i)
+			if (pendingST.get(i) == Heartstrings.SpecialTechnology.values()[i])
+				return false;
+		
+		//Check if there is enough science data stored
+		return Heartstrings.stProperties[st].investigationPriceInData <= scienceDataAvailable;
 	}
 	
-
-	public void investigateSpecialTechnology(int st){
+	public void startInvestigatingSpecialTechnology(int st){
+		pendingST.addLast(SpecialTechnology.values()[st]);
+	}
+	
+	public void specialTechnologyInvestigated(int st){
 		try{
-			investigateSpecialTechnology(SpecialTechnology.values()[st]);
-			if (WG.antistatic.gui.cd != null)
-				WG.antistatic.gui.cd.generateAvailableSTBySelected();
+			specialTechnologyInvestigated(SpecialTechnology.values()[st]);
+			//TODO
+			//if (WG.antistatic.gui.cd != null)
+			//	WG.antistatic.gui.cd.generateAvailableSTBySelected();
 		} catch (ArrayIndexOutOfBoundsException e){
 			e.printStackTrace();
 		}
 	}
-	public void investigateSpecialTechnology(SpecialTechnology st){
-		if (isInvestigationAllowed(st) && !specTech.contains(st)){
+	public void specialTechnologyInvestigated(SpecialTechnology st){
+		if (Heartstrings.get(st, Heartstrings.stProperties).isInvestigationAllowed(this) && !specTech.contains(st)){
 			specTech.add(st);
 			if (st.equals(SpecialTechnology.BASIC_WARFARE)){
 				availableCraftables.add(Craftable.FIGHTER);
@@ -102,12 +89,20 @@ public class Fraction {
 		}
 	}
 	
-	public void doInvestigation(){
+	public void doInvestigation(float dt){
+		if (pendingST.size > 0){
+			stInvestigationDone += dt / Heartstrings.get(pendingST.first(), Heartstrings.stProperties).investigationWorkamount;
+			if (stInvestigationDone >= 1){
+				stInvestigationDone = 0;
+				specTech.add(pendingST.first());
+				pendingST.removeFirst();
+			}
+		}
 		int prioSum = getPrioSum();
 		if (prioSum == 0)
 			return;
-		float budget = Math.min(INVESTIGATION_PER_FRAME, investigationBudget);
-		investigationBudget -= budget;
+		float budget = Math.min(INVESTIGATION_PER_MS * dt, scienceDataAvailable);
+		scienceDataAvailable -= budget;
 		for (int i = 0; i < tech.length; i++)
 			tech[i] += (techPriorities[i] / (float) prioSum) * budget / 1000f;
 	}
@@ -129,7 +124,7 @@ public class Fraction {
 		if (tempCraftTitles == null){
 			tempCraftTitles = new String[availableCraftables.size()];
 			for (int i = 0; i < tempCraftTitles.length; i++)
-				tempCraftTitles[i] = Heartstrings.get(availableCraftables.get(i), Heartstrings.craftableTitles);//craftableTitles[availableCraftables.get(i).ordinal()];
+				tempCraftTitles[i] = Heartstrings.get(availableCraftables.get(i), Heartstrings.craftableProperties).title;//craftableTitles[availableCraftables.get(i).ordinal()];
 		}
 		return tempCraftTitles;
 	}
@@ -140,17 +135,5 @@ public class Fraction {
 	
 	public void registerStructure(Structure _victim){
 		structs.add(_victim);
-	}
-	
-	public ArrayList<Structure> getStructs(){
-		return structs;
-	}
-	
-	public Color getColor(){
-		return fractionColor;
-	}
-	
-	public Structure getCapital(){
-		return capital;
 	}
 }

@@ -1,7 +1,6 @@
 package com.milesseventh.wargames;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -10,90 +9,142 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
-import com.milesseventh.wargames.Heartstrings.Technology;
 
 public class GUI {
-	private static final Color[] GUI_BUTTON_CLOSE_COLORS = {
-			new Color(.75f, 0, 0, .8f), 
-			new Color(.75f, 0, 0, 1), 
-			new Color(.64f, 0, 0, 1)
-		};
-	public static final Color[] GUI_SCROLLBAR_COLORS = {
-			new Color(.8f, .8f, .8f, .8f), 
-			new Color(.42f, .42f, .42f, 1), 
-			new Color(.97f, .97f, .97f, 1)
-		};
-	public static final Color[] GUI_BUTTON_DEFAULT_COLORS = {
-			new Color(0, 0, 0, .5f), 
-			new Color(0, 0, 0, 1), 
-			new Color(.5f, .5f, .5f, .8f)
-		};
-	public static Color GUI_DEF_BLACK = new Color(0, 0, 0, .5f);
-	public static final Croupfuck DBG_LIST_ACT = new Croupfuck(){
-		@Override
-		public void action(int source) {
-			System.out.println("" + source + " pressed");
-		}
-	};
-	public static final Croupfuck SPECTECHINV_ACT = new Croupfuck(){
-		@Override
-		public void action(int source) {
-			System.out.println(Heartstrings.specialTechnologyTitles[source] + " pressed");
-			if (WG.antistatic.sm.getCurrent().isInvestigationAllowed(Heartstrings.SpecialTechnology.values()[source]))
-				WG.antistatic.sm.getCurrent().investigateSpecialTechnology(source);
-		}
-	};
-	public final Croupfuck CRAFT_TYPE_ACT = new Croupfuck(){
-		@Override
-		public void action(int source) {
-			if (cd.selected != cd.fraction.availableCraftables.get(source)){
-				cd.select(cd.fraction.availableCraftables.get(source));
-				sb[16].offset = 0;
-			}
-		}
-	};
-	public final Croupfuck CRAFT_ST_ACT = new Croupfuck(){
-		@Override
-		public void action(int source) {
-			if (!cd.selectedST.contains(cd.availableST[source]))
-				cd.selectedST.add(cd.availableST[source]);
-			else
-				cd.selectedST.remove(cd.availableST[source]);
-		}
-	};
-	public class UIScrollbar{
-		public boolean isActive = false, firstUse = true;
-		public int max = -1, offset = 0;
+	public class Aligner {
 		public Vector2 position, size;
-		public Color[] color = GUI_SCROLLBAR_COLORS;//0 -- Bar bgd, 1 -- Bar normal, 2 -- Bar hovered/pressed
-		public float mouseDelta;
+		
+		public Aligner(){
+			reset();
+		}
+		
+		public void setSize(Vector2 _size){
+			normalToUI(size.set(_size), false);
+		}
+		
+		public void next(int hdir, int vdir){
+			if (hdir != 0)
+				position.x += (size.x + DIM_MARGIN.x) * Math.signum(hdir);
+			if (vdir != 0)
+				position.y += (size.y + DIM_MARGIN.y) * Math.signum(vdir);
+		}
+		
+		public void reset(){
+			position = DIM_DIALOG_REFPOINT.cpy().add(DIM_MARGIN);
+			size     = new Vector2(0, 0);
+		}
+		
 	}
 	
-	private WG context;
-	public Batch batch;
-	public ShapeRenderer sr;
-	public BitmapFont font, subFont;
+	class Scrollbar {
+		public Vector2 position, 
+		                   size, 
+		          thumbPosition = new Vector2(), 
+		              thumbSize = new Vector2();
+		public int offset;
+		public boolean initialized = false;
+		private float relativeThumbSize, trackingOffset;
+		private boolean isVertical, tracking;
+		
+		public void init(Vector2 _position, Vector2 _size, boolean _isVertical, float _relativeThumbSize){
+			position = _position.cpy();
+			size = _size.cpy();
+			isVertical = _isVertical;
+			relativeThumbSize = _relativeThumbSize;
+			initialized = true;
+		}
+		
+		public void update(int states){
+			--states;//TODO: EffectiveKrutch
+			if (offset > states)
+				offset = states;
+			
+			if (isVertical){
+				thumbSize.x = size.x;
+				thumbSize.y = size.y * relativeThumbSize;
+				
+				thumbPosition.x = position.x;
+				thumbPosition.y = position.y + (size.y - thumbSize.y) * (1f - (float) offset / (float) states);// + thumbSize.y / 2;
+			} else {
+				thumbSize.x = size.x * relativeThumbSize;
+				thumbSize.y = size.y;
+				
+				thumbPosition.x = position.x + (size.x - thumbSize.x) *       (float) offset / (float) states;// + thumbSize.x / 2;
+				thumbPosition.y = position.y;
+			}
+			
+			if (UIMouseHovered(thumbPosition, thumbSize) && Gdx.input.justTouched()){
+				if (isVertical)
+					trackingOffset = thumbSize.y / 2f + thumbPosition.y - Utils.UIMousePosition.y;
+				else
+					trackingOffset = thumbSize.x / 2f + thumbPosition.x - Utils.UIMousePosition.x;
+				tracking = true;
+			}
+			if (Utils.isTouchJustReleased)
+				tracking = false;
+			
+			if (tracking)
+				if (isVertical){
+					float tap = Utils.UIMousePosition.y + trackingOffset;
+					tap -= position.y + thumbSize.y / 2;
+					tap = MathUtils.clamp(tap, 0, size.y - thumbSize.y);
+					tap /= size.y - thumbSize.y;
+					offset = Math.round((1 - tap) * states);
+				} else {
+					float tap = Utils.UIMousePosition.x + trackingOffset;
+					tap -= position.x + thumbSize.x / 2;
+					tap = MathUtils.clamp(tap, 0, size.x - thumbSize.x);
+					tap /= size.x - thumbSize.x;
+					offset = Math.round(tap * states);
+				}
+		}
+		
+		public void render(Color[] colors){
+			sr.setColor(colors[0]);
+			sr.rect(position.x, position.y, size.x, size.y);
+			sr.setColor(colors[UIMouseHovered(thumbPosition, thumbSize) ? 2 : 1]);
+			sr.rect(thumbPosition.x, thumbPosition.y, thumbSize.x, thumbSize.y);
+		}
+	}
+	
+	private static final Color[] GUI_COLORS_BUTTON_CLOSE = {
+			new Color(.75f, 0, 0, .8f), //default
+			new Color(.75f, 0, 0, 1),   //hovered
+			new Color(.64f, 0, 0, 1)    //pressed
+		};
+	public static final Color[] GUI_COLORS_SCROLLBAR_COLORS = {
+			new Color(.8f, .8f, .8f, .8f),  //bar background
+			new Color(.42f, .42f, .42f, 1), //bar thumb
+			new Color(.97f, .97f, .97f, 1)  //hovered
+		};
+	public static final Color[] GUI_COLORS_DEFAULT = {
+			new Color(0, 0, 0, .42f),     //superdefault
+			new Color(0, 0, 0, 1),        //hovered
+			new Color(.5f, .5f, .5f, .8f) //pressed
+		};
+	public static Color GUI_COLOR_SEVENT = new Color(218f, 64f, 0f, 1f);
+	public static Color GUI_COLOR_TEXT_DEF = new Color(255f, 255f, 255f, 1f);
+	public final ObjectiveCallback<String> LAB_RETR_ST_TITLE = new ObjectiveCallback<String>(){
+		@Override
+		public String call(int id) {
+			return Heartstrings.stProperties[id].title;
+		}
+	};
+	
 	private static GlyphLayout glay = new GlyphLayout();
 	public Structure currentDialogStruct;
-	public CraftableDialog cd;
-	private String promptMeta;
-	//  0,1:LAB:ST list scrollbar and investitions
-	//  2-7:LAB:Technology scrollers
-	//  8,9:CFT:Craftables and ST list scrollbars
-	//10-15:CFT:Technology scrollers
-	//   16:CFT:Count
-	private UIScrollbar[] sb = new UIScrollbar[32];
+	private Scrollbar[] scrollbars = new Scrollbar[32];
 	
 	public Vector2 DIM_DIALOG_REFPOINT,
 	               DIM_DIALOG_SIZE;
-
+	public static Vector2 DIM_MARGIN = new Vector2();
+	
 	public Vector2 DIM_BUTTON_SIZ_CLOSE,
 	               DIM_BUTTON_POS_CLOSE,
 	               DIM_BUTTON_CNT_CLOSE;
 	
-	public static final float DIM_MARGIN = .01f,  DIM_VSCROLLBAR_WIDTH = .2f; 
-	public static final Croupfuck GUI_BUTTON_ACT_CLOSE = new Croupfuck(){
+	public static float DIM_VSCROLLBAR_WIDTH = .2f;
+	public static final Callback GUI_ACT_BUTTON_CLOSE = new Callback(){
 		@Override
 		public void action(int source) {
 			WG.antistatic.currentDialog = WG.Dialog.NONE;
@@ -101,64 +152,105 @@ public class GUI {
 	};
 	
 	public GUI(WG _context){
-		for (int i = 0; i < sb.length; i++)
-			sb[i] = new UIScrollbar();
 		context = _context;
 	}
-	
+
+	private WG context;
+	public Batch batch;
+	public ShapeRenderer sr;
+	public BitmapFont font, subFont;
 	public void init(){
 		DIM_DIALOG_REFPOINT = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2);
 		DIM_DIALOG_SIZE = new Vector2(WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
 		DIM_BUTTON_SIZ_CLOSE = new Vector2(WG.UI_W * .1f, WG.UI_H * .05f);
-		DIM_BUTTON_POS_CLOSE = new Vector2(WG.UI_W, WG.UI_H - (WG.UI_H - WG.UI_H * WG.DIALOG_HEIGHT) / 2).sub(DIM_BUTTON_SIZ_CLOSE);
-		DIM_BUTTON_CNT_CLOSE = DIM_BUTTON_POS_CLOSE.cpy().sub(DIM_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
-		for (UIScrollbar bar: sb)
-			bar.firstUse = true;
+		DIM_BUTTON_POS_CLOSE = DIM_DIALOG_REFPOINT.cpy().add(DIM_DIALOG_SIZE).sub(DIM_BUTTON_SIZ_CLOSE);
+		//new Vector2(WG.UI_W, WG.UI_H - (WG.UI_H - WG.UI_H * WG.DIALOG_HEIGHT) / 2).sub(DIM_BUTTON_SIZ_CLOSE);
+		
+		DIM_MARGIN.x = .01f;
+		DIM_MARGIN.y = DIM_MARGIN.x * DIM_DIALOG_SIZE.x / DIM_DIALOG_SIZE.y;
+		DIM_MARGIN.scl(DIM_DIALOG_SIZE);
+		aligner = new Aligner();
+		
+		//DIM_BUTTON_CNT_CLOSE = DIM_BUTTON_POS_CLOSE.cpy().sub(DIM_BUTTON_SIZ_CLOSE.cpy().scl(.5f));
+		for (int i = 0; i < scrollbars.length; ++i)
+			if (scrollbars[i] != null)
+				scrollbars[i].initialized = false;
+			else
+				scrollbars[i] = new Scrollbar();
 	}
 	
-	public void button(Vector2 position, Vector2 size, int id, Croupfuck callback, Color[] colors){
-		Color color = colors[0];
-		if (UIMouseHovered(position.x, position.y, size.x, size.y)){
-			color = colors[1];
-			if (Gdx.input.isTouched())
-				color = colors[2];
-			if (Gdx.input.justTouched())
-				callback.action(id);
+	Aligner aligner;
+	public void dialog(WG.Dialog dialog){
+		//Drawing dialog backround and close button
+		sr.setColor(GUI_COLORS_DEFAULT[0]);
+		sr.rect(DIM_DIALOG_REFPOINT.x, DIM_DIALOG_REFPOINT.y, DIM_DIALOG_SIZE.x, DIM_DIALOG_SIZE.y);
+		button(DIM_BUTTON_POS_CLOSE, DIM_BUTTON_SIZ_CLOSE, -1, GUI_ACT_BUTTON_CLOSE, GUI_COLORS_BUTTON_CLOSE);
+		
+		//Drawing layout
+		switch (dialog){
+		case CRAFTING:
+			break;
+		case LABORATORY:
+			/*if (!scrollbars[0].initialized){
+				aligner.setSize(Utils.getVector(.7f, .12f));
+				scrollbars[0].init(aligner.position, aligner.size, false, .5f);
+			}
+			scrollbars[0].update(3);
+			scrollbars[0].render(GUI_COLORS_SCROLLBAR_COLORS);*/
+			aligner.setSize(Utils.getVector(.4f, 1f));
+			list(aligner.position, aligner.size, Heartstrings.stProperties.length, DEBUG_LEC, GUI_COLORS_DEFAULT, 0);
+			break;
+		case NONE:
+			break;
+		default:
+			break;
 		}
-		sr.setColor(color);
-		sr.rect(position.x, position.y, size.x, size.y);
+		
+		aligner.reset();
 	}
 	
-	public void buttonWithCaption(Vector2 position, Vector2 size, int id, Croupfuck callback, Color[] colors, String caption){
-		button(position, size, id, callback, colors);
-		caption(Utils.getVector(position).add(0, size.y * .9f), caption);
-	}
-	
-	public void buttonWithPrompt(Vector2 position, Vector2 size, int id, Croupfuck callback, Color[] colors, String prompt){
-		button(position, size, id, callback, colors);
-		if (UIMouseHovered(position, size)){
-			promptMeta = prompt;
+	ListEntryCallback DEBUG_LEC = new ListEntryCallback() {
+		@Override
+		public void action(int id) {
+			System.out.println(id);
 		}
-	}
-	
-	private void postponedPrompt(){
-		if (promptMeta != null){
-			prompt(Utils.getColor(0, 0, 0, 192), promptMeta);
-			promptMeta = null;
+		
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			advancedButton(position, size, id, this, color, Heartstrings.stProperties[id].title, Heartstrings.stProperties[id].description, null);
 		}
-	}
+
+	};
 	
-	private static final int PROMPT_BORDER = 10;
-	private void prompt(Color back, String prompt){
-		glay.setText(subFont, prompt);
-		sr.setColor(back);
-		Vector2 corner = Utils.getVector(Utils.UIMousePosition.x + 5, Math.max(Utils.UIMousePosition.y - glay.height - 5, 0));
-		sr.rect(corner.x, corner.y, glay.width + PROMPT_BORDER * 2, glay.height + PROMPT_BORDER * 2);
-		captionSub(corner.add(PROMPT_BORDER, glay.height + PROMPT_BORDER), prompt);
+	private static final float SCROLLBAR_RWIDTH = .1f, LIST_ENTRY_HEIGHT = 43f;
+	public void list(Vector2 position, Vector2 size, int entries, ListEntryCallback entry, Color[] colors, int scrollID){
+		size.y = Math.round(size.y / LIST_ENTRY_HEIGHT) * LIST_ENTRY_HEIGHT;
+		int entriesPerPage = Math.round(size.y / LIST_ENTRY_HEIGHT);
+		int offset = 0;
+		float listW = size.x, barW;
+		
+		if (entriesPerPage < entries){
+			barW = listW * SCROLLBAR_RWIDTH;
+			listW -= barW;
+			if (!scrollbars[scrollID].initialized){
+				scrollbars[scrollID].init(Utils.getVector(position).add(listW, 0), 
+				                          Utils.getVector(barW, size.y), 
+				                          true, (float) entriesPerPage / (float) entries);
+			}
+			int states = entries - entriesPerPage + 1;
+			scrollbars[scrollID].update(states);
+			scrollbars[scrollID].render(GUI_COLORS_SCROLLBAR_COLORS);
+			offset = scrollbars[scrollID].offset;
+		}
+		
+		for (int i = offset; i < Math.min(entriesPerPage, entries) + offset; ++i){
+			entry.entry(Utils.getVector(position).add(0, size.y - (i - offset + 1) * LIST_ENTRY_HEIGHT), 
+			            Utils.getVector(listW, LIST_ENTRY_HEIGHT), i, colors);
+		}
 	}
 	
 	private static final int PIE_MENU_SECTOR_MARGIN = 5;
-	public void piemenu(Vector2 position, float radius, Color unselected, Color selected, int size, Croupfuck action){
+	public void piemenu(Vector2 position, float radius, Color unselected, Color selected, int size, Callback action){
 		for(int i = 0; i < size; i++){
 			float angle = Utils.getAngle(context.getUIFromWorldV(Utils.WorldMousePosition).sub(position));
 			if (angle > i * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN &&
@@ -171,263 +263,52 @@ public class GUI {
 			Utils.drawTrueArc(sr, position, 20, i * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN, (360 / (float) size) - 2 * PIE_MENU_SECTOR_MARGIN, 70);
 		}
 	}
-	private StringBuilder stb = new StringBuilder();
-	private static final float INVEST_DIV = 1000f;
-	private static String title;
-	private Croupfuck BUTTON_INVEST_ACT = new Croupfuck(){
-		public void action(int source) {
-			WG.antistatic.sm.getCurrent().investigationBudget += WG.antistatic.sm.getCurrent().getCapital().transfer(Structure.Resource.METAL, source / INVEST_DIV);
-			sb[1].offset = 0;
-		}
-	};
-	private Croupfuck BUTTON_DEINVEST_ACT = new Croupfuck(){
-		public void action(int source) {
-			WG.antistatic.sm.getCurrent().getCapital().addResource(Structure.Resource.METAL, WG.antistatic.sm.getCurrent().investigationBudget);
-			WG.antistatic.sm.getCurrent().investigationBudget = 0;
-			sb[1].offset = 0;
-		}
-	};
-	public void dialog(WG.Dialog dialog){
-		sr.setColor(WG.GUI_DIALOG_BGD);
-		sr.rect(DIM_DIALOG_REFPOINT.x, DIM_DIALOG_REFPOINT.y, DIM_DIALOG_SIZE.x, DIM_DIALOG_SIZE.y);
-		button(DIM_BUTTON_POS_CLOSE, DIM_BUTTON_SIZ_CLOSE, Utils.NULL_ID, GUI_BUTTON_ACT_CLOSE, GUI_BUTTON_CLOSE_COLORS);
-		
-		switch (dialog){
-		case LABORATORY:
-			title = "Research and Development";
-			for (int i = 0; i < Technology.values().length; i++){
-				hscroller(normalToUI(Utils.getVector(.3825f, .95f - i * .06f), true),
-				          normalToUI(Utils.getVector(.3175f, .05f), false),
-				          sb[2 + i], .42f, (int)Fraction.MAXPRIOR);
-				try {
-					caption(normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f), true),
-					        Heartstrings.technologyTitles[i] + ": " + Fraction.debug.techPriorities[i] * 100 / WG.antistatic.sm.getCurrent().getPrioSum() + "%");
-				} catch (ArithmeticException e){}
-				WG.antistatic.sm.getCurrent().techPriorities[i] = sb[2 + i].offset;
-			}
-			sb[1].firstUse = true;
-			hscroller(normalToUI(Utils.getVector(.3825f, DIM_MARGIN), true), 
-			          normalToUI(Utils.getVector(.3175f, .05f), false), sb[1], .42f, Math.round(WG.antistatic.sm.getCurrent().getCapital().getResource(Structure.Resource.METAL) * INVEST_DIV));
-			buttonWithCaption(normalToUI(Utils.getVector(.7f + DIM_MARGIN, DIM_MARGIN), true), 
-			                  normalToUI(Utils.getVector(.28f, .05f), false), sb[1].offset, BUTTON_INVEST_ACT, GUI_BUTTON_DEFAULT_COLORS, "Invest " + String.format("%.2f", sb[1].offset / INVEST_DIV));
-			buttonWithCaption(normalToUI(Utils.getVector(.7f + DIM_MARGIN, DIM_MARGIN * 2 + .05f), true), 
-			                  normalToUI(Utils.getVector(.28f, .05f), false), sb[1].offset, BUTTON_DEINVEST_ACT, GUI_BUTTON_DEFAULT_COLORS, "Recall investition");
-			
-			stb.setLength(0);
-			for (int i = 0; i < Technology.values().length; i++){
-				stb.append(Heartstrings.technologyTitles[i]);
-				stb.append(": ");
-				stb.append(String.format("%.2f", WG.antistatic.sm.getCurrent().techLevel(Technology.values()[i]) * 100));
-				stb.append("%\n");
-			}
-			stb.append("Metal in capital: ");
-			stb.append(String.format("%.2f", WG.antistatic.sm.getCurrent().getCapital().getResource(Structure.Resource.METAL)));
-			stb.append("\nInvestigation budget: ");
-			stb.append(String.format("%.2f", WG.antistatic.sm.getCurrent().investigationBudget));
-			caption(normalToUI(Utils.getVector(.3875f, .63f), true), stb.toString());
-			scrollableList(normalToUI(Utils.getVector(DIM_MARGIN, DIM_MARGIN), true),
-			               normalToUI(Utils.getVector(.3625f, 1), false),
-			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.LAB_SPECIALS, GUI_BUTTON_DEFAULT_COLORS,
-			               Heartstrings.specialTechnologyTitles, SPECTECHINV_ACT, sb[0]);
-			break;
-		case CRAFTING:
-			title = "Crafting";
-			if (cd == null)
-				cd = new CraftableDialog(WG.antistatic.sm.getCurrent());
-			scrollableList(normalToUI(Utils.getVector(DIM_MARGIN, .5f + DIM_MARGIN / 2f), true),
-			               normalToUI(Utils.getVector(.32f, (1 - DIM_MARGIN * 3f) / 2f), false),
-			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.CRAFT_ABLES, GUI_BUTTON_DEFAULT_COLORS,
-			               Fraction.debug.getCraftTitles(), CRAFT_TYPE_ACT, sb[8]);
-			scrollableList(normalToUI(Utils.getVector(DIM_MARGIN, DIM_MARGIN), true),
-			               normalToUI(Utils.getVector(.32f, .5f - DIM_MARGIN * 3), false),
-			               DIM_VSCROLLBAR_WIDTH / 2f, ScrollEntry.CRAFT_ST, GUI_BUTTON_DEFAULT_COLORS,
-			               cd.availableSTTitles, CRAFT_ST_ACT, sb[9]);
-			for (int i = 0; i < Heartstrings.get(cd.selected, Heartstrings.availableCraftableTechs).length; i++){
-				hscroller(normalToUI(Utils.getVector(.3825f, .95f - i * .06f - DIM_MARGIN), true),
-				          normalToUI(Utils.getVector(.3175f, .05f), false),
-				          sb[10 + i], .42f, 100);
-				caption(normalToUI(Utils.getVector(.5f + .25f, 1 - i * .06f - DIM_MARGIN), true),
-				        Heartstrings.get(Heartstrings.get(cd.selected, Heartstrings.availableCraftableTechs)[i], Heartstrings.technologyTitles) +
-				        ": " + sb[10 + i].offset * Fraction.debug.techLevel(Heartstrings.get(cd.selected, Heartstrings.availableCraftableTechs)[i]) + "%");
-				cd.selectedT[Heartstrings.get(cd.selected, Heartstrings.availableCraftableTechs)[i].ordinal()] = sb[10 + i].offset * Fraction.debug.tech[i] / 100f;
-			}
-			hscroller(normalToUI(Utils.getVector(.3825f, .59f - DIM_MARGIN), true),
-			          normalToUI(Utils.getVector(.3175f, .05f), false),
-			          sb[16], .42f, Heartstrings.getMaxCraftingOrder(cd.selected, currentDialogStruct, cd.selectedT, cd.selectedST));
-			caption(normalToUI(Utils.getVector(.5f + .25f, .64f - DIM_MARGIN), true),
-			        "Count: " + sb[16].offset);
-			sb[16].firstUse = true;
-			//TODO: DEBUG
-			if (Gdx.input.isKeyJustPressed(Input.Keys.Q)){
-				String x = "Selected T:\n";
-				for(int i = 0; i < Technology.values().length; i++){
-					x += Heartstrings.technologyTitles[i] + ": " + cd.selectedT[i] + "; Costs: " + cd.selectedT[i] * Heartstrings.technologyMaxCost[i] + "M\n";
-				}
-				x += "\nSelected ST: \n";
-				for(SpecialTechnology st: cd.selectedST){
-					x += Heartstrings.get(st, Heartstrings.specialTechnologyTitles) + ": " + Heartstrings.specialTechnologyCost[st.ordinal()] + "M\n";
-				}
-				x += "\nTech price total: " + Heartstrings.getTechCost(cd.selectedT, cd.selectedST) + "\n" + Heartstrings.getMaxCraftingOrder(cd.selected, this.currentDialogStruct, cd.selectedT, cd.selectedST) + "\n__________________________";
-				System.out.println(x);
-			}
-			break;
-		default:
-			break;
-		}
-		
-		caption(normalToUI(Utils.getVector(.01f, 1f), true).add(0, DIM_BUTTON_SIZ_CLOSE.y - 2), title);
-		postponedPrompt();
+	
+	private static final int PROMPT_BORDER = 10;
+	private void prompt(Color back, String prompt){
+		String text = Utils.splitIntoLines(prompt, 32);
+		glay.setText(subFont, text);
+		sr.setColor(back);
+		Vector2 corner = Utils.getVector(Utils.UIMousePosition.x + 5, Math.max(Utils.UIMousePosition.y - glay.height - 5, 0));
+		sr.rect(corner.x, corner.y, glay.width + PROMPT_BORDER * 2, glay.height + PROMPT_BORDER * 2);
+		caption(corner.add(PROMPT_BORDER, PROMPT_BORDER), text, subFont, true, null);
 	}
 	
-	//TODO: do something with String[] caption and review crafting mechanics then
-	private static final int SCROLL_LIST_MARGIN = 2;
-	public void scrollableList(Vector2 position, Vector2 size, float scrollbarWidth, ScrollEntry type,
-	                           Color[] entryColor, String[] captions, Croupfuck actions, UIScrollbar bar){
-		sr.setColor(Utils.getColor(0, 0, 0, 17));
+	public void button(Vector2 position, Vector2 size, int id, Callback callback, Color[] colors){
+		Color color = colors[0];
+		if (UIMouseHovered(position.x, position.y, size.x, size.y)){
+			color = colors[1];
+			if (Gdx.input.isTouched())
+				color = colors[2];
+			if (Utils.isTouchJustReleased)
+				callback.action(id);
+		}
+		sr.setColor(color);
 		sr.rect(position.x, position.y, size.x, size.y);
-		
-		int entriesPerPage = (int) Math.floor(size.y / (font.getLineHeight() + SCROLL_LIST_MARGIN));
-		if (entriesPerPage < captions.length){
-			//Нивлезаит
-			if (bar.firstUse){
-				bar.max = captions.length - entriesPerPage + 1;
-				bar.position = position.cpy().add(size.x * (1 - scrollbarWidth), 0);
-				bar.size = size.cpy().scl(scrollbarWidth, 1);
-				bar.firstUse = false;
-			}
-			
-			bar.offset = MathUtils.clamp(bar.offset, 0, bar.max - 1);
-			
-			for (int i = 0; i < entriesPerPage; i++){
-				scrollEntry(type, Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
-				            Utils.getVector(size).scl(1 - scrollbarWidth, 1 / (float) entriesPerPage), i + bar.offset, actions, entryColor, captions[i + bar.offset]);
-			}
-			scrollbar(bar, entriesPerPage / (float) captions.length);
-		} else {
-			//Влезаит
-			for (int i = 0; i < captions.length; i++){
-				scrollEntry(type, Utils.getVector(position).add(0, size.y * (1 - (i + 1) / (float) entriesPerPage)), 
-				            Utils.getVector(size).scl(1, 1 / (float) entriesPerPage), i + bar.offset, actions, entryColor, captions[i]);
-			}
-		}
 	}
-	
-	private enum ScrollEntry{ORDINARY, LAB_SPECIALS, CRAFT_ABLES, CRAFT_ST}
-	private void scrollEntry(ScrollEntry type, Vector2 position, Vector2 size, int id, Croupfuck action, Color[] entryColor, String caption){
-		switch(type){
-		case ORDINARY:
-			buttonWithCaption(position, size, id, action, entryColor, caption);
-			break;
-		case LAB_SPECIALS:
-			buttonWithPrompt(position, size, id, action, entryColor, Heartstrings.specialTechnologyPrompts[id]);
-			Color c = Color.RED;
-			if (WG.antistatic.sm.getCurrent().isInvestigated(Heartstrings.SpecialTechnology.values()[id]))
-				c = Color.LIME;
-			else if (WG.antistatic.sm.getCurrent().isInvestigationAllowed(Heartstrings.SpecialTechnology.values()[id]))
-				c = Color.ORANGE;
-			captionColored(Utils.getVector(position).add(0, size.y), caption, c);
-			break;
-		case CRAFT_ABLES:
-			buttonWithPrompt(position, size, id, action, entryColor, Heartstrings.craftablePrompts[id]);
-			captionColored(Utils.getVector(position).add(0, size.y), caption, (cd.selected == context.sm.getCurrent().availableCraftables.get(id))?Utils.getColor(218, 64, 0, 255):Color.WHITE);
-			break;
-		case CRAFT_ST:
-			buttonWithPrompt(position, size, id, action, entryColor, Heartstrings.get(cd.availableST[id], Heartstrings.specialTechnologyPrompts));
-			captionColored(Utils.getVector(position).add(0, size.y), caption, cd.selectedST.contains(cd.availableST[id])?Utils.getColor(218, 64, 0, 255):Color.WHITE);
-			break;
-		default:
-			break;
-		}
-	}
-	
-	private void scrollbar(UIScrollbar sb, float eppLengthRatio){
-		if (!Gdx.input.isTouched())
-			sb.isActive = false;
-		sr.setColor(sb.color[0]);
-		sr.rect(sb.position.x, sb.position.y, sb.size.x, sb.size.y);
-		float sb_h = sb.size.y * eppLengthRatio;
-		if (UIMouseHovered(sb.position.x, sb.position.y + (1 - sb.offset / (float) (sb.max)) * (sb.size.y - sb_h), sb.size.x, sb_h)){
-			sr.setColor(sb.color[2]);
-			if (Gdx.input.justTouched()){
-				sb.mouseDelta = sb.position.y + sb_h / 2f + (1 - sb.offset / (float)(sb.max - 1)) * (sb.size.y - sb_h) - Utils.UIMousePosition.y;// center of sb.slider - mouse position
-				sb.isActive = true;
-			}
-		} else 
-			sr.setColor(sb.color[1]);
-		
-		if (sb.isActive){
-			sr.setColor(sb.color[2]);
-			float yy = Utils.UIMousePosition.y + sb.mouseDelta;
-			yy = Math.min(yy, sb.position.y + sb.size.y - sb_h / 2f);
-			yy = Math.max(yy, sb.position.y + sb_h / 2f);
-			yy = 1 - (yy - sb.position.y - sb_h / 2f) / (float) (sb.size.y - sb_h);
-			sb.offset = (int) Math.round(yy * (sb.max - 1));
-		}
-		
-		sr.rect(sb.position.x, sb.position.y + (1 - sb.offset / (float)(sb.max - 1)) * (sb.size.y - sb_h), sb.size.x, sb_h);
-	}	
-	
-	private void hscroller(Vector2 position, Vector2 size, UIScrollbar sb, float widthPart, int max){
-		if (sb.firstUse){
-			sb.max = max;
-			sb.position = position.cpy();
-			sb.size = size.cpy();
-			sb.firstUse = false;
-		}
-		
-		if (!Gdx.input.isTouched())
-			sb.isActive = false;
-		
-		sr.setColor(sb.color[0]);
-		sr.rect(sb.position.x, sb.position.y, sb.size.x, sb.size.y);
-		sb.offset = MathUtils.clamp(sb.offset, 0, sb.max);
-		
-		float sb_w = sb.size.x * widthPart, 
-		      sb_offx = (sb.offset / (float) (sb.max)) * (sb.size.x - sb_w);
-		
-		if (UIMouseHovered(sb.position.x + sb_offx, sb.position.y, sb_w, sb.size.y)){
-			sr.setColor(sb.color[2]);
-			if (Gdx.input.justTouched()){
-				sb.mouseDelta = sb.position.x + sb_w / 2f + sb_offx - Utils.UIMousePosition.x;
-				sb.isActive = true;
-			}
-		} else 
-			sr.setColor(sb.color[1]);
-		
-		if (sb.isActive){
-			sr.setColor(sb.color[2]);
-			float xx = Utils.UIMousePosition.x - sb_w / 2 + sb.mouseDelta;
-			xx -= sb.position.x;
-			xx = Math.min(xx, sb.size.x - sb_w);
-			xx = Math.max(xx, 0);
-			xx = (xx/*sb_w / 2*/) / (sb.size.x - sb_w);
-			sb.offset = (int) Math.round(xx * (sb.max));
-		}
-		
-		sr.rect(sb.position.x + sb_offx, sb.position.y, sb_w, sb.size.y);
-	}
-	
-	public void captionColored(Vector2 position, String text, Color color){
-		Color holder = font.getColor().cpy();
-		font.setColor(color);
-		caption(position, text);
-		font.setColor(holder);
-	}
-	public void caption(Vector2 position, String text){
-		sr.flush();
-		
-		batch.begin();
-		font.draw(batch, text, position.x, position.y);
-		batch.end();
 
-		Gdx.gl.glEnable(GL20.GL_BLEND);
-		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-	}	
-	public void captionSub(Vector2 position, String text){
+	public void advancedButton(Vector2 position, Vector2 size, int id, Callback callback, Color[] colors, 
+		                       String caption, String prompt, Color textColor){
+		button(position, size, id, callback, colors);
+		if (caption != null){
+			glay.setText(font, caption);
+			caption(Utils.getVector(position).add(DIM_MARGIN.x, (size.y - glay.height) * .5f), caption, font, true, textColor);
+		}
+		if (prompt != null && UIMouseHovered(position, size)){
+			prompt(GUI_COLORS_DEFAULT[0], prompt);
+		}
+	}
+	
+	public void caption(Vector2 position, String text, BitmapFont font, boolean alignToBottom, Color color){
 		sr.flush();
+		glay.setText(font, text);
 		
 		batch.begin();
-		subFont.draw(batch, text, position.x, position.y);
+		if (color == null)
+			font.setColor(GUI_COLOR_TEXT_DEF);
+		else
+			font.setColor(color);
+		font.draw(batch, text, position.x, position.y + (alignToBottom ? glay.height : 0));
 		batch.end();
 
 		Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -443,7 +324,8 @@ public class GUI {
 		        Utils.UIMousePosition.y > y && Utils.UIMousePosition.y < y + h);
 	}
 	
+	//Modifies given vector, returns chaining variable
 	public Vector2 normalToUI(Vector2 in, boolean isCoordinate){
-		return in.scl(WG.UI_W, DIM_DIALOG_SIZE.y - DIM_BUTTON_SIZ_CLOSE.y - GUI.DIM_MARGIN * 2 * WG.UI_H).add(isCoordinate?DIM_DIALOG_REFPOINT:Vector2.Zero);
+		return in.scl(WG.UI_W, DIM_DIALOG_SIZE.y - DIM_BUTTON_SIZ_CLOSE.y - DIM_MARGIN.y * 2).add(isCoordinate ? DIM_DIALOG_REFPOINT : Vector2.Zero);
 	}
 }

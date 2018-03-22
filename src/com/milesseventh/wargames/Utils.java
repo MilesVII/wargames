@@ -12,7 +12,7 @@ public class Utils {
 	public static Vector2 WorldMousePosition = new Vector2(), UIMousePosition = new Vector2();//Updated via WG.java, update();
 	public static boolean isTouchJustReleased = false;
 	public static final int NULL_ID = -1;
-	public static final Heartstrings heartstrings = new Heartstrings();
+	//public static final Heartstrings heartstrings = new Heartstrings();
 	
 	public static float projectX(float _len, float _dir){
 		return (float)(_len * Math.cos(Math.toRadians(_dir)));
@@ -53,7 +53,7 @@ public class Utils {
 	
 	private static final int DBG_MIN_CITY_DST = 17, DBG_MAX_CITY_DST = 48;
 	public static boolean debugCheckPlaceForNewStructure(HeightMap _map, Fraction _f, Vector2 _place){
-		Structure _nrst = debugFindNearestStructure(_f.getStructs(), _place);
+		Structure _nrst = debugFindNearestStructure(_f.structs, _place);
 		return (_nrst.getPosition().dst2(_place) < DBG_MAX_CITY_DST * DBG_MAX_CITY_DST &&
 			_nrst.getPosition().dst2(_place) > DBG_MIN_CITY_DST * DBG_MIN_CITY_DST &&
 			(_map.getMeta(_place.x, _place.y) < DBG_MAX_CITY_H && _map.getMeta(_place.x, _place.y) > DBG_MIN_CITY_H));
@@ -81,7 +81,27 @@ public class Utils {
 		}
 	}
 	
-	private static final int VECTORS_IN_POOL = 64;
+	public static String splitIntoLines(String victim, int line){
+		if (victim.length() <= line)
+			return victim;
+		String[] words = victim.split(" ");
+		int counter = 0;
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < words.length; ++i){
+			if (counter + words[i].length() > line){
+				if (counter != 0)
+					sb.append('\b');
+				sb.append('\n');
+				counter = 0;
+			}
+			sb.append(words[i]);
+			sb.append(' ');
+			counter += words[i].length() + 1;
+		}
+		return sb.toString();
+	}
+	
+	private static final int VECTORS_IN_POOL = 128;
 	public static Vector2[] vpool = new Vector2[VECTORS_IN_POOL];
 	private static int vectorsCounter = 0, holder;
 	public static Vector2 getVector(){//new Vector2() alternative
@@ -96,7 +116,8 @@ public class Utils {
 		vpool[vectorsCounter].x= x;
 		vpool[vectorsCounter].y= y;
 		holder = vectorsCounter;
-		vectorsCounter = (vectorsCounter == VECTORS_IN_POOL - 1) ? 0 : ++vectorsCounter;
+		++vectorsCounter;
+		vectorsCounter %= VECTORS_IN_POOL;
 		return vpool[holder];
 	}
 	private static Color color = new Color();
