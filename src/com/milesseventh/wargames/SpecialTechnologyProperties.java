@@ -10,7 +10,7 @@ public class SpecialTechnologyProperties {
 		
 		public TechnologyRequirement(Technology t, float minLevel){
 			tech = t;
-			minLevel = level;
+			level = minLevel;
 		}
 	}
 	
@@ -18,14 +18,14 @@ public class SpecialTechnologyProperties {
 	public String title, description;
 	public TechnologyRequirement[] techReqs;
 	public SpecialTechnology[] stReqs;
-	
+	public String techReqsDescription;
 	public SpecialTechnologyProperties(String tit, String desc,
 	                                   float invWork, float workMarkup, 
 	                                   float invPrice, float priceMarkup,
 	                                   TechnologyRequirement[] tr,
 	                                   SpecialTechnology[] str) {
 		title                         = tit;
-		description                   = desc;
+		description                   = Utils.splitIntoLines(desc, 32);
 		investigationWorkamount       = invWork;
 		workamountMarkup              = workMarkup;
 		investigationPriceInData      = invPrice;
@@ -33,12 +33,10 @@ public class SpecialTechnologyProperties {
 		techReqs                      = tr;
 		stReqs                        = str;
 		
-		/*String descriptionAppendix = "Requirements:\n";
-		for (SpecialTechnology req: stReqs)
-			descriptionAppendix += Heartstrings.get(req, Heartstrings.stProperties).title + "\n";
+		techReqsDescription = "Requirements:\n";
 		for (TechnologyRequirement req: techReqs)
-			descriptionAppendix += Heartstrings.get(req.tech, Heartstrings.technologyShortTitles) + 
-			                       ": " + String.format("%.2f%%", req.level * 100f) + "\n";*/
+			techReqsDescription += Heartstrings.get(req.tech, Heartstrings.tProperties).shortTitle + 
+			                       ": " + String.format("%.2f%%", req.level * 100f) + "\n";
 		
 		//description = descriptionAppendix + description;
 	}
@@ -52,4 +50,11 @@ public class SpecialTechnologyProperties {
 				return false;
 		return true;
 	};
+	
+	public boolean areBasicSTInvestigated(Fraction f){
+		for (SpecialTechnology st: stReqs)
+			if (!f.isInvestigated(st))
+				return false;
+		return true;
+	}
 }

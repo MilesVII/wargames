@@ -23,9 +23,9 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	//Game constants
-	public static/* final*/ int WORLD_W = 1000, WORLD_H = 1000,
+	public static/* final*/ int WORLD_W = 512, WORLD_H = 512,
 	                        UI_W, UI_H;
-	public static final int UI_H_DEF, UI_W_DEF = UI_H_DEF = 1024;
+	public static final int UI_H_DEF, UI_W_DEF = UI_H_DEF = 700;
 	public static final int MARCHING_STEP = 4;
 	public static final float CAM_ZOOM_MIN = .2f,
 	                          CAM_ZOOM_STEP = .02f;

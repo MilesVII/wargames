@@ -198,7 +198,7 @@ public class GUI {
 			scrollbars[0].update(3);
 			scrollbars[0].render(GUI_COLORS_SCROLLBAR_COLORS);*/
 			aligner.setSize(Utils.getVector(.4f, 1f));
-			list(aligner.position, aligner.size, Heartstrings.stProperties.length, DEBUG_LEC, GUI_COLORS_DEFAULT, 0);
+			list(aligner.position, aligner.size, Heartstrings.stProperties.length, GUI_LEC_ST, GUI_COLORS_DEFAULT, 0);
 			break;
 		case NONE:
 			break;
@@ -210,15 +210,21 @@ public class GUI {
 		showPostponedPrompt();
 	}
 	
-	ListEntryCallback DEBUG_LEC = new ListEntryCallback() {
+	ListEntryCallback GUI_LEC_ST = new ListEntryCallback() {
 		@Override
 		public void action(int id) {
-			System.out.println(id);
+			//System.out.println(id);
+			if (!Fraction.debug.specTech.contains(Heartstrings.SpecialTechnology.values()[id]))
+				Fraction.debug.specTech.add(Heartstrings.SpecialTechnology.values()[id]);
 		}
 		
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
-			advancedButton(position, size, id, this, color, Heartstrings.stProperties[id].title, Heartstrings.stProperties[id].description, null);
+			if (Heartstrings.stProperties[id].areBasicSTInvestigated(Fraction.debug)){
+				SpecialTechnologyProperties st = Heartstrings.stProperties[id];
+				advancedButton(position, size, id, this, color, 
+				               st.title, st.description + "\n\n" + st.techReqsDescription, null);
+			}
 		}
 
 	};
@@ -283,12 +289,11 @@ public class GUI {
 	}
 	
 	private void prompt(Color back, String prompt){
-		String text = Utils.splitIntoLines(prompt, 32);
-		glay.setText(subFont, text);
+		glay.setText(subFont, prompt);
 		sr.setColor(back);
 		Vector2 corner = Utils.getVector(Utils.UIMousePosition.x + 5, Math.max(Utils.UIMousePosition.y - glay.height - 5, 0));
 		sr.rect(corner.x, corner.y, glay.width + PROMPT_BORDER * 2, glay.height + PROMPT_BORDER * 2);
-		caption(corner.add(PROMPT_BORDER, PROMPT_BORDER), text, subFont, true, null);
+		caption(corner.add(PROMPT_BORDER, PROMPT_BORDER), prompt, subFont, true, null);
 	}
 	
 	public void button(Vector2 position, Vector2 size, int id, Callback callback, Color[] colors){

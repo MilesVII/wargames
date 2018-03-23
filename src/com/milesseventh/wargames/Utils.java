@@ -32,13 +32,16 @@ public class Utils {
 		                   MathUtils.lerp(_from.g, _to.g, _percent),
 		                   MathUtils.lerp(_from.b, _to.b, _percent), 1);
 	}
+	public static Color getRoundGradColor(Color _from, Color _to, float _percent){
+		return getGradColor(_from, _to, Math.round(_percent));
+	}
 	
 	public static Color getGradColor(Color[] colors, float percent){
 		float step = 1 / (float) (colors.length - 1);
 		if (percent == 1)
 			return colors[colors.length - 1];
 		int c = Math.round((percent - percent % step) / step);
-		return getGradColor(colors[c], colors[c + 1], (percent % step) / step);
+		return getRoundGradColor(colors[c], colors[c + 1], (percent % step) / step);
 	}
 	
 	private static final float DBG_MIN_CITY_H = .10f, DBG_MAX_CITY_H = .32f;
@@ -87,16 +90,26 @@ public class Utils {
 		String[] words = victim.split(" ");
 		int counter = 0;
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < words.length; ++i){
+		/*for (int i = 0; i < words.length; ++i){
 			if (counter + words[i].length() > line){
 				if (counter != 0)
 					sb.append('\b');
 				sb.append('\n');
-				counter = 0;
+				counter = 0;             wrong
 			}
 			sb.append(words[i]);
 			sb.append(' ');
 			counter += words[i].length() + 1;
+		}*/
+		for (String word : words){
+			sb.append(word);
+			sb.append(' ');
+			counter += word.length() + 1;
+			if (counter > line){
+				sb.append('\b');
+				sb.append('\n');
+				counter = 0;
+			}
 		}
 		return sb.toString();
 	}

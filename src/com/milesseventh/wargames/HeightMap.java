@@ -9,9 +9,9 @@ import com.badlogic.gdx.math.Vector2;
 
 public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 	public static final Color[] DEFAULT_SCHEME = {
-			Color.RED,
 			new Color(1, .6824f, .2706f, 1),
 			new Color(1, .6824f, .2706f, 1), 
+			Color.FOREST,
 			Color.BROWN,
 			Color.LIGHT_GRAY,
 			Color.WHITE
