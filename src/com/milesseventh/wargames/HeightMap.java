@@ -10,12 +10,12 @@ import com.badlogic.gdx.math.Vector2;
 public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 	public static final Color[] DEFAULT_SCHEME = {
 			Color.RED,
-		new Color(1, .6824f, .2706f, 1),
-		new Color(1, .6824f, .2706f, 1),
-		Color.BROWN,
-		Color.LIGHT_GRAY,
-		Color.WHITE
-	};
+			new Color(1, .6824f, .2706f, 1),
+			new Color(1, .6824f, .2706f, 1), 
+			Color.BROWN,
+			Color.LIGHT_GRAY,
+			Color.WHITE
+		};
 	
 	//private static Color workingColor = Color.BLACK;
 	private float[][] noiseMap;
@@ -35,8 +35,8 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 			for (int y = 0; y < getHeight(); y++){
 				noiseValue = getNoise(noise, x, y, 16f) * 3;
 				noiseValue += getNoise(noise, x, y, 32f);
-				noiseValue += getNoise(noise, x, y, 64f);
-				noiseValue /= 5f;
+				//noiseValue += getNoise(noise, x, y, 64f);
+				noiseValue /= 4f;
 				noiseValue = bulge(x, y, noiseValue);
 				noiseValue = MathUtils.clamp(noiseValue, 0, 1);
 				noiseValue = fade(noiseValue);

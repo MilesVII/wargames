@@ -207,6 +207,7 @@ public class GUI {
 		}
 		
 		aligner.reset();
+		showPostponedPrompt();
 	}
 	
 	ListEntryCallback DEBUG_LEC = new ListEntryCallback() {
@@ -265,6 +266,22 @@ public class GUI {
 	}
 	
 	private static final int PROMPT_BORDER = 10;
+	private boolean postponedPromptIsSet = false;
+	private Color postponedPromptColor;
+	private String postponedPrompt;
+	private void postponePrompt(Color back, String prompt){
+		postponedPromptIsSet = true;
+		postponedPromptColor = back;
+		postponedPrompt = prompt;
+	}
+	
+	private void showPostponedPrompt(){
+		if (postponedPromptIsSet){
+			prompt(postponedPromptColor, postponedPrompt);
+			postponedPromptIsSet = false;
+		}
+	}
+	
 	private void prompt(Color back, String prompt){
 		String text = Utils.splitIntoLines(prompt, 32);
 		glay.setText(subFont, text);
@@ -295,7 +312,7 @@ public class GUI {
 			caption(Utils.getVector(position).add(DIM_MARGIN.x, (size.y - glay.height) * .5f), caption, font, true, textColor);
 		}
 		if (prompt != null && UIMouseHovered(position, size)){
-			prompt(GUI_COLORS_DEFAULT[0], prompt);
+			postponePrompt(GUI_COLORS_DEFAULT[0], prompt);
 		}
 	}
 	
