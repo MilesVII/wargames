@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.milesseventh.wargames.Heartstrings.Technology;
 
 public class GUI {
 	public class Aligner {
@@ -122,8 +123,8 @@ public class GUI {
 			new Color(0, 0, 0, 1),        //hovered
 			new Color(.5f, .5f, .5f, .8f) //pressed
 		};
-	public static Color GUI_COLOR_SEVENT = new Color(218f, 64f, 0f, 1f);
-	public static Color GUI_COLOR_TEXT_DEF = new Color(255f, 255f, 255f, 1f);
+	public static final Color GUI_COLOR_SEVENTH = new Color(218f, 64f, 0f, 1f);
+	public static final Color GUI_COLOR_TEXT_DEF = new Color(255f, 255f, 255f, 1f);
 	public final ObjectiveCallback<String> LAB_RETR_ST_TITLE = new ObjectiveCallback<String>(){
 		@Override
 		public String call(int id) {
@@ -133,6 +134,7 @@ public class GUI {
 	
 	private static GlyphLayout glay = new GlyphLayout();
 	public Structure currentDialogStruct;
+	//Engaged 0-1
 	private Scrollbar[] scrollbars = new Scrollbar[32];
 	
 	public Vector2 DIM_DIALOG_REFPOINT,
@@ -191,14 +193,34 @@ public class GUI {
 		case CRAFTING:
 			break;
 		case LABORATORY:
-			/*if (!scrollbars[0].initialized){
-				aligner.setSize(Utils.getVector(.7f, .12f));
-				scrollbars[0].init(aligner.position, aligner.size, false, .5f);
-			}
-			scrollbars[0].update(3);
-			scrollbars[0].render(GUI_COLORS_SCROLLBAR_COLORS);*/
 			aligner.setSize(Utils.getVector(.4f, 1f));
 			list(aligner.position, aligner.size, Heartstrings.stProperties.length, GUI_LEC_ST, GUI_COLORS_DEFAULT, 0);
+			aligner.next(1, 1);
+			aligner.setSize(Utils.getVector(.3f, .07f));
+			aligner.next(0, -1);
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < Heartstrings.Technology.values().length; ++i){
+				if (!scrollbars[1 + i].initialized){
+					scrollbars[1 + i].offset = Fraction.debug.techPriorities[i];
+					scrollbars[1 + i].init(Utils.getVector(aligner.position), 
+					                       Utils.getVector(aligner.size), 
+					                       false, .5f);
+				}
+				scrollbars[1 + i].update(Fraction.MAXPRIOR);
+				scrollbars[1 + i].render(GUI_COLORS_SCROLLBAR_COLORS);
+				Fraction.debug.techPriorities[i] = scrollbars[1 + i].offset;
+				
+				aligner.next(1, 0);
+				caption(aligner.position, 
+				        String.format(Heartstrings.tProperties[i].shortTitle + " %6.2f%%", 
+				                      Fraction.debug.getRelativeInvestigationPriority(Technology.values()[i]) * 100f), 
+				        font, true, null);
+				sb.append(String.format("%-13s: %6.2f%%\n", 
+				                        Heartstrings.tProperties[i].title,
+				                        Fraction.debug.techLevel(Technology.values()[i]) * 100f));
+				aligner.next(-1, -1);
+			}
+			caption(aligner.position, sb.toString(), font, false, null);
 			break;
 		case NONE:
 			break;
@@ -214,16 +236,21 @@ public class GUI {
 		@Override
 		public void action(int id) {
 			//System.out.println(id);
-			if (!Fraction.debug.specTech.contains(Heartstrings.SpecialTechnology.values()[id]))
-				Fraction.debug.specTech.add(Heartstrings.SpecialTechnology.values()[id]);
+			if (Fraction.debug.isSTInvestigationPossibleRightNow(id))
+				Fraction.debug.startInvestigatingSpecialTechnology(id);
 		}
 		
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
 			if (Heartstrings.stProperties[id].areBasicSTInvestigated(Fraction.debug)){
 				SpecialTechnologyProperties st = Heartstrings.stProperties[id];
+				Color c = null;
+				if (Fraction.debug.isInvestigated(Heartstrings.SpecialTechnology.values()[id]))
+					c = Color.GREEN;
+				if (Fraction.debug.isBeingInvestigated(Heartstrings.SpecialTechnology.values()[id]))
+					c = GUI_COLOR_SEVENTH;
 				advancedButton(position, size, id, this, color, 
-				               st.title, st.description + "\n\n" + st.techReqsDescription, null);
+				               st.title, st.description + "\n\n" + st.techReqsDescription, c);
 			}
 		}
 

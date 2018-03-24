@@ -13,7 +13,7 @@ public class Fraction {
 	public static Fraction debug;
 
 	public float[] tech         = {0, 0, 0, 0, 0, 0};
-	public int[] techPriorities = {1, 1, 1, 1, 1, 1};
+	public int[] techPriorities = {0, 0, 0, 0, 0, 0};
 	public static final int MAXPRIOR = 100;
 	public ArrayList<Craftable> availableCraftables = new ArrayList<Craftable>();
 	public ArrayList<SpecialTechnology> specTech = new ArrayList<SpecialTechnology>();
@@ -40,23 +40,43 @@ public class Fraction {
 		capital = new Structure(_pos, Structure.StructureType.CITY, this);
 		structs.add(capital);
 		capital.evolution = INITIAL_CAPITAL_EVOLUTION;
+		scienceDataAvailable = 7000;
 	}
 	
 	public boolean isInvestigated(SpecialTechnology st){
 		return specTech.contains(st);
 	}
 	
+	public boolean isBeingInvestigated(SpecialTechnology st){
+		for (int i = 0; i < pendingST.size; ++i)
+			if (pendingST.get(i).equals(st))
+				return true;
+		return false;
+	}
+	
 	public float techLevel(Technology t){
 		return tech[t.ordinal()];
+	}
+	
+	public float getRelativeInvestigationPriority(Technology t){
+		if (tech[t.ordinal()] == 1f)
+			return 0;
+		int sum = 0;
+		for (int i = 0; i < tech.length; ++i)
+			if (tech[i] != 1f)
+				sum += techPriorities[i];
+		
+		if (sum == 0)
+			return 0f;
+		return techPriorities[t.ordinal()] / (float) sum;
 	}
 	
 	public boolean isSTInvestigationPossibleRightNow(int st){
 		//Check if ST is already investigated/ing
 		if (specTech.contains(st))
 			return false;
-		for (int i = 0; i < pendingST.size; ++i)
-			if (pendingST.get(i) == Heartstrings.SpecialTechnology.values()[i])
-				return false;
+		if (isBeingInvestigated(Heartstrings.SpecialTechnology.values()[st]))
+			return false;
 		
 		//Check if there is enough science data stored
 		return Heartstrings.stProperties[st].investigationPriceInData <= scienceDataAvailable;
@@ -66,9 +86,9 @@ public class Fraction {
 		pendingST.addLast(SpecialTechnology.values()[st]);
 	}
 	
-	public void specialTechnologyInvestigated(int st){
+	public void onSpecialTechnologyInvestigated(int st){
 		try{
-			specialTechnologyInvestigated(SpecialTechnology.values()[st]);
+			onSpecialTechnologyInvestigated(SpecialTechnology.values()[st]);
 			//TODO
 			//if (WG.antistatic.gui.cd != null)
 			//	WG.antistatic.gui.cd.generateAvailableSTBySelected();
@@ -76,7 +96,7 @@ public class Fraction {
 			e.printStackTrace();
 		}
 	}
-	public void specialTechnologyInvestigated(SpecialTechnology st){
+	public void onSpecialTechnologyInvestigated(SpecialTechnology st){
 		if (Heartstrings.get(st, Heartstrings.stProperties).isInvestigationAllowed(this) && !specTech.contains(st)){
 			specTech.add(st);
 			if (st.equals(SpecialTechnology.BASIC_WARFARE)){
@@ -95,6 +115,7 @@ public class Fraction {
 			if (stInvestigationDone >= 1){
 				stInvestigationDone = 0;
 				specTech.add(pendingST.first());
+				onSpecialTechnologyInvestigated(pendingST.first());
 				pendingST.removeFirst();
 			}
 		}

@@ -49,7 +49,7 @@ public class Heartstrings {
 		//BASIC_WARFARE
 		new SpecialTechnologyProperties("Basic warfare", 
 			"Allows building of fighters, ammo crafting;", 
-			100f, 0f, 0f, 0f, 
+			100f, 0f, 20f, 0f, 
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .05f)
 			}, 
@@ -58,7 +58,7 @@ public class Heartstrings {
 		//SIEGE_I
 		new SpecialTechnologyProperties("Siege I", 
 			"Allows squads to siege structures and capture them;", 
-			120f, 20f, 0f, 20f,
+			120f, 20f, 120f, 20f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ARMOR, .1f),
 				new TechnologyRequirement(Technology.ACCURACY, .1f)
@@ -70,7 +70,7 @@ public class Heartstrings {
 		//SIEGE_II
 		new SpecialTechnologyProperties("Siege II", 
 			"Allows squads to siege structures and capture them;", 
-			130f, 25f, 0f, 25f,
+			130f, 25f, 320f, 25f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ARMOR, .4f)
 			}, 
@@ -82,7 +82,7 @@ public class Heartstrings {
 		new SpecialTechnologyProperties("Fortification", 
 			"Allows squads to fortify position and defend a spot, "
 			+ "acting like a portable military base;", 
-			100f, 15f, 0f, 40f,
+			100f, 15f, 270f, 40f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.FIREPOWER, .1f),
 				new TechnologyRequirement(Technology.ARMOR, .3f)
@@ -94,7 +94,7 @@ public class Heartstrings {
 		//MOBILE_ATTACK
 		new SpecialTechnologyProperties("Column attack", 
 			"Allows squads to attack other squads;", 
-			110f, 15f, 0f, 15f,
+			110f, 15f, 175f, 15f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ACCURACY, .05f)
 			}, 
@@ -106,7 +106,7 @@ public class Heartstrings {
 		//COLUMN_INTERCEPTION
 		new SpecialTechnologyProperties("Column interception", 
 			"Allows squads to intercept other squads;", 
-			115f, 10f, 0f, 10f,
+			115f, 10f, 210f, 10f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ACCURACY, .2f)
 			}, 
@@ -118,7 +118,7 @@ public class Heartstrings {
 		//ADVANCED_WARFARE
 		new SpecialTechnologyProperties("Advanced warfare", 
 			"Allows bulding of military bases;", 
-			320f, 0f, 0f, 0f,
+			320f, 0f, 760f, 0f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .1f),
 				new TechnologyRequirement(Technology.FIREPOWER, .3f)
@@ -131,7 +131,7 @@ public class Heartstrings {
 		//RADIO
 		new SpecialTechnologyProperties("Electronic warfare", 
 			"Allows building of radars", 
-			170f, 0f, 0f, 0f,
+			170f, 0f, 410f, 0f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .15f)
 			}, 
@@ -143,7 +143,7 @@ public class Heartstrings {
 		//AMD I
 		new SpecialTechnologyProperties("Anti-Missile Defence I", 
 			"Allows building of anti-missile defence systems;",
-			220f, 0f, 0f, 0f,
+			220f, 0f, 510f, 0f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ARMOR, .3f),
 				new TechnologyRequirement(Technology.ENGINEERING, .25f)
@@ -156,7 +156,7 @@ public class Heartstrings {
 		//AMD II
 		new SpecialTechnologyProperties("Anti-Missile Defence II", 
 			"Allows building of laser AMD systems;",
-			270f, 0f, 0f, 0f,
+			270f, 0f, 790f, 0f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ACCURACY, .6f),
 				new TechnologyRequirement(Technology.ENGINEERING, .45f)
@@ -171,7 +171,7 @@ public class Heartstrings {
 		new SpecialTechnologyProperties("Industrial espionage", 
 			"Allows fraction to steal foreign special tecnologies "
 			+ "by capturing enemy's radars",
-			170f, 27f, 0f, 170f,
+			170f, 27f, 310f, 170f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .3f)
 			}, 
@@ -184,7 +184,7 @@ public class Heartstrings {
 		//STRATEGIC_WARFARE
 		new SpecialTechnologyProperties("Strategic warfare", 
 			"Allows building of missile silos and missile crafting;",
-			700f, 0f, 0f, 0f,
+			700f, 0f, 1740f, 0f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .4f),
 				new TechnologyRequirement(Technology.ACCURACY, .25f),
@@ -200,7 +200,7 @@ public class Heartstrings {
 		new SpecialTechnologyProperties("Warhead fragmentation I", 
 			"Allows missiles' payload to fragmentate, increasing"
 			+ "effective area and reducing chance to be shotdown by AMD;",
-			400f, 300f, 0f, 120f,
+			400f, 300f, 810f, 120f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .6f),
 				new TechnologyRequirement(Technology.FIREPOWER, .6f)
@@ -213,7 +213,7 @@ public class Heartstrings {
 		//WARHEAD_FRAGMENTATION_II
 		new SpecialTechnologyProperties("Warhead fragmentation II", 
 			"\"HIGH JACK THIS FAGS\";",
-			420f, 400f, 0f, 200f,
+			420f, 400f, 750f, 200f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ACCURACY, .35f),
 				new TechnologyRequirement(Technology.SPEED, .4f)
@@ -226,7 +226,7 @@ public class Heartstrings {
 		//FLARES
 		new SpecialTechnologyProperties("Decoy flares", 
 			"Allows missiles to use decoy flares;",
-			170f, 70f, 0f, 70f,
+			170f, 70f, 170f, 70f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.FIREPOWER, .5f),
 			}, 

@@ -23,7 +23,7 @@ public class WG extends ApplicationAdapter {
 	}
 	
 	//Game constants
-	public static/* final*/ int WORLD_W = 512, WORLD_H = 512,
+	public static/* final*/ int WORLD_W = 700, WORLD_H = 700,
 	                        UI_W, UI_H;
 	public static final int UI_H_DEF, UI_W_DEF = UI_H_DEF = 700;
 	public static final int MARCHING_STEP = 4;
@@ -68,7 +68,7 @@ public class WG extends ApplicationAdapter {
 		FreeTypeFontGenerator ftfg = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Prototype.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = 22;
-		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.,-<>!?/%\"";
+		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.,-<>!?/%\"'";
 		
 		font = ftfg.generateFont(parameter);
 		font.setColor(Color.WHITE);
