@@ -19,7 +19,7 @@ import com.badlogic.gdx.math.Vector2;
 
 public class WG extends ApplicationAdapter {
 	public enum Dialog{
-		NONE, LABORATORY, CRAFTING
+		NONE, LABORATORY, CRAFTING, LOADING
 	}
 	
 	//Game constants
@@ -34,7 +34,6 @@ public class WG extends ApplicationAdapter {
 	public static final float CITY_ICON_RADIUS = 12,
 	                          PIE_MENU_RADIUS = 22,
 	                          DIALOG_HEIGHT = .8f;
-	public static final Color GUI_DIALOG_BGD = new Color(0, 0, 0, .7f);
 	
 	//Variables
 	public static WG antistatic;

@@ -72,10 +72,11 @@ public class Fraction {
 	}
 	
 	public boolean isSTInvestigationPossibleRightNow(int st){
+		SpecialTechnology s = Heartstrings.SpecialTechnology.values()[st];
 		//Check if ST is already investigated/ing
-		if (specTech.contains(st))
+		if (isInvestigated(s))
 			return false;
-		if (isBeingInvestigated(Heartstrings.SpecialTechnology.values()[st]))
+		if (isBeingInvestigated(s))
 			return false;
 		
 		//Check if there is enough science data stored
@@ -83,35 +84,28 @@ public class Fraction {
 	}
 	
 	public void startInvestigatingSpecialTechnology(int st){
+		scienceDataAvailable -= Heartstrings.stProperties[st].investigationPriceInData;
 		pendingST.addLast(SpecialTechnology.values()[st]);
 	}
 	
 	public void onSpecialTechnologyInvestigated(int st){
-		try{
-			onSpecialTechnologyInvestigated(SpecialTechnology.values()[st]);
-			//TODO
-			//if (WG.antistatic.gui.cd != null)
-			//	WG.antistatic.gui.cd.generateAvailableSTBySelected();
-		} catch (ArrayIndexOutOfBoundsException e){
-			e.printStackTrace();
-		}
+		onSpecialTechnologyInvestigated(SpecialTechnology.values()[st]);
 	}
-	public void onSpecialTechnologyInvestigated(SpecialTechnology st){
-		if (Heartstrings.get(st, Heartstrings.stProperties).isInvestigationAllowed(this) && !specTech.contains(st)){
-			specTech.add(st);
-			if (st.equals(SpecialTechnology.BASIC_WARFARE)){
-				availableCraftables.add(Craftable.FIGHTER);
-				availableCraftables.add(Craftable.AMMO);
-			} else if (st.equals(SpecialTechnology.STRATEGIC_WARFARE)){
-				availableCraftables.add(Craftable.MISSILE);
-			}
-			tempCraftTitles = null;//Used to rebuild array
+	private void onSpecialTechnologyInvestigated(SpecialTechnology st){
+		specTech.add(st);
+		if (st.equals(SpecialTechnology.BASIC_WARFARE)){
+			availableCraftables.add(Craftable.FIGHTER);
+			availableCraftables.add(Craftable.AMMO);
+		} else if (st.equals(SpecialTechnology.STRATEGIC_WARFARE)){
+			availableCraftables.add(Craftable.MISSILE);
 		}
+		tempCraftTitles = null;//Used to rebuild array
 	}
 	
 	public void doInvestigation(float dt){
 		if (pendingST.size > 0){
-			stInvestigationDone += dt / Heartstrings.get(pendingST.first(), Heartstrings.stProperties).investigationWorkamount;
+			stInvestigationDone += dt * ST_INVESTIGATION_PER_MS / 
+			                       Heartstrings.get(pendingST.first(), Heartstrings.stProperties).investigationWorkamount;
 			if (stInvestigationDone >= 1){
 				stInvestigationDone = 0;
 				specTech.add(pendingST.first());

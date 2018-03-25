@@ -14,8 +14,8 @@ public class CraftableDialog {
 	public SpecialTechnology[] availableST;
 	public float selectedT[] = new float[Technology.values().length];
 	
-	public CraftableDialog(Fraction f) {
-		fraction = f;
+	public CraftableDialog(){
+		//fraction = Fraction.debug;//TODO
 		select(Craftable.TRANSPORTER);
 	}
 	
@@ -27,7 +27,19 @@ public class CraftableDialog {
 			selectedT[i] = 0;
 	}
 	
-	public void generateAvailableSTBySelected(){
+	public boolean isSTSelected(SpecialTechnology st){
+		return selectedST.contains(st);
+	}
+	
+	public void toggleST(SpecialTechnology st){
+		if (isSTSelected(st))
+			selectedST.remove(st);
+		else
+			selectedST.add(st);
+	}
+	
+	private void generateAvailableSTBySelected(){
+		fraction = Fraction.debug;//TODO
 		int len = 0, j = 0;
 		for (int i = 0; i < Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs.length; i++)
 			if (fraction.isInvestigated(Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs[i]))

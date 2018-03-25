@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.milesseventh.wargames.Heartstrings.Craftable;
+import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
 
 public class GUI {
@@ -23,11 +25,15 @@ public class GUI {
 			normalToUI(size.set(_size), false);
 		}
 		
+		public void setSize(float x, float y){
+			normalToUI(size.set(x, y), false);
+		}
+		
 		public void next(int hdir, int vdir){
 			if (hdir != 0)
-				position.x += (size.x + DIM_MARGIN.x) * Math.signum(hdir);
+				position.x += (size.x + DIM_MARGIN.x) * hdir;
 			if (vdir != 0)
-				position.y += (size.y + DIM_MARGIN.y) * Math.signum(vdir);
+				position.y += (size.y + DIM_MARGIN.y) * vdir;
 		}
 		
 		public void reset(){
@@ -42,6 +48,8 @@ public class GUI {
 		                   size, 
 		          thumbPosition = new Vector2(), 
 		              thumbSize = new Vector2();
+		public static final int GUI_SB_DEFAULT_STATES = 1000;
+		public static final float GUI_SB_DEFAULT_THUMB = .42f;
 		public int offset;
 		public boolean initialized = false;
 		private float relativeThumbSize, trackingOffset;
@@ -56,9 +64,10 @@ public class GUI {
 		}
 		
 		public void update(int states){
-			--states;//TODO: EffectiveKrutch
 			if (offset > states)
 				offset = states;
+			if (states > 0)
+				--states;
 			
 			if (isVertical){
 				thumbSize.x = size.x;
@@ -123,8 +132,8 @@ public class GUI {
 			new Color(0, 0, 0, 1),        //hovered
 			new Color(.5f, .5f, .5f, .8f) //pressed
 		};
-	public static final Color GUI_COLOR_SEVENTH = new Color(218f, 64f, 0f, 1f);
-	public static final Color GUI_COLOR_TEXT_DEF = new Color(255f, 255f, 255f, 1f);
+	public static final Color GUI_COLOR_SEVENTH = new Color(218/255f, 64/255f, 0f, 1f);
+	public static final Color GUI_COLOR_TEXT_DEF = new Color(1f, 1f, 1f, 1f);
 	public final ObjectiveCallback<String> LAB_RETR_ST_TITLE = new ObjectiveCallback<String>(){
 		@Override
 		public String call(int id) {
@@ -133,8 +142,8 @@ public class GUI {
 	};
 	
 	private static GlyphLayout glay = new GlyphLayout();
-	public Structure currentDialogStruct;
-	//Engaged 0-1
+	//Engaged 0; 1-6; 11; 12, 13-18, 22
+	//Reserved 7-10; 19-21
 	private Scrollbar[] scrollbars = new Scrollbar[32];
 	
 	public Vector2 DIM_DIALOG_REFPOINT,
@@ -181,7 +190,71 @@ public class GUI {
 				scrollbars[i] = new Scrollbar();
 	}
 	
-	Aligner aligner;
+	private final ListEntryCallback GUI_LEC_ST = new ListEntryCallback() {
+		@Override
+		public void action(int id) {
+			if (Fraction.debug.isSTInvestigationPossibleRightNow(id))
+				Fraction.debug.startInvestigatingSpecialTechnology(id);
+		}
+		
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			if (Heartstrings.stProperties[id].areBasicSTInvestigated(Fraction.debug)){
+				SpecialTechnologyProperties st = Heartstrings.stProperties[id];
+				Color c = null;
+				if (Fraction.debug.isInvestigated(Heartstrings.SpecialTechnology.values()[id]))
+					c = Color.GREEN;
+				if (Fraction.debug.isBeingInvestigated(Heartstrings.SpecialTechnology.values()[id]))
+					c = GUI_COLOR_SEVENTH;
+				advancedButton(position, size, id, this, color, 
+				               st.title, st.description + "\n\n" + st.techReqsDescription, c);
+			}
+		}
+	};
+	
+	private final ListEntryCallback GUI_LEC_CST = new ListEntryCallback() {
+		@Override
+		public void action(int id) {
+			craftableDialogState.toggleST(craftableDialogState.availableST[id]);
+		}
+		
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			SpecialTechnology st = craftableDialogState.availableST[id];
+			advancedButton(position, size, id, this, color, 
+			               Heartstrings.get(st, Heartstrings.stProperties).title, 
+			               null, (craftableDialogState.isSTSelected(st)) ? GUI.GUI_COLOR_SEVENTH : null);
+		}
+	};
+	
+	private final ListEntryCallback GUI_LEC_CRAFTABLE = new ListEntryCallback() {
+		@Override
+		public void action(int id) {
+			craftableDialogState.select(Heartstrings.Craftable.values()[id]);
+			for (int i = 13; i <= 22; ++i)
+				scrollbars[i].initialized = false;
+		}
+		
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			Craftable ca = Heartstrings.Craftable.values()[id];
+			if (Fraction.debug.availableCraftables.contains(ca))
+				advancedButton(position, size, id, this, color, 
+				               Heartstrings.get(ca, Heartstrings.craftableProperties).title, 
+				               null, (craftableDialogState.selected == ca) ? GUI.GUI_COLOR_SEVENTH : null);
+		}
+	};
+	
+	private final Callback GUI_ACT_CRAFTING_ORDER = new Callback(){
+		@Override
+		public void action(int id) {
+			//currentDialogStruct.
+		}
+	};
+	
+	public Structure currentDialogStruct;
+	private Aligner aligner;
+	private CraftableDialog craftableDialogState = new CraftableDialog();
 	public void dialog(WG.Dialog dialog){
 		//Drawing dialog backround and close button
 		sr.setColor(GUI_COLORS_DEFAULT[0]);
@@ -190,13 +263,11 @@ public class GUI {
 		
 		//Drawing layout
 		switch (dialog){
-		case CRAFTING:
-			break;
 		case LABORATORY:
-			aligner.setSize(Utils.getVector(.4f, 1f));
+			aligner.setSize(.4f, 1f);
 			list(aligner.position, aligner.size, Heartstrings.stProperties.length, GUI_LEC_ST, GUI_COLORS_DEFAULT, 0);
 			aligner.next(1, 1);
-			aligner.setSize(Utils.getVector(.3f, .07f));
+			aligner.setSize(.3f, .07f);
 			aligner.next(0, -1);
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < Heartstrings.Technology.values().length; ++i){
@@ -220,7 +291,50 @@ public class GUI {
 				                        Fraction.debug.techLevel(Technology.values()[i]) * 100f));
 				aligner.next(-1, -1);
 			}
+			sb.append("Science data available: ");
+			sb.append(Fraction.debug.scienceDataAvailable);
 			caption(aligner.position, sb.toString(), font, false, null);
+			break;
+		case CRAFTING:
+			aligner.setSize(.4f, .5f);
+			list(aligner.position, aligner.size, craftableDialogState.availableST.length, GUI_LEC_CST, GUI_COLORS_DEFAULT, 11);
+			aligner.next(0, 1);
+			list(aligner.position, aligner.size, Heartstrings.Craftable.values().length, GUI_LEC_CRAFTABLE, GUI_COLORS_DEFAULT, 12);
+			aligner.next(1, 1);
+			aligner.setSize(.3f, .07f);
+			aligner.next(0, -1);
+			for (int i = 0; i < Heartstrings.Technology.values().length; ++i){
+				if (!scrollbars[13 + i].initialized)
+					scrollbars[13 + i].init(Utils.getVector(aligner.position), 
+					                       Utils.getVector(aligner.size), 
+					                       false, Scrollbar.GUI_SB_DEFAULT_THUMB);
+				if (Utils.arrayContains(Heartstrings.get(craftableDialogState.selected, Heartstrings.craftableProperties).availableTechs, 
+				                        Heartstrings.Technology.values()[i])){
+					scrollbars[13 + i].update(Scrollbar.GUI_SB_DEFAULT_STATES);
+					scrollbars[13 + i].render(GUI_COLORS_SCROLLBAR_COLORS);
+					craftableDialogState.selectedT[i] = scrollbars[13 + i].offset / (float) Scrollbar.GUI_SB_DEFAULT_STATES * 
+					                                    Fraction.debug.techLevel(Technology.values()[i]);
+					
+					aligner.next(1, 0);
+					caption(aligner.position, 
+					        String.format(Heartstrings.tProperties[i].shortTitle + " %6.2f%%", 
+					                      craftableDialogState.selectedT[i] * 100f), 
+					        font, true, null);
+					aligner.next(-1, -1);
+				}
+			}
+			aligner.next(0, -1);
+			if (!scrollbars[22].initialized)
+				scrollbars[22].init(aligner.position, aligner.size, false, Scrollbar.GUI_SB_DEFAULT_THUMB);
+			scrollbars[22].update(Heartstrings.getMaxCraftingOrder(craftableDialogState.selected, currentDialogStruct, 
+			                                                       craftableDialogState.selectedT, craftableDialogState.selectedST));
+			scrollbars[22].render(GUI_COLORS_SCROLLBAR_COLORS);
+			aligner.next(1, 0);
+			caption(aligner.position, "Order: " + scrollbars[22].offset, font, true, null);
+			aligner.next(-1, -1);
+			aligner.setSize(.6f, .07f);
+			advancedButton(aligner.position, aligner.size, -1, GUI_ACT_CRAFTING_ORDER, 
+			               GUI_COLORS_DEFAULT, "Place an order", null, null);
 			break;
 		case NONE:
 			break;
@@ -231,30 +345,6 @@ public class GUI {
 		aligner.reset();
 		showPostponedPrompt();
 	}
-	
-	ListEntryCallback GUI_LEC_ST = new ListEntryCallback() {
-		@Override
-		public void action(int id) {
-			//System.out.println(id);
-			if (Fraction.debug.isSTInvestigationPossibleRightNow(id))
-				Fraction.debug.startInvestigatingSpecialTechnology(id);
-		}
-		
-		@Override
-		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
-			if (Heartstrings.stProperties[id].areBasicSTInvestigated(Fraction.debug)){
-				SpecialTechnologyProperties st = Heartstrings.stProperties[id];
-				Color c = null;
-				if (Fraction.debug.isInvestigated(Heartstrings.SpecialTechnology.values()[id]))
-					c = Color.GREEN;
-				if (Fraction.debug.isBeingInvestigated(Heartstrings.SpecialTechnology.values()[id]))
-					c = GUI_COLOR_SEVENTH;
-				advancedButton(position, size, id, this, color, 
-				               st.title, st.description + "\n\n" + st.techReqsDescription, c);
-			}
-		}
-
-	};
 	
 	private static final float SCROLLBAR_RWIDTH = .1f, LIST_ENTRY_HEIGHT = 43f;
 	public void list(Vector2 position, Vector2 size, int entries, ListEntryCallback entry, Color[] colors, int scrollID){

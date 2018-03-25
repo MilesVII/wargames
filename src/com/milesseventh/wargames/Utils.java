@@ -114,6 +114,13 @@ public class Utils {
 		return sb.toString();
 	}
 	
+	public static <T> boolean arrayContains(T[] a, T b){
+		for (T x : a)
+			if (x.equals(b))
+				return true;
+		return false;
+	}
+	
 	private static final int VECTORS_IN_POOL = 128;
 	public static Vector2[] vpool = new Vector2[VECTORS_IN_POOL];
 	private static int vectorsCounter = 0, holder;
