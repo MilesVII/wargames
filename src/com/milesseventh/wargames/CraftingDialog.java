@@ -6,7 +6,7 @@ import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
 
-public class CraftableDialog {
+public class CraftingDialog {
 	public Fraction fraction;
 	public Craftable selected;
 	public ArrayList<SpecialTechnology> selectedST = new ArrayList<SpecialTechnology>();
@@ -14,7 +14,7 @@ public class CraftableDialog {
 	public SpecialTechnology[] availableST;
 	public float selectedT[] = new float[Technology.values().length];
 	
-	public CraftableDialog(){
+	public CraftingDialog(){
 		//fraction = Fraction.debug;//TODO
 		select(Craftable.TRANSPORTER);
 	}

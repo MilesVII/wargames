@@ -8,6 +8,8 @@ import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
+import com.milesseventh.wargames.SpecialTechnologyProperties.TechnologyRequirement;
+import com.milesseventh.wargames.Structure.Resource;
 
 public class Fraction {
 	public static Fraction debug;
@@ -29,6 +31,7 @@ public class Fraction {
 	public ArrayList<Structure> structs = new ArrayList<Structure>();
 	public Structure capital;
 	public float scienceDataAvailable = 0;
+	public float investition = 0;
 	
 	public Fraction (Color _color, String _name, Vector2 _pos){
 		debug = this;
@@ -39,8 +42,13 @@ public class Fraction {
 		availableCraftables.add(Craftable.BUILDER);
 		capital = new Structure(_pos, Structure.StructureType.CITY, this);
 		structs.add(capital);
+		capital.addResource(Resource.ORE, 1000);
+		capital.addResource(Resource.METAL, 10000);
+		capital.addResource(Resource.OIL, 2000);
+		capital.addResource(Resource.FUEL, 20000);
+		capital.addResource(Resource.AMMO, 10000);
 		capital.evolution = INITIAL_CAPITAL_EVOLUTION;
-		scienceDataAvailable = 7000;
+		scienceDataAvailable = 70000;
 	}
 	
 	public boolean isInvestigated(SpecialTechnology st){
@@ -78,6 +86,10 @@ public class Fraction {
 			return false;
 		if (isBeingInvestigated(s))
 			return false;
+		//Check if technology is developed
+		for (TechnologyRequirement tr: Heartstrings.stProperties[st].techReqs)
+			if (techLevel(tr.tech) < tr.level)
+				return false;
 		
 		//Check if there is enough science data stored
 		return Heartstrings.stProperties[st].investigationPriceInData <= scienceDataAvailable;
@@ -116,7 +128,7 @@ public class Fraction {
 		int prioSum = getPrioSum();
 		if (prioSum == 0)
 			return;
-		float budget = Math.min(INVESTIGATION_PER_MS * dt, scienceDataAvailable);
+		float budget = Math.min(INVESTIGATION_PER_MS * investition * dt, scienceDataAvailable);
 		scienceDataAvailable -= budget;
 		for (int i = 0; i < tech.length; i++)
 			tech[i] += (techPriorities[i] / (float) prioSum) * budget / 1000f;

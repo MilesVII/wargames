@@ -117,7 +117,7 @@ public class Heartstrings {
 		
 		//ADVANCED_WARFARE
 		new SpecialTechnologyProperties("Advanced warfare", 
-			"Allows bulding of military bases;", 
+			"Allows building of military bases;", 
 			320f, 0f, 760f, 0f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .1f),

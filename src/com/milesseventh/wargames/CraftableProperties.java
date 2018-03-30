@@ -32,6 +32,6 @@ public class CraftableProperties {
 			if (ingridients[i] == res)
 				return relativeCosts[i];
 		}
-		return -1;
+		return 0;
 	}
 }

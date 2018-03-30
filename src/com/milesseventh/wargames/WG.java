@@ -166,7 +166,6 @@ public class WG extends ApplicationAdapter {
 			_marchT = new Texture(landOutline.getRendered());
 			//Fraction[] _ = {new Fraction(Color.BLUE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
 			new Fraction(Color.BLUE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map));
-			Fraction.debug.capital.addResource(Structure.Resource.METAL, 70000f);
 			loadingProgress = -2;
 		};
 		

@@ -42,16 +42,6 @@ public class SpecialTechnologyProperties {
 		//description = descriptionAppendix + description;
 	}
 	
-	public boolean isInvestigationAllowed(Fraction f){
-		for (TechnologyRequirement tr: techReqs)
-			if (f.techLevel(tr.tech) < tr.level)
-				return false;
-		for (SpecialTechnology st: stReqs)
-			if (!f.isInvestigated(st))
-				return false;
-		return true;
-	};
-	
 	public boolean areBasicSTInvestigated(Fraction f){
 		for (SpecialTechnology st: stReqs)
 			if (!f.isInvestigated(st))
