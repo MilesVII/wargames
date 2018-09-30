@@ -57,6 +57,7 @@ public class GUI {
 		          thumbPosition = new Vector2(), 
 		              thumbSize = new Vector2();
 		public static final int GUI_SB_DEFAULT_STATES = 101;
+		public static final int GUI_SB_DEFAULT_MAXVAL = GUI_SB_DEFAULT_STATES - 1;
 		public static final float GUI_SB_DEFAULT_THUMB = .42f;
 		public int offset;
 		public boolean initialized = false;
@@ -191,14 +192,14 @@ public class GUI {
 	public Batch batch;
 	public ShapeRenderer sr;
 	public BitmapFont font, subFont;
-	public void init(){
+	public void init(float marginReference){
 		DIM_DIALOG_REFPOINT = new Vector2(0, (WG.UI_H - WG.DIALOG_HEIGHT * WG.UI_H) / 2);
 		DIM_DIALOG_SIZE = new Vector2(WG.UI_W, WG.DIALOG_HEIGHT * WG.UI_H);
 		DIM_BUTTON_SIZ_CLOSE = new Vector2(WG.UI_W * .1f, WG.UI_H * .05f);
 		DIM_BUTTON_POS_CLOSE = DIM_DIALOG_REFPOINT.cpy().add(DIM_DIALOG_SIZE).sub(DIM_BUTTON_SIZ_CLOSE);
 		//new Vector2(WG.UI_W, WG.UI_H - (WG.UI_H - WG.UI_H * WG.DIALOG_HEIGHT) / 2).sub(DIM_BUTTON_SIZ_CLOSE);
 		
-		DIM_MARGIN.x = .01f;
+		DIM_MARGIN.x = marginReference;
 		DIM_MARGIN.y = DIM_MARGIN.x * DIM_DIALOG_SIZE.x / DIM_DIALOG_SIZE.y;
 		DIM_MARGIN.scl(DIM_DIALOG_SIZE);
 		aligner = new Aligner();
@@ -325,7 +326,7 @@ public class GUI {
 			scrollbars[23].render(GUI_COLORS_SCROLLBAR_COLORS);
 			caption(Utils.getVector(aligner.position).add(3f, captionCenteringOffset), 
 			        "Investition", font, true, null);
-			Fraction.debug.investition = scrollbars[23].offset / (float)Scrollbar.GUI_SB_DEFAULT_STATES;
+			Fraction.debug.investition = scrollbars[23].offset / ((float)Scrollbar.GUI_SB_DEFAULT_MAXVAL);
 			
 			aligner.next(0, -1);
 			caption(aligner.position, String.format("Science data available: %.2f", Fraction.debug.scienceDataAvailable), font, true, null);
@@ -348,7 +349,7 @@ public class GUI {
 				                        Heartstrings.Technology.values()[i])){
 					scrollbars[13 + i].update(Scrollbar.GUI_SB_DEFAULT_STATES);
 					scrollbars[13 + i].render(GUI_COLORS_SCROLLBAR_COLORS);
-					craftingDialogState.selectedT[i] = scrollbars[13 + i].offset / (float) Scrollbar.GUI_SB_DEFAULT_STATES * 
+					craftingDialogState.selectedT[i] = scrollbars[13 + i].offset / (float) Scrollbar.GUI_SB_DEFAULT_MAXVAL * 
 					                                    Fraction.debug.techLevel(Technology.values()[i]);
 					
 					aligner.next(1, 0);

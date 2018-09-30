@@ -117,7 +117,7 @@ public class WG extends ApplicationAdapter {
 		uiBatch.enableBlending();
 		hsr.setProjectionMatrix(hudCamera.combined);
 
-		gui.init();
+		gui.init(width >= height ? UI_H * .00001f : UI_W * .00001f);
 		gui.batch = uiBatch;
 		gui.sr = hsr;
 		gui.font = font;
