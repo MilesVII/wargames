@@ -23,9 +23,9 @@ public class Fraction {
 	private float stInvestigationDone = 0;
 	
 	public static final float INVESTIGATION_PER_MS = .2f,
-	                          INITIAL_CAPITAL_EVOLUTION = .2f,
 	                          ST_INVESTIGATION_PER_MS = .2f;
-		
+	public static final int INITIAL_CAPITAL_EVOLUTION = Math.round(Structure.MAX_EVOLUTION * .2f);
+	
 	public String name;
 	public Color fractionColor;
 	public ArrayList<Structure> structs = new ArrayList<Structure>();
@@ -49,6 +49,12 @@ public class Fraction {
 		capital.addResource(Resource.AMMO, 10000);
 		capital.evolution = INITIAL_CAPITAL_EVOLUTION;
 		scienceDataAvailable = 70000;
+	}
+	
+	public void update(float dt){
+		doInvestigation(dt);
+		for (Structure s : structs)
+			s.craft(dt);
 	}
 	
 	public boolean isInvestigated(SpecialTechnology st){

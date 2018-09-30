@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
+import com.milesseventh.wargames.Heartstrings.Technology;
 
 public class Structure{
 	//////////////////////////////////////////////////////////////////
@@ -40,14 +41,42 @@ public class Structure{
 		}
 		
 		public boolean craft(float dt){
-			return false;//TODO: stoped here
+			done += DEFAULT_CRAFTING_PER_MS * dt * MAX_CRAFTING_SPEED_DISCOUNT * (evolution / (float)MAX_EVOLUTION);
+			done = Math.min(workamount * (float)amount, done);
+			
+			int nunitsDone = (int)Math.ceil(done / workamount);
+			for (int i = unitsDone; i <= unitsDone; ++i){
+				switch(craftable){
+				case AMMO:
+					addResource(Resource.AMMO, 1);
+					break;
+				case MISSILE:
+					addResource(Resource.MISSILE, 1);
+					break;
+				case SCIENCE:
+					++Fraction.debug.scienceDataAvailable;
+					break;
+				case TRANSPORTER:
+					yard.add(new Unit(null, Unit.Type.TRANSPORTER));
+					break;
+				case BUILDER:
+					yard.add(new Unit(null, Unit.Type.BUILDER));
+					break;
+				case FIGHTER:
+					yard.add(new Unit(null, Unit.Type.FIGHTER));
+					break;
+				}
+			}
+			unitsDone = nunitsDone;
+			
+			return unitsDone >= amount;
 		}
 		
 		Craftable craftable;
-		int amount;
+		int amount, unitsDone = 0;
 		float[] tech;
 		ArrayList<SpecialTechnology> st;
-		float workamount, done;
+		float workamount, done, wholeWA;
 	}
 	
 	private float[] resources = {0, 0, 0, 0, 0, 0};
@@ -61,16 +90,24 @@ public class Structure{
 	//                                             C   M   ML   R  AMD   MB
 	public static final float[] DEFAULT_RANGES = { 22,  0, 17, 12,  27,  42};//Firing range
 	public static final float[] DEFAULT_MAXCDS = {420, 70, 42, 70, 120, 200};//Max vitality
-	public static final int[]   PIEMENU_ACTCNT = {  5,  0,  0,  0,   0,   0};//Pie-menu actions counter
+	public static final int[]   PIEMENU_ACTCNT = {  5,  0,  0,  0,   0,   0};//Pie menu actions amount
+
+	public static final float MAX_CRAFTING_RESOURCE_DISCOUNT = .32f;
+	public static final float MAX_CRAFTING_SPEED_DISCOUNT = .7f;
+	public static final float DEFAULT_CRAFTING_PER_MS = .7f;
+	public static final int EVOLUTION_PER_UNIT_CRAFTED = 2;
+	public static final int EVOLUTION_PER_SQUAD_DESTROYED = 3;
+	public static final int EVOLUTION_PER_RESOURCE_CONVERTED = 2;
+	public static final int MAX_EVOLUTION = 70000;
+	public int evolution = 0; //Evolution factor defines the speed of crafting and firepower of defence systems
 	
 	private float range;//Radius of circle that will be added to fraction's territory
 	public Fraction ownerFraction;//ID of fraction that owns this unit
 	private float vitality, maxVitality;
 	private Vector2 position;
 	public StructureType type;
-	public int unitsCrafted = 0;//
-	public float evolution = 0; //Evolution factor defines the speed of crafting and firepower of defence systems
 	private Queue<CraftingOrder> manufactoryQueue = new Queue<CraftingOrder>();
+	public ArrayList<Unit> yard = new ArrayList<Unit>();
 	
 	public static final Callback PIEMENU_ACTIONS_CITY = new Callback(){
 		@Override
@@ -127,15 +164,12 @@ public class Structure{
 		return transaction;
 	}
 	
-	public static final int MAX_UNITS_FOR_DISCOUNT = 1200;// Number of units being crafted when craftingBonus stops to grow
-	public static final float MAX_CRAFTING_DISCOUNT = .42f;// Max discount for crafting 
-	
 	public float getCraftingBonus(){
-		return getCraftingBonus(unitsCrafted);
+		return MAX_CRAFTING_RESOURCE_DISCOUNT * (evolution / (float)MAX_EVOLUTION);
 	}
 	
-	public static float getCraftingBonus(int unitsCrafted){
-		return MathUtils.clamp(unitsCrafted / (float) MAX_UNITS_FOR_DISCOUNT, 0, MAX_CRAFTING_DISCOUNT);
+	public float getCraftingBonus(int unitsCrafted){
+		return MAX_CRAFTING_RESOURCE_DISCOUNT * Math.min(1f, (evolution + EVOLUTION_PER_UNIT_CRAFTED * unitsCrafted) / (float)MAX_EVOLUTION);
 	}
 	
 	public void orderCrafting(Craftable c, int amount, float[] t, ArrayList<SpecialTechnology> st){
@@ -143,7 +177,20 @@ public class Structure{
 		for (int i = 0; i < ingridients.length; ++i)
 			if (!tryRemoveResource(ingridients[i], Heartstrings.getCraftingCost(c, ingridients[i], this, t, st, amount)))
 				System.err.println("Bankrupt occured while withdrawing crafting order price");
-		//manufactoryQueue.addLast(new CraftingOrder());
+		
+		float wa = Heartstrings.get(c, Heartstrings.craftableProperties).workamount;
+		for (int i = 0; i < Technology.values().length; ++i)
+			wa += Heartstrings.tProperties[i].maxMarkup * t[i];
+		for (SpecialTechnology i : st)
+			wa += Heartstrings.get(i, Heartstrings.stProperties).workamountMarkup;
+		
+		manufactoryQueue.addLast(new CraftingOrder(c, amount, t, st, wa));
+	}
+	
+	public void craft(float dt){
+		if (manufactoryQueue.size > 0)
+			if(manufactoryQueue.first().craft(dt))
+				manufactoryQueue.removeFirst();
 	}
 	
 	protected void onDestroy() {
@@ -171,8 +218,4 @@ public class Structure{
 	public Vector2 getPosition(){
 		return position;
 	}
-
-	/*public void setPosition(Vector2 _n){
-		position = _n;
-	}*/
 }

@@ -334,7 +334,7 @@ public class Heartstrings {
 		case TRANSPORTER:
 			float cost = 0, craftingCost = get(unit, craftableProperties).getSingleCraftingCost(res) + getTechMarkup(t, st);
 			for (int i = 0; i < count; i++)
-				cost += craftingCost * (1 - Structure.getCraftingBonus(manufacturer.unitsCrafted + i));
+				cost += craftingCost * (1 - manufacturer.getCraftingBonus(i));
 			return cost;
 		default:
 			return -1;

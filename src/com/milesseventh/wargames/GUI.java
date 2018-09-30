@@ -56,7 +56,7 @@ public class GUI {
 		                   size, 
 		          thumbPosition = new Vector2(), 
 		              thumbSize = new Vector2();
-		public static final int GUI_SB_DEFAULT_STATES = 1000;
+		public static final int GUI_SB_DEFAULT_STATES = 101;
 		public static final float GUI_SB_DEFAULT_THUMB = .42f;
 		public int offset;
 		public boolean initialized = false;
@@ -487,7 +487,7 @@ public class GUI {
 	public void circledProgressbar(Vector2 position, float radius, float progress, Color color){
 		circledProgressbar(position, radius, 0, progress, color);
 	}
-	
+
 	public void circledProgressbar(Vector2 position, float radius, float offset, float progress, Color color){
 		sr.setColor(color);
 		Utils.drawTrueArc(sr, position, radius, 0, progress * 360, Math.round(progress * 360));
@@ -495,6 +495,18 @@ public class GUI {
 		glay.setText(subFont, caption);
 		caption(Utils.getVector(position).add(glay.width / -2f, glay.height / -2f), 
 		        caption, subFont, true, null);
+	}
+	
+	public void path(Vector2[] path, float width, Color color){
+		sr.setColor(color);
+		
+		sr.circle(Utils.UIMousePosition.x, Utils.UIMousePosition.y, 5); //TODO: Remove after debug
+		
+		for (int i = 0; i < path.length; ++i)
+			path[i] = WG.antistatic.getUIFromWorldV(path[i]);
+		for (int i = 0; i < path.length - 1; ++i){
+			sr.rectLine(path[i].x, path[i].y, path[i + 1].x, path[i + 1].y, width);
+		}
 	}
 	
 	public void caption(Vector2 position, String text, BitmapFont font, boolean alignToBottom, Color color){

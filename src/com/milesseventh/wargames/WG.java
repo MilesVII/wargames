@@ -192,6 +192,11 @@ public class WG extends ApplicationAdapter {
 						gui.currentDialogStruct = pieMenuState = neverlookback;
 					}
 				}
+				
+				Vector2[] x = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, 7f, neverlookback.getPosition(), Utils.WorldMousePosition));
+				if (x != null){
+					gui.path(x, 2, Color.RED);
+				}
 				hsr.circle(this.getUIFromWorldX(neverlookback.getPosition().x), this.getUIFromWorldY(neverlookback.getPosition().y), CITY_ICON_RADIUS);
 			}
 		if (pieMenuState != null)

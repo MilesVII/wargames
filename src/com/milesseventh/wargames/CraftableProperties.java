@@ -10,13 +10,13 @@ public class CraftableProperties {
 	public Technology[] availableTechs;
 	public SpecialTechnology[] availableSTs;
 	public float[] relativeCosts;
-	public float relativeWorkamount;
+	public float workamount;
 	
 	public CraftableProperties(String _title, String _description, 
 	                           Resource[] _ingridients, float[] _relativeCosts, 
 	                           Technology[] _availableTechs,
 	                           SpecialTechnology[] _availableSTs, 
-	                           float _relativeWorkamount) {
+	                           float _workamount) {
 		assert(_ingridients.length == _relativeCosts.length);
 		title              = _title;
 		description        = _description;
@@ -24,7 +24,7 @@ public class CraftableProperties {
 		relativeCosts      = _relativeCosts;
 		availableTechs     = _availableTechs;
 		availableSTs       = _availableSTs;
-		relativeWorkamount = _relativeWorkamount;
+		workamount = _workamount;
 	}
 	
 	public float getSingleCraftingCost(Resource res){
