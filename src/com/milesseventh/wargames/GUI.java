@@ -498,10 +498,8 @@ public class GUI {
 		        caption, subFont, true, null);
 	}
 	
-	public void path(Vector2[] path, float width, Color color){
+	public void path(Vector2[] path, float width, Color color, int FOR_DEBUG_PURPOSES_ONLY){
 		sr.setColor(color);
-		
-		sr.circle(Utils.UIMousePosition.x, Utils.UIMousePosition.y, 5); //TODO: Remove after debug
 		
 		for (int i = 0; i < path.length; ++i)
 			path[i] = WG.antistatic.getUIFromWorldV(path[i]);

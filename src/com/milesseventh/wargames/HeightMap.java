@@ -78,8 +78,8 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 	}
 	
 	@Override
-	public float getMeta(float _x, float _y){
-		return noiseMap[(int)_x][(int)_y];
+	public float getMeta(float nx, float ny){
+		return noiseMap[Math.round(nx)][Math.round(ny)];
 	}
 
 	@Override

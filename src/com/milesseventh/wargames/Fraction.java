@@ -13,6 +13,8 @@ import com.milesseventh.wargames.Structure.Resource;
 
 public class Fraction {
 	public static Fraction debug;
+	public static Squad debugCol;
+
 
 	public float[] tech         = {0, 0, 0, 0, 0, 0};
 	public int[] techPriorities = {0, 0, 0, 0, 0, 0};
@@ -29,12 +31,12 @@ public class Fraction {
 	public String name;
 	public Color fractionColor;
 	public ArrayList<Structure> structs = new ArrayList<Structure>();
+	public ArrayList<Squad> squads = new ArrayList<Squad>();
 	public Structure capital;
 	public float scienceDataAvailable = 0;
 	public float investition = 0;
 	
 	public Fraction (Color _color, String _name, Vector2 _pos){
-		debug = this;
 		name = _name;
 		fractionColor = _color;
 		availableCraftables.add(Craftable.SCIENCE);
@@ -49,12 +51,18 @@ public class Fraction {
 		capital.addResource(Resource.AMMO, 10000);
 		capital.evolution = INITIAL_CAPITAL_EVOLUTION;
 		scienceDataAvailable = 70000;
+		
+		debug = this;
+		debugCol = new Squad(this, capital.getPosition());
+		squads.add(debugCol);
 	}
 	
 	public void update(float dt){
 		doInvestigation(dt);
 		for (Structure s : structs)
 			s.craft(dt);
+		for (Squad s : squads)
+			s.update(dt);
 	}
 	
 	public boolean isInvestigated(SpecialTechnology st){

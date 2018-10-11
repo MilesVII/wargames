@@ -193,11 +193,17 @@ public class WG extends ApplicationAdapter {
 					}
 				}
 				
-				Vector2[] x = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, 7f, neverlookback.getPosition(), Utils.WorldMousePosition));
-				if (x != null){
-					gui.path(x, 2, Color.RED);
+				if (Utils.isTouchJustReleased){
+					Vector2[] x = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, 5f, Fraction.debugCol.position, Utils.WorldMousePosition));
+					if (x != null){
+						Fraction.debugCol.setPath(x);
+					}
 				}
 				hsr.circle(this.getUIFromWorldX(neverlookback.getPosition().x), this.getUIFromWorldY(neverlookback.getPosition().y), CITY_ICON_RADIUS);
+			}
+			for (Squad marchordie: Fraction.debug.squads){
+				hsr.setColor(Fraction.debug.fractionColor);
+				hsr.circle(this.getUIFromWorldX(marchordie.position.x), this.getUIFromWorldY(marchordie.position.y), CITY_ICON_RADIUS * .64f);
 			}
 		if (pieMenuState != null)
 			gui.piemenu(getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, pieMenuState.getPieMenuActionsNumber(), Structure.PIEMENU_ACTIONS_CITY);
@@ -217,10 +223,12 @@ public class WG extends ApplicationAdapter {
 				Fraction.debug.registerStructure(new Structure(_np, Structure.StructureType.CITY, Fraction.debug));
 			}
 		}
+		
 		//Debug mechanics
 		//sm.getCurrent().doInvestigation();
 		
 		//...
+		Fraction.debug.update(Gdx.graphics.getDeltaTime());
 		Fraction.debug.doInvestigation(Gdx.graphics.getDeltaTime() * 1000f);
 		
 		//Camera debug controls
