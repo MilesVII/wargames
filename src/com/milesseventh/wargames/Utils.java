@@ -55,7 +55,7 @@ public class Utils {
 	}
 	
 	private static final int DBG_MIN_CITY_DST = 17, DBG_MAX_CITY_DST = 48;
-	public static boolean debugCheckPlaceForNewStructure(HeightMap _map, Fraction _f, Vector2 _place){
+	public static boolean debugCheckPlaceForNewStructure(HeightMap _map, Faction _f, Vector2 _place){
 		Structure _nrst = debugFindNearestStructure(_f.structs, _place);
 		return (_nrst.getPosition().dst2(_place) < DBG_MAX_CITY_DST * DBG_MAX_CITY_DST &&
 			_nrst.getPosition().dst2(_place) > DBG_MIN_CITY_DST * DBG_MIN_CITY_DST &&

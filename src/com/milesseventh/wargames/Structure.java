@@ -54,7 +54,7 @@ public class Structure{
 					addResource(Resource.MISSILE, 1);
 					break;
 				case SCIENCE:
-					++Fraction.debug.scienceDataAvailable;
+					++Faction.debug.scienceDataAvailable;
 					break;
 				case TRANSPORTER:
 					yard.add(new Unit(null, Unit.Type.TRANSPORTER));
@@ -101,8 +101,8 @@ public class Structure{
 	public static final int MAX_EVOLUTION = 70000;
 	public int evolution = 0; //Evolution factor defines the speed of crafting and firepower of defence systems
 	
-	private float range;//Radius of circle that will be added to fraction's territory
-	public Fraction ownerFraction;//ID of fraction that owns this unit
+	private float range;//Radius of circle that will be added to faction's territory
+	public Faction ownerFaction;//ID of faction that owns this unit
 	private float vitality, maxVitality;
 	private Vector2 position;
 	public StructureType type;
@@ -126,9 +126,9 @@ public class Structure{
 		}
 	};
 	
-	public Structure(Vector2 npos, StructureType st, Fraction owner) {
+	public Structure(Vector2 npos, StructureType st, Faction owner) {
 		position = npos.cpy();
-		ownerFraction = owner;
+		ownerFaction = owner;
 		type = st;
 		range = DEFAULT_RANGES[type.ordinal()];//Assign firing range and condition on the assumption of type
 		vitality = maxVitality = DEFAULT_MAXCDS[type.ordinal()];
@@ -194,7 +194,7 @@ public class Structure{
 	}
 	
 	protected void onDestroy() {
-		ownerFraction.unregisterStructure(this);
+		ownerFaction.unregisterStructure(this);
 	}
 	
 	public float getRange(){

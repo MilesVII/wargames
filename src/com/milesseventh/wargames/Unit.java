@@ -7,13 +7,13 @@ public class Unit {
 	public enum Type {FIGHTER, TRANSPORTER, BUILDER};
 	
 	public float[] techLevel = {0, 0, 0, 0, 0, 0};
-	public Fraction owner;
+	public Faction owner;
 	public Type type;
 	public Structure manufacturer;
 	
 	public Unit(Structure _manufacturer, Type _type) {
 		manufacturer = _manufacturer;
-		owner = manufacturer.ownerFraction;
+		owner = manufacturer.ownerFaction;
 		type = _type;
 	}
 	

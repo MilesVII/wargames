@@ -7,7 +7,7 @@ import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
 
 public class CraftingDialog {
-	public Fraction fraction;
+	public Faction faction;
 	public Craftable selected;
 	public ArrayList<SpecialTechnology> selectedST = new ArrayList<SpecialTechnology>();
 	public String[] availableSTTitles;
@@ -15,7 +15,7 @@ public class CraftingDialog {
 	public float selectedT[] = new float[Technology.values().length];
 	
 	public CraftingDialog(){
-		//fraction = Fraction.debug;//TODO
+		//faction = Faction.debug;//TODO
 		select(Craftable.TRANSPORTER);
 	}
 	
@@ -39,14 +39,14 @@ public class CraftingDialog {
 	}
 	
 	private void generateAvailableSTBySelected(){
-		fraction = Fraction.debug;//TODO
+		faction = Faction.debug;//TODO
 		int len = 0, j = 0;
 		for (int i = 0; i < Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs.length; i++)
-			if (fraction.isInvestigated(Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs[i]))
+			if (faction.isInvestigated(Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs[i]))
 				len++;
 		availableST = new SpecialTechnology[len];
 		for (int i = 0; i < Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs.length; i++)
-			if (fraction.isInvestigated(Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs[i])){
+			if (faction.isInvestigated(Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs[i])){
 				availableST[j] = Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs[i];
 				j++;
 			}

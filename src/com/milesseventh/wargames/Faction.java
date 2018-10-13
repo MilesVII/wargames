@@ -11,8 +11,8 @@ import com.milesseventh.wargames.Heartstrings.Technology;
 import com.milesseventh.wargames.SpecialTechnologyProperties.TechnologyRequirement;
 import com.milesseventh.wargames.Structure.Resource;
 
-public class Fraction {
-	public static Fraction debug;
+public class Faction {
+	public static Faction debug;
 	public static Squad debugCol;
 
 
@@ -36,7 +36,7 @@ public class Fraction {
 	public float scienceDataAvailable = 0;
 	public float investition = 0;
 	
-	public Fraction (Color _color, String _name, Vector2 _pos){
+	public Faction (Color _color, String _name, Vector2 _pos){
 		name = _name;
 		fractionColor = _color;
 		availableCraftables.add(Craftable.SCIENCE);

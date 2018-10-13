@@ -5,14 +5,14 @@ import java.util.ArrayList;
 import com.badlogic.gdx.math.Vector2;
 
 public class Squad {
-	public Fraction owner;
+	public Faction owner;
 	public ArrayList<Unit> units;
 	
 	private Vector2[] path = null;
 	private int pathSegment = -1;
 	public Vector2 position;
 	
-	public Squad(Fraction nowner, Vector2 nposition) {
+	public Squad(Faction nowner, Vector2 nposition) {
 		position = nposition.cpy();
 		owner = nowner;
 	}

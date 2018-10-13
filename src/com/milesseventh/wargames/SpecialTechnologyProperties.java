@@ -42,7 +42,7 @@ public class SpecialTechnologyProperties {
 		//description = descriptionAppendix + description;
 	}
 	
-	public boolean areBasicSTInvestigated(Fraction f){
+	public boolean areBasicSTInvestigated(Faction f){
 		for (SpecialTechnology st: stReqs)
 			if (!f.isInvestigated(st))
 				return false;

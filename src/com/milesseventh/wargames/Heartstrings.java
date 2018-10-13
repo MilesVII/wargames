@@ -26,7 +26,7 @@ public class Heartstrings {
 		ADVANCED_WARFARE,         //Allows building of MB; Req: BASIC_WARFARE, ENG(10%), FP(30%)
 		RADIO,                    //Allows building of radars; Req: ADVANCED_WARFARE, ENG(15%)
 		AMD_I, AMD_II,            //Allows building of AMD stations; Req_1: ADVANCED_WARFARE, ENG(25%), ACC(30%); Allows building of laser AMD stations; Req_2: AMD_I, ENG(45%), ACC(60%) 
-		ESPIONAGE,                //Allows fraction to steal foreign special tecnologies by capturing enemy's radars; Req: RADIO, SIEGE, ENG(30%)
+		ESPIONAGE,                //Allows faction to steal foreign special tecnologies by capturing enemy's radars; Req: RADIO, SIEGE, ENG(30%)
 		STRATEGIC_WARFARE,        //Allows building of missile silos and missile crafting; Req: ADVANCED_WARFARE, ENG(40%), ACC(25%), FP(50%), SPD(25%)
 		WARHEAD_FRAGMENTATION_I,  //Allows missiles' payload to fragmentate, increasing effective area and reducing chance to be shotdown by AMD; Req: SW, ENG(60%), FP(60%)
 		WARHEAD_FRAGMENTATION_II, //Req: WF_I, ACC(35%), SPD(40%)
@@ -169,7 +169,7 @@ public class Heartstrings {
 		
 		//ESPIONAGE
 		new SpecialTechnologyProperties("Industrial espionage", 
-			"Allows fraction to steal foreign special tecnologies "
+			"Allows faction to steal foreign special tecnologies "
 			+ "by capturing enemy's radars",
 			170f, 27f, 310f, 170f,
 			new TechnologyRequirement[]{
