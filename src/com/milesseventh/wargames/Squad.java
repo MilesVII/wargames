@@ -13,46 +13,51 @@ public class Squad {
 	public Vector2 position;
 	
 	public Squad(Fraction nowner, Vector2 nposition) {
-		position = nposition;
+		position = nposition.cpy();
 		owner = nowner;
 	}
 	
 	public void setPath(Vector2[] npath){
-		path = npath;
+		path = npath.clone();
 		pathSegment = -1;
 	}
 	
 	public void update(float dt){
-		
 		//Move column on path
+		System.out.print("Preupdate:");
+		System.out.println(position);
 		if (path != null && path.length > 1){
 			if (pathSegment == -1){
 				pathSegment = 0;
-				dt = 0; // Remove shift when starting to move
-			}
-			float step = getSpeed() * dt;
-			while(step >= position.dst(path[pathSegment + 1])){
-				step -= position.dst(path[pathSegment + 1]);
-				position = path[pathSegment + 1];
-				++pathSegment;
-
-				if (pathSegment == path.length - 1){
-					//Arrived!
-					path = null;
-					pathSegment = -1;
-					step = 0;
-					break;
+			} else {
+				float step = getSpeed() * dt;
+				while(step >= position.dst(path[pathSegment + 1])){
+					++pathSegment;
+					step -= position.dst(path[pathSegment]);
+					position = path[pathSegment].cpy();
+	
+					if (pathSegment == path.length - 1){
+						//Arrived!
+						path = null;
+						pathSegment = -1;
+						step = 0;
+						break;
+					}
+				}
+				
+				if (pathSegment > -1){
+					System.out.print("Prestep:  ");
+					System.out.println(position);
+					Vector2 offset = Utils.getVector(path[pathSegment + 1]).sub(position).nor().scl(step);
+					position.add(offset);
+					System.out.print("Poststep: ");
+					System.out.println(position);
 				}
 			}
-			
-			if (pathSegment > -1)
-				position.add(Utils.getVector(path[pathSegment + 1])
-				             	.sub(position)
-				             	.nor().scl(step));
 		}
 	}
 	
 	private float getSpeed(){
-		return 170; //TODO: Stub
+		return 7f; //TODO: Stub
 	}
 }

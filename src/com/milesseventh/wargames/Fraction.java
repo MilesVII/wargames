@@ -53,7 +53,7 @@ public class Fraction {
 		scienceDataAvailable = 70000;
 		
 		debug = this;
-		debugCol = new Squad(this, capital.getPosition());
+		debugCol = new Squad(this, _pos);
 		squads.add(debugCol);
 	}
 	

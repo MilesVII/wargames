@@ -34,6 +34,9 @@ public class Pathfinder {
 	};
 	
 	public static Node findPath(Stridable map, float step, Vector2 from, Vector2 to){
+		from = from.cpy();
+		  to =   to.cpy();
+		
 		//Prepare direction offset vectors
 		Vector2[] directionOffsets = new Vector2[SPF_DIRECTIONS.length];
 		for (int i = 0; i < SPF_DIRECTIONS.length; ++i)

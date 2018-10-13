@@ -193,9 +193,10 @@ public class WG extends ApplicationAdapter {
 					}
 				}
 				
-				if (Utils.isTouchJustReleased){
-					Vector2[] x = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, 5f, Fraction.debugCol.position, Utils.WorldMousePosition));
-					if (x != null){
+				Vector2[] x = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, 8f, Fraction.debugCol.position, Utils.WorldMousePosition));
+				if (x != null){
+					gui.path(x, 2, GUI.GUI_COLOR_SEVENTH);
+					if (Utils.isTouchJustReleased){
 						Fraction.debugCol.setPath(x);
 					}
 				}

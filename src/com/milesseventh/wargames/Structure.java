@@ -126,8 +126,8 @@ public class Structure{
 		}
 	};
 	
-	public Structure(Vector2 pos, StructureType st, Fraction owner) {
-		position = pos;
+	public Structure(Vector2 npos, StructureType st, Fraction owner) {
+		position = npos.cpy();
 		ownerFraction = owner;
 		type = st;
 		range = DEFAULT_RANGES[type.ordinal()];//Assign firing range and condition on the assumption of type

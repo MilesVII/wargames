@@ -498,13 +498,18 @@ public class GUI {
 		        caption, subFont, true, null);
 	}
 	
-	public void path(Vector2[] path, float width, Color color, int FOR_DEBUG_PURPOSES_ONLY){
-		sr.setColor(color);
-		
-		for (int i = 0; i < path.length; ++i)
-			path[i] = WG.antistatic.getUIFromWorldV(path[i]);
+	public void path(Vector2[] path, float width, Color color){
+		if (path.length <= 2)
+			return;
+
+		Vector2 currentNode, nextNode = WG.antistatic.getUIFromWorldV(path[0]);
 		for (int i = 0; i < path.length - 1; ++i){
-			sr.rectLine(path[i].x, path[i].y, path[i + 1].x, path[i + 1].y, width);
+			currentNode = nextNode;
+			nextNode = WG.antistatic.getUIFromWorldV(path[i + 1]);
+			sr.setColor(color);
+			sr.rectLine(currentNode.x, currentNode.y, nextNode.x, nextNode.y, width);
+			sr.setColor(Color.BLACK);
+			sr.circle(nextNode.x, nextNode.y, 2);
 		}
 	}
 	
