@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;;
@@ -12,7 +15,19 @@ public class Utils {
 	public static Vector2 WorldMousePosition = new Vector2(), UIMousePosition = new Vector2();//Updated via WG.java, update();
 	public static boolean isTouchJustReleased = false;
 	public static final int NULL_ID = -1;
-	//public static final Heartstrings heartstrings = new Heartstrings();
+	
+	public static void drawIcon(Batch batch, Texture icon, Vector2 position, float rotation, float sideScaled, Color color){
+		//batch.begin();
+		batch.setColor(color);
+		batch.draw(icon, position.x - sideScaled / 2f, position.y - sideScaled / 2f, 
+		           sideScaled / 2f, sideScaled / 2f,
+		           sideScaled, sideScaled, 
+		           1, 1,
+		           rotation, 0, 0,
+		           icon.getWidth(), icon.getHeight(), 
+		           false, false);
+		//batch.end();
+	}
 	
 	public static float projectX(float _len, float _dir){
 		return (float)(_len * Math.cos(Math.toRadians(_dir)));

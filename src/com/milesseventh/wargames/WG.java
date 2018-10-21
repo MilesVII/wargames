@@ -33,14 +33,14 @@ public class WG extends ApplicationAdapter {
 	//Dimensions
 	public static final float CITY_ICON_RADIUS = 12,
 	                          PIE_MENU_RADIUS = 22,
-	                          DIALOG_HEIGHT = .8f;
+	                          DIALOG_HEIGHT = .8f,
+	                          ICON_SIDE = 42;
 	
 	//Variables
 	public static WG antistatic;
-	private SpriteBatch batch; 
-	private Batch uiBatch;
+	private Batch batch, GUIBatch;
 	HeightMap map;
-	private OrthographicCamera camera;
+	public OrthographicCamera camera;
 	private ShapeRenderer sr, hsr; 
 	private Marching landOutline, unitsOutline;
 	private Texture _noiseT, _marchT;
@@ -77,8 +77,8 @@ public class WG extends ApplicationAdapter {
 		gui.subFont = ftfg.generateFont(parameter);
 		ftfg.dispose();
 		
-		uiBatch = new SpriteBatch();
-		uiBatch.enableBlending();
+		GUIBatch = new SpriteBatch();
+		GUIBatch.enableBlending();
 		hsr = new ShapeRenderer(); 
 		sr = new ShapeRenderer(); 
 		batch = new SpriteBatch();
@@ -113,12 +113,12 @@ public class WG extends ApplicationAdapter {
 		//hudmx = hudCamera.combined;
 		
 		//
-		uiBatch.setProjectionMatrix(hudCamera.combined);
-		uiBatch.enableBlending();
+		GUIBatch.setProjectionMatrix(hudCamera.combined);
+		GUIBatch.enableBlending();
 		hsr.setProjectionMatrix(hudCamera.combined);
 
 		gui.init(width >= height ? UI_H * .00001f : UI_W * .00001f);
-		gui.batch = uiBatch;
+		gui.batch = GUIBatch;
 		gui.sr = hsr;
 		gui.font = font;
 
@@ -172,22 +172,24 @@ public class WG extends ApplicationAdapter {
 		update();
 		
 		camera.update();
-		batch.setProjectionMatrix(camera.combined);
 		sr.setProjectionMatrix(camera.combined);
 		
 		batch.begin();
+		batch.setProjectionMatrix(camera.combined);
+		batch.setColor(Color.WHITE);
 		batch.draw(_noiseT, 0, 0);
 		//batch.draw(_marchT, 0, 0);
-		batch.end();
+		batch.setProjectionMatrix(hsr.getProjectionMatrix());
 		hsr.begin(ShapeType.Filled);
+		
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		
 		//for (Faction runhorsey: sm.getFractions())
 			for (Structure neverlookback: Faction.debug.structs){
-				hsr.setColor(Faction.debug.fractionColor);
+				hsr.setColor(Faction.debug.factionColor);
 				if (getUIFromWorldV(neverlookback.getPosition()).dst(Utils.UIMousePosition) < CITY_ICON_RADIUS * 1.7f){
-					hsr.setColor(Faction.debug.fractionColor.r + .2f, Faction.debug.fractionColor.g + .2f, Faction.debug.fractionColor.b + .2f, 1f);
+					hsr.setColor(Faction.debug.factionColor.r + .2f, Faction.debug.factionColor.g + .2f, Faction.debug.factionColor.b + .2f, 1f);
 					if (Gdx.input.justTouched() && currentDialog == Dialog.NONE){
 						gui.currentDialogStruct = pieMenuState = neverlookback;
 					}
@@ -195,22 +197,27 @@ public class WG extends ApplicationAdapter {
 				
 				Vector2[] x = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, 8f, Faction.debugCol.position, Utils.WorldMousePosition));
 				if (x != null){
-					gui.path(x, 2, GUI.GUI_COLOR_SEVENTH);
+					//gui.path(x, 2, GUI.GUI_COLOR_SEVENTH);
 					if (Utils.isTouchJustReleased){
 						Faction.debugCol.setPath(x);
 					}
 				}
-				hsr.circle(this.getUIFromWorldX(neverlookback.getPosition().x), this.getUIFromWorldY(neverlookback.getPosition().y), CITY_ICON_RADIUS);
+				
+				Utils.drawIcon(batch, neverlookback.getIcon(), getUIFromWorldV(neverlookback.getPosition()), 0, ICON_SIDE, GUI.GUI_COLOR_SEVENTH);
+				//hsr.setColor(Color.RED);
+				//hsr.circle(this.getUIFromWorldX(neverlookback.getPosition().x), this.getUIFromWorldY(neverlookback.getPosition().y), 2f);
 			}
 			for (Squad marchordie: Faction.debug.squads){
-				hsr.setColor(Faction.debug.fractionColor);
-				hsr.circle(this.getUIFromWorldX(marchordie.position.x), this.getUIFromWorldY(marchordie.position.y), CITY_ICON_RADIUS * .64f);
+				Utils.drawIcon(batch, Faction.SQUAD_ICON, getUIFromWorldV(marchordie.position), marchordie.lostDirection, ICON_SIDE, GUI.GUI_COLOR_SEVENTH);
+				//hsr.setColor(Color.RED);
+				//hsr.circle(this.getUIFromWorldX(marchordie.position.x), this.getUIFromWorldY(marchordie.position.y), 2f);
 			}
 		if (pieMenuState != null)
 			gui.piemenu(getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, pieMenuState.getPieMenuActionsNumber(), Structure.PIEMENU_ACTIONS_CITY);
 		if (currentDialog != Dialog.NONE)
 			gui.dialog(currentDialog);
 		hsr.end();
+		batch.end();
 		if (!Gdx.input.isTouched())
 			pieMenuState = null;
 	}

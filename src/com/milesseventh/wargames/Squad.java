@@ -2,6 +2,7 @@ package com.milesseventh.wargames;
 
 import java.util.ArrayList;
 
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 
 public class Squad {
@@ -11,6 +12,7 @@ public class Squad {
 	private Vector2[] path = null;
 	private int pathSegment = -1;
 	public Vector2 position;
+	public float lostDirection = 0;
 	
 	public Squad(Faction nowner, Vector2 nposition) {
 		position = nposition.cpy();
@@ -23,9 +25,8 @@ public class Squad {
 	}
 	
 	public void update(float dt){
+		Vector2 positionHolder = Utils.getVector(position);
 		//Move column on path
-		System.out.print("Preupdate:");
-		System.out.println(position);
 		if (path != null && path.length > 1){
 			if (pathSegment == -1){
 				pathSegment = 0;
@@ -46,13 +47,10 @@ public class Squad {
 				}
 				
 				if (pathSegment > -1){
-					System.out.print("Prestep:  ");
-					System.out.println(position);
 					Vector2 offset = Utils.getVector(path[pathSegment + 1]).sub(position).nor().scl(step);
 					position.add(offset);
-					System.out.print("Poststep: ");
-					System.out.println(position);
 				}
+				lostDirection = Utils.getVector(position).sub(positionHolder).angle();
 			}
 		}
 	}

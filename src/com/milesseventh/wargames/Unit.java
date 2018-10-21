@@ -6,6 +6,8 @@ import com.milesseventh.wargames.Heartstrings.Technology;
 public class Unit {
 	public enum Type {FIGHTER, TRANSPORTER, BUILDER};
 	
+	public static final float MAX_CARGO = 1;
+	
 	public float[] techLevel = {0, 0, 0, 0, 0, 0};
 	public Faction owner;
 	public Type type;
@@ -44,4 +46,6 @@ public class Unit {
 				return false;
 		return (type == u.type);
 	}
+	
+	
 }

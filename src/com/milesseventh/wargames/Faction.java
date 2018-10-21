@@ -2,7 +2,10 @@ package com.milesseventh.wargames;
 
 import java.util.ArrayList;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
@@ -14,8 +17,19 @@ import com.milesseventh.wargames.Structure.Resource;
 public class Faction {
 	public static Faction debug;
 	public static Squad debugCol;
+	
+	public static Texture[] ICONS = {
+			new Texture(Gdx.files.internal("city.png")),
+			new Texture(Gdx.files.internal("mine.png")),
+			new Texture(Gdx.files.internal("mine.png")),
+			new Texture(Gdx.files.internal("mine.png")),
+			new Texture(Gdx.files.internal("mine.png")),
+			new Texture(Gdx.files.internal("mine.png")),
 
-
+			new Texture(Gdx.files.internal("capital.png"))
+	};
+	public static final Texture SQUAD_ICON = new Texture(Gdx.files.internal("squad.png"));
+	
 	public float[] tech         = {0, 0, 0, 0, 0, 0};
 	public int[] techPriorities = {0, 0, 0, 0, 0, 0};
 	public static final int MAXPRIOR = 100;
@@ -29,16 +43,17 @@ public class Faction {
 	public static final int INITIAL_CAPITAL_EVOLUTION = Math.round(Structure.MAX_EVOLUTION * .2f);
 	
 	public String name;
-	public Color fractionColor;
+	public Color factionColor;
 	public ArrayList<Structure> structs = new ArrayList<Structure>();
 	public ArrayList<Squad> squads = new ArrayList<Squad>();
-	public Structure capital;
+	public Structure capital = null;
 	public float scienceDataAvailable = 0;
 	public float investition = 0;
 	
 	public Faction (Color _color, String _name, Vector2 _pos){
 		name = _name;
-		fractionColor = _color;
+		factionColor = _color;
+		
 		availableCraftables.add(Craftable.SCIENCE);
 		availableCraftables.add(Craftable.TRANSPORTER);
 		availableCraftables.add(Craftable.BUILDER);
@@ -55,6 +70,7 @@ public class Faction {
 		debug = this;
 		debugCol = new Squad(this, _pos);
 		squads.add(debugCol);
+		
 	}
 	
 	public void update(float dt){

@@ -22,7 +22,7 @@ public class Heartstrings {
 		SIEGE_I, SIEGE_II,        //Allows squads to siege structures and conquer them; Req: BASIC_WARFARE, ARMOR(10%), ARMOR(40%), ACC(10%)
 		FORTIFICATION,            //Allows squads to fortify position and defend a spot, acting like a portable MB; Req: BASIC_WARFARE, FP(10%), ARMOR(30%)
 		MOBILE_ATTACK,            //Allows squads to attack other squads; Req: BASIC_WARFARE, ACC(5%)
-		COLUMN_INTERCEPTION,      //Allows squads to intercept other squads; Req: BASIC_WARFARE, ACC(20%)
+		//COLUMN_INTERCEPTION,      //Allows squads to intercept other squads; Req: BASIC_WARFARE, ACC(20%)
 		ADVANCED_WARFARE,         //Allows building of MB; Req: BASIC_WARFARE, ENG(10%), FP(30%)
 		RADIO,                    //Allows building of radars; Req: ADVANCED_WARFARE, ENG(15%)
 		AMD_I, AMD_II,            //Allows building of AMD stations; Req_1: ADVANCED_WARFARE, ENG(25%), ACC(30%); Allows building of laser AMD stations; Req_2: AMD_I, ENG(45%), ACC(60%) 
@@ -103,7 +103,7 @@ public class Heartstrings {
 			}
 		),
 		
-		//COLUMN_INTERCEPTION
+		/*/COLUMN_INTERCEPTION
 		new SpecialTechnologyProperties("Column interception", 
 			"Allows squads to intercept other squads;", 
 			115f, 10f, 210f, 10f,
@@ -113,7 +113,7 @@ public class Heartstrings {
 			new SpecialTechnology[]{
 				SpecialTechnology.MOBILE_ATTACK
 			}
-		),
+		),*/
 		
 		//ADVANCED_WARFARE
 		new SpecialTechnologyProperties("Advanced warfare", 
@@ -278,7 +278,7 @@ public class Heartstrings {
 			                        	Technology.SPEED,
 			                        },
 			                        new SpecialTechnology[] {//Fighter
-			                        	SpecialTechnology.COLUMN_INTERCEPTION,
+			                        	//SpecialTechnology.COLUMN_INTERCEPTION,
 			                        	SpecialTechnology.ESPIONAGE,
 			                        	SpecialTechnology.FORTIFICATION,
 			                        	SpecialTechnology.MOBILE_ATTACK,

@@ -2,7 +2,9 @@ package com.milesseventh.wargames;
 
 import java.util.ArrayList;
 
-import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
@@ -92,6 +94,8 @@ public class Structure{
 	public static final float[] DEFAULT_MAXCDS = {420, 70, 42, 70, 120, 200};//Max vitality
 	public static final int[]   PIEMENU_ACTCNT = {  5,  0,  0,  0,   0,   0};//Pie menu actions amount
 
+	
+	
 	public static final float MAX_CRAFTING_RESOURCE_DISCOUNT = .32f;
 	public static final float MAX_CRAFTING_SPEED_DISCOUNT = .7f;
 	public static final float DEFAULT_CRAFTING_PER_MS = .7f;
@@ -191,6 +195,12 @@ public class Structure{
 		if (manufactoryQueue.size > 0)
 			if(manufactoryQueue.first().craft(dt))
 				manufactoryQueue.removeFirst();
+	}
+	
+	public Texture getIcon(){
+		if (ownerFaction.capital == this)
+			return Faction.ICONS[Faction.ICONS.length - 1];
+		return Faction.ICONS[type.ordinal()];
 	}
 	
 	protected void onDestroy() {
