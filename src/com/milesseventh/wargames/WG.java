@@ -31,7 +31,7 @@ public class WG extends ApplicationAdapter {
 	                          CAM_ZOOM_STEP = .02f;
 	
 	//Dimensions
-	public static final float CITY_ICON_RADIUS = 12,
+	public static final float STRUCTURE_ICON_RADIUS = 12,
 	                          PIE_MENU_RADIUS = 22,
 	                          DIALOG_HEIGHT = .8f,
 	                          ICON_SIDE = 42;
@@ -48,7 +48,7 @@ public class WG extends ApplicationAdapter {
 	private BitmapFont font;
 	private boolean preTouched = false;
 	public GUI gui;
-	private Structure pieMenuState = null; // null if no pie menu opened
+	private Piemenuable focusedObject = null; // no pie menu opened if null, can be 
 	public Dialog currentDialog = Dialog.NONE;
 	public float prevPitchGestureDistance = -1;
 	
@@ -173,13 +173,14 @@ public class WG extends ApplicationAdapter {
 		
 		camera.update();
 		sr.setProjectionMatrix(camera.combined);
+		batch.setProjectionMatrix(camera.combined);
 		
 		batch.begin();
-		batch.setProjectionMatrix(camera.combined);
 		batch.setColor(Color.WHITE);
 		batch.draw(_noiseT, 0, 0);
 		//batch.draw(_marchT, 0, 0);
-		batch.setProjectionMatrix(hsr.getProjectionMatrix());
+		batch.end();
+
 		hsr.begin(ShapeType.Filled);
 		
 		Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -188,38 +189,18 @@ public class WG extends ApplicationAdapter {
 		//for (Faction runhorsey: sm.getFractions())
 			for (Structure neverlookback: Faction.debug.structs){
 				hsr.setColor(Faction.debug.factionColor);
-				if (getUIFromWorldV(neverlookback.getPosition()).dst(Utils.UIMousePosition) < CITY_ICON_RADIUS * 1.7f){
-					hsr.setColor(Faction.debug.factionColor.r + .2f, Faction.debug.factionColor.g + .2f, Faction.debug.factionColor.b + .2f, 1f);
-					if (Gdx.input.justTouched() && currentDialog == Dialog.NONE){
-						gui.currentDialogStruct = pieMenuState = neverlookback;
-					}
-				}
-				
-				Vector2[] x = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, 8f, Faction.debugCol.position, Utils.WorldMousePosition));
-				if (x != null){
-					//gui.path(x, 2, GUI.GUI_COLOR_SEVENTH);
-					if (Utils.isTouchJustReleased){
-						Faction.debugCol.setPath(x);
-					}
-				}
-				
-				Utils.drawIcon(batch, neverlookback.getIcon(), getUIFromWorldV(neverlookback.getPosition()), 0, ICON_SIDE, GUI.GUI_COLOR_SEVENTH);
-				//hsr.setColor(Color.RED);
-				//hsr.circle(this.getUIFromWorldX(neverlookback.getPosition().x), this.getUIFromWorldY(neverlookback.getPosition().y), 2f);
+				gui.drawWorldIconOnHUD(neverlookback.getIcon(), neverlookback.position, 0, ICON_SIDE, GUI.GUI_COLOR_SEVENTH);
 			}
 			for (Squad marchordie: Faction.debug.squads){
-				Utils.drawIcon(batch, Faction.SQUAD_ICON, getUIFromWorldV(marchordie.position), marchordie.lostDirection, ICON_SIDE, GUI.GUI_COLOR_SEVENTH);
-				//hsr.setColor(Color.RED);
-				//hsr.circle(this.getUIFromWorldX(marchordie.position.x), this.getUIFromWorldY(marchordie.position.y), 2f);
+				gui.drawWorldIconOnHUD(Faction.SQUAD_ICON, marchordie.position, marchordie.lostDirection, ICON_SIDE, GUI.GUI_COLOR_SEVENTH);
 			}
-		if (pieMenuState != null)
-			gui.piemenu(getUIFromWorldV(pieMenuState.getPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, pieMenuState.getPieMenuActionsNumber(), Structure.PIEMENU_ACTIONS_CITY);
+		if (focusedObject != null)
+			gui.piemenu(getUIFromWorldV(focusedObject.getWorldPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, focusedObject.getActionsAmount(), Structure.PIEMENU_ACTIONS_CITY);
 		if (currentDialog != Dialog.NONE)
 			gui.dialog(currentDialog);
 		hsr.end();
-		batch.end();
 		if (!Gdx.input.isTouched())
-			pieMenuState = null;
+			focusedObject = null;
 	}
 	
 	private void update(){
@@ -238,6 +219,8 @@ public class WG extends ApplicationAdapter {
 		//...
 		Faction.debug.update(Gdx.graphics.getDeltaTime());
 		Faction.debug.doInvestigation(Gdx.graphics.getDeltaTime() * 1000f);
+		for (Structure s: Faction.debug.structs)
+			s.update();
 		
 		//Camera debug controls
 		if (Gdx.input.isKeyPressed(Input.Keys.A)){
@@ -260,7 +243,7 @@ public class WG extends ApplicationAdapter {
 		//Camera gestures
 		if (!Gdx.input.isTouched())
 			prevPitchGestureDistance = -1;
-		if (pieMenuState == null && currentDialog == Dialog.NONE && Gdx.input.isTouched(0)){
+		if (focusedObject == null && currentDialog == Dialog.NONE && Gdx.input.isTouched(0)){
 			if (Gdx.input.isTouched(1)){
 				if (prevPitchGestureDistance != -1)
 					camera.zoom += (prevPitchGestureDistance - Utils.getVector(getUIMouseX(1), getUIMouseY(1)).sub(getUIMouseX(0), getUIMouseY(0)).len()) / (float)UI_W;
@@ -283,6 +266,13 @@ public class WG extends ApplicationAdapter {
 		_noiseT.dispose();
 	}
 
+	public void setFocusOnPiemenuable(Piemenuable pma){
+		if (focusedObject == null)
+			focusedObject = pma;
+		if (pma.getClass().isAssignableFrom(Structure.class))
+			gui.focusedStruct = (Structure) pma;
+	}
+	
 	private float getWorldMouseX(){
 		//Our goal is to project coordinates related to top-left corner of window to bottom-left of our world
 		return (Gdx.input.getX()) / (float) Gdx.graphics.getWidth()//Here we have normalized cursor position related to camera view but not to world coordinates

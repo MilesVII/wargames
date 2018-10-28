@@ -69,7 +69,7 @@ public class Faction {
 		
 		debug = this;
 		debugCol = new Squad(this, _pos);
-		squads.add(debugCol);
+		//squads.add(debugCol);
 		
 	}
 	

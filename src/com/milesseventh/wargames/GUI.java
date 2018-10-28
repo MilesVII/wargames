@@ -3,6 +3,7 @@ package com.milesseventh.wargames;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -137,7 +138,7 @@ public class GUI {
 			new Color(.97f, .97f, .97f, 1)  //hovered
 		};
 	public static final Color[] GUI_COLORS_DEFAULT = {
-			new Color(0, 0, 0, .42f),     //superdefault
+			new Color(0, 0, 0, .64f),     //superdefault
 			new Color(0, 0, 0, 1),        //hovered
 			new Color(.5f, .5f, .5f, .8f) //pressed
 		};
@@ -270,11 +271,11 @@ public class GUI {
 	private final Callback GUI_ACT_CRAFTING_ORDER = new Callback(){
 		@Override
 		public void action(int id) {
-			//currentDialogStruct.
+			//focusedStruct.
 		}
 	};
 	
-	public Structure currentDialogStruct;
+	public Structure focusedStruct;
 	private Aligner aligner;
 	private CraftingDialog craftingDialogState = new CraftingDialog();
 	public void dialog(WG.Dialog dialog){
@@ -363,7 +364,7 @@ public class GUI {
 			aligner.next(0, -1);
 			if (!scrollbars[22].initialized)
 				scrollbars[22].init(aligner.position, aligner.size, false, Scrollbar.GUI_SB_DEFAULT_THUMB);
-			scrollbars[22].update(Heartstrings.getMaxCraftingOrder(craftingDialogState.selected, currentDialogStruct, 
+			scrollbars[22].update(Heartstrings.getMaxCraftingOrder(craftingDialogState.selected, focusedStruct, 
 			                                                       craftingDialogState.selectedT, craftingDialogState.selectedST));
 			scrollbars[22].render(GUI_COLORS_SCROLLBAR_COLORS);
 			aligner.next(1, 0);
@@ -525,7 +526,29 @@ public class GUI {
 		font.draw(batch, text, position.x, position.y + (alignToBottom ? glay.height : 0));
 		batch.end();
 
-		Gdx.gl.glEnable(GL20.GL_BLEND);
+		Gdx.gl.glEnable(GL20.GL_BLEND); //TODO: Investigate and fix the crutch
+		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+	}
+	
+	public void drawWorldIconOnHUD(Texture icon, Vector2 position, float rotation, float sideScaled, Color color){
+		drawIcon(icon, WG.antistatic.getUIFromWorldV(position), rotation, sideScaled, color);
+	}
+	
+	public void drawIcon(Texture icon, Vector2 position, float rotation, float sideScaled, Color color){
+		sr.flush();
+		
+		batch.begin();
+		batch.setColor(color);
+		batch.draw(icon, position.x - sideScaled / 2f, position.y - sideScaled / 2f, 
+		           sideScaled / 2f, sideScaled / 2f,
+		           sideScaled, sideScaled, 
+		           1, 1,
+		           rotation, 0, 0,
+		           icon.getWidth(), icon.getHeight(), 
+		           false, false);
+		batch.end();
+		
+		Gdx.gl.glEnable(GL20.GL_BLEND); //TODO: Investigate and fix the crutch
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 	}
 

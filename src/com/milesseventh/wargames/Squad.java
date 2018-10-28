@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 
-public class Squad {
+public class Squad implements Piemenuable {
 	public Faction owner;
 	public ArrayList<Unit> units;
 	
@@ -57,5 +57,23 @@ public class Squad {
 	
 	private float getSpeed(){
 		return 7f; //TODO: Stub
+	}
+	
+	//Piemenuable interface implementation
+	@Override
+	public Vector2 getWorldPosition() {
+		return position;
+	}
+
+	@Override
+	public int getActionsAmount() {
+		// TODO Auto-generated method stub
+		return 1;
+	}
+
+	@Override
+	public Callback getAction() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

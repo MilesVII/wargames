@@ -10,8 +10,9 @@ import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
+import com.milesseventh.wargames.WG.Dialog;
 
-public class Structure{
+public class Structure implements Piemenuable{
 	//////////////////////////////////////////////////////////////////
 	//STRUCTURE TYPES:
 	//> City: WLUCIT;           Universal sructure. Medium defence
@@ -32,6 +33,7 @@ public class Structure{
 	//Units: Fighters, Transporters, Builders: Metal
 	//Missiles,Ammo: Metal, fuel
 	//Science data: Metal, Ammo
+	
 	public class CraftingOrder {
 		public CraftingOrder(Craftable ncraftable, int namount, float[] nt, ArrayList<SpecialTechnology> nst, float nworkamount){
 			craftable = ncraftable;
@@ -108,7 +110,7 @@ public class Structure{
 	private float range;//Radius of circle that will be added to faction's territory
 	public Faction ownerFaction;//ID of faction that owns this unit
 	private float vitality, maxVitality;
-	private Vector2 position;
+	public Vector2 position;
 	public StructureType type;
 	private Queue<CraftingOrder> manufactoryQueue = new Queue<CraftingOrder>();
 	public ArrayList<Unit> yard = new ArrayList<Unit>();
@@ -136,14 +138,6 @@ public class Structure{
 		type = st;
 		range = DEFAULT_RANGES[type.ordinal()];//Assign firing range and condition on the assumption of type
 		vitality = maxVitality = DEFAULT_MAXCDS[type.ordinal()];
-	}
-	
-	public static int getPieMenuActionsNumber(StructureType st){
-		return PIEMENU_ACTCNT[st.ordinal()];
-	}
-	
-	public int getPieMenuActionsNumber(){
-		return PIEMENU_ACTCNT[type.ordinal()];
 	}
 	
 	public float getResource(Resource _resType){
@@ -211,6 +205,14 @@ public class Structure{
 		return range;
 	}
 	
+	public void update(){
+		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f && WG.antistatic.currentDialog == Dialog.NONE){
+			if (Gdx.input.justTouched()){
+				WG.antistatic.setFocusOnPiemenuable(this);
+			}
+		}
+	}
+	
 	public void hit(float _damage){
 		vitality -= _damage;
 		if (vitality <= 0){
@@ -225,7 +227,24 @@ public class Structure{
 		}
 	}
 	
-	public Vector2 getPosition(){
+	public static int getPieMenuActionsNumber(StructureType st){
+		return PIEMENU_ACTCNT[st.ordinal()];
+	}
+	
+	//Piemenuable interface implementation
+	@Override
+	public Vector2 getWorldPosition() {
 		return position;
+	}
+
+	@Override
+	public int getActionsAmount() {
+		return PIEMENU_ACTCNT[type.ordinal()];
+	}
+
+	@Override
+	public Callback getAction() {
+		// TODO Auto-generated method stub
+		return PIEMENU_ACTIONS_CITY;
 	}
 }

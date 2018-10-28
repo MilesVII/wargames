@@ -16,19 +16,6 @@ public class Utils {
 	public static boolean isTouchJustReleased = false;
 	public static final int NULL_ID = -1;
 	
-	public static void drawIcon(Batch batch, Texture icon, Vector2 position, float rotation, float sideScaled, Color color){
-		//batch.begin();
-		batch.setColor(color);
-		batch.draw(icon, position.x - sideScaled / 2f, position.y - sideScaled / 2f, 
-		           sideScaled / 2f, sideScaled / 2f,
-		           sideScaled, sideScaled, 
-		           1, 1,
-		           rotation, 0, 0,
-		           icon.getWidth(), icon.getHeight(), 
-		           false, false);
-		//batch.end();
-	}
-	
 	public static float projectX(float _len, float _dir){
 		return (float)(_len * Math.cos(Math.toRadians(_dir)));
 	}
@@ -72,15 +59,15 @@ public class Utils {
 	private static final int DBG_MIN_CITY_DST = 17, DBG_MAX_CITY_DST = 48;
 	public static boolean debugCheckPlaceForNewStructure(HeightMap _map, Faction _f, Vector2 _place){
 		Structure _nrst = debugFindNearestStructure(_f.structs, _place);
-		return (_nrst.getPosition().dst2(_place) < DBG_MAX_CITY_DST * DBG_MAX_CITY_DST &&
-			_nrst.getPosition().dst2(_place) > DBG_MIN_CITY_DST * DBG_MIN_CITY_DST &&
+		return (_nrst.position.dst2(_place) < DBG_MAX_CITY_DST * DBG_MAX_CITY_DST &&
+			_nrst.position.dst2(_place) > DBG_MIN_CITY_DST * DBG_MIN_CITY_DST &&
 			(_map.getMeta(_place.x, _place.y) < DBG_MAX_CITY_H && _map.getMeta(_place.x, _place.y) > DBG_MIN_CITY_H));
 	}
 	
 	private static Structure debugFindNearestStructure(ArrayList<Structure> cities, Vector2 _from){
 		Structure minStructure = cities.get(0);
 		for (Structure _to: cities)
-			if (_from.dst2(_to.getPosition()) < _from.dst2(minStructure.getPosition()))
+			if (_from.dst2(_to.position) < _from.dst2(minStructure.position))
 				minStructure = _to;
 		return minStructure;
 	}
