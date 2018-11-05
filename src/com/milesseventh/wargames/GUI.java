@@ -73,11 +73,15 @@ public class GUI {
 			initialized = true;
 		}
 		
+		/**
+		 * update method is getting amount of possible states as parameter
+		 * states = maxvalue + 1
+		 */
 		public void update(int states){
-			if (offset > states)
-				offset = states;
 			if (states > 0)
 				--states;
+			if (offset > states)
+				offset = states;
 			
 			if (isVertical){
 				thumbSize.x = size.x;
@@ -271,7 +275,12 @@ public class GUI {
 	private final Callback GUI_ACT_CRAFTING_ORDER = new Callback(){
 		@Override
 		public void action(int id) {
-			//focusedStruct.
+			//scrollbars[22].offset; <-- amount of ordered units
+			if (scrollbars[22].offset == 0)
+				return;
+			focusedStruct.orderCrafting(craftingDialogState.selected, scrollbars[22].offset, 
+			                            craftingDialogState.selectedT, craftingDialogState.selectedST);
+			scrollbars[22].offset = 0;
 		}
 	};
 	
@@ -365,7 +374,7 @@ public class GUI {
 			if (!scrollbars[22].initialized)
 				scrollbars[22].init(aligner.position, aligner.size, false, Scrollbar.GUI_SB_DEFAULT_THUMB);
 			scrollbars[22].update(Heartstrings.getMaxCraftingOrder(craftingDialogState.selected, focusedStruct, 
-			                                                       craftingDialogState.selectedT, craftingDialogState.selectedST));
+			                                                       craftingDialogState.selectedT, craftingDialogState.selectedST) + 1);
 			scrollbars[22].render(GUI_COLORS_SCROLLBAR_COLORS);
 			aligner.next(1, 0);
 			caption(aligner.position, "Order: " + scrollbars[22].offset, font, true, null);
