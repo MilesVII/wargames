@@ -76,7 +76,7 @@ public class Faction {
 	public void update(float dt){
 		doInvestigation(dt);
 		for (Structure s : structs)
-			s.craft(dt);
+			s.update(dt);
 		for (Squad s : squads)
 			s.update(dt);
 	}

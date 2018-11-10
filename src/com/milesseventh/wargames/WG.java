@@ -19,13 +19,13 @@ import com.badlogic.gdx.math.Vector2;
 
 public class WG extends ApplicationAdapter {
 	public enum Dialog{
-		NONE, LABORATORY, CRAFTING, LOADING
+		NONE, STATS, LABORATORY, CRAFTING, LOADING
 	}
 	
 	//Game constants
 	public static/* final*/ int WORLD_W = 700, WORLD_H = 700,
 	                        UI_W, UI_H;
-	public static final int UI_H_DEF, UI_W_DEF = UI_H_DEF = 700;
+	//public static final int UI_H_DEF, UI_W_DEF = UI_H_DEF = 700;
 	public static final int MARCHING_STEP = 4;
 	public static final float CAM_ZOOM_MIN = .2f,
 	                          CAM_ZOOM_STEP = .02f;
@@ -93,14 +93,17 @@ public class WG extends ApplicationAdapter {
 	public void resize(int width, int height) {
 		if (width >= height){
 			camera = new OrthographicCamera(WORLD_W, WORLD_W * height / (float)width);
-			UI_W = UI_W_DEF;
-			UI_H = Math.round(UI_W * height / (float)width);
+			//UI_W = UI_W_DEF;
+			//UI_H = Math.round(UI_W * height / (float)width);
 		} else {
 			camera = new OrthographicCamera(WORLD_H * width / (float)height, WORLD_H);
-			UI_H = UI_H_DEF;
-			UI_W = Math.round(UI_H * width / (float)height);
+			//UI_H = UI_H_DEF;
+			//UI_W = Math.round(UI_H * width / (float)height);
 		}
-		System.out.println(""+UI_W+"x"+UI_H);
+		//System.out.println(""+UI_W+"x"+UI_H);
+		UI_W = width;
+		UI_H = height;
+		//System.out.println(""+UI_W+"x"+UI_H);
 		
 		camera.translate(WORLD_W / 2.0f, WORLD_H / 2.0f);
 		//viewport = new FitViewport(WORLD_W, VP_H, camera);
@@ -195,7 +198,7 @@ public class WG extends ApplicationAdapter {
 				gui.drawWorldIconOnHUD(Faction.SQUAD_ICON, marchordie.position, marchordie.lostDirection, ICON_SIDE, GUI.GUI_COLOR_SEVENTH);
 			}
 		if (focusedObject != null)
-			gui.piemenu(getUIFromWorldV(focusedObject.getWorldPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, focusedObject.getActionsAmount(), Structure.PIEMENU_ACTIONS_CITY);
+			gui.piemenu(getUIFromWorldV(focusedObject.getWorldPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, focusedObject.getActionsAmount(), Structure.PIEMENU_ACTIONS_CITY, Structure.PIEMENU_CAPTIONS_CITY);
 		if (currentDialog != Dialog.NONE)
 			gui.dialog(currentDialog);
 		hsr.end();
@@ -211,6 +214,16 @@ public class WG extends ApplicationAdapter {
 			if (Utils.debugCheckPlaceForNewStructure(map, Faction.debug, _np)){
 				Faction.debug.registerStructure(new Structure(_np, Structure.StructureType.CITY, Faction.debug));
 			}
+		}
+		if (Gdx.input.isKeyPressed(Input.Keys.SPACE)){
+//			System.out.println("_____YARD____");
+//			for (Unit u: Faction.debug.capital.yard){
+//				System.out.println("TYPE:" + u.type.toString());
+//				for (float f: u.techLevel)
+//					System.out.println("TECH: " + f);
+//				System.out.println("_____________");
+//			}
+			System.out.println(Faction.debug.capital.yard.size());
 		}
 		
 		//Debug mechanics

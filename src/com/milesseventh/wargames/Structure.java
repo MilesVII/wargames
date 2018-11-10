@@ -35,7 +35,15 @@ public class Structure implements Piemenuable{
 	//Science data: Metal, Ammo
 	
 	public class CraftingOrder {
-		public CraftingOrder(Craftable ncraftable, int namount, float[] nt, ArrayList<SpecialTechnology> nst, float nworkamount){
+		Craftable craftable;
+		int amount, unitsDone = 0;
+		float[] tech;
+		ArrayList<SpecialTechnology> st;
+		float workamount, done, wholeWA;
+		Structure manufacturer;
+		
+		public CraftingOrder(Structure nmanufacturer, Craftable ncraftable, int namount, float[] nt, ArrayList<SpecialTechnology> nst, float nworkamount){
+			manufacturer = nmanufacturer;
 			craftable = ncraftable;
 			amount = namount;
 			tech = nt;
@@ -49,7 +57,7 @@ public class Structure implements Piemenuable{
 			done = Math.min(workamount * (float)amount, done);
 			
 			int nunitsDone = (int)Math.ceil(done / workamount);
-			for (int i = unitsDone; i <= unitsDone; ++i){
+			for (int i = 0; i < nunitsDone; ++i){
 				switch(craftable){
 				case AMMO:
 					addResource(Resource.AMMO, 1);
@@ -61,26 +69,21 @@ public class Structure implements Piemenuable{
 					++Faction.debug.scienceDataAvailable;
 					break;
 				case TRANSPORTER:
-					yard.add(new Unit(null, Unit.Type.TRANSPORTER));
+					yard.add(new Unit(manufacturer, Unit.Type.TRANSPORTER, tech));
 					break;
 				case BUILDER:
-					yard.add(new Unit(null, Unit.Type.BUILDER));
+					yard.add(new Unit(manufacturer, Unit.Type.BUILDER, tech));
 					break;
 				case FIGHTER:
-					yard.add(new Unit(null, Unit.Type.FIGHTER));
+					yard.add(new Unit(manufacturer, Unit.Type.FIGHTER, tech));
 					break;
 				}
 			}
-			unitsDone = nunitsDone;
+			unitsDone += nunitsDone;
 			
 			return unitsDone >= amount;
 		}
 		
-		Craftable craftable;
-		int amount, unitsDone = 0;
-		float[] tech;
-		ArrayList<SpecialTechnology> st;
-		float workamount, done, wholeWA;
 	}
 	
 	private float[] resources = {0, 0, 0, 0, 0, 0};
@@ -120,18 +123,26 @@ public class Structure implements Piemenuable{
 		public void action(int source) {
 			switch(source){
 			case(0):
-				System.out.println("Cancelled");
+				//System.out.println("Cancelled");
 				break;
 			case(1):
-				WG.antistatic.currentDialog = WG.Dialog.LABORATORY;
+				WG.antistatic.currentDialog = WG.Dialog.STATS;
 				break;
 			case(2):
+				WG.antistatic.currentDialog = WG.Dialog.LABORATORY;
+				break;
+			case(3):
 				WG.antistatic.currentDialog = WG.Dialog.CRAFTING;
+				break;
+			case(4):
+				//DEPLOY
 				break;
 			}
 		}
 	};
-	
+	public static final String[] PIEMENU_CAPTIONS_CITY = {
+		"Cancel", "Stats", "R&D", "Craft", "Deploy"
+	};
 	public Structure(Vector2 npos, StructureType st, Faction owner) {
 		position = npos.cpy();
 		ownerFaction = owner;
@@ -182,10 +193,11 @@ public class Structure implements Piemenuable{
 		for (SpecialTechnology i : st)
 			wa += Heartstrings.get(i, Heartstrings.stProperties).workamountMarkup;
 		
-		manufactoryQueue.addLast(new CraftingOrder(c, amount, t, st, wa));
+		manufactoryQueue.addLast(new CraftingOrder(this, c, amount, t, st, wa));
 	}
 	
-	public void craft(float dt){
+	public void update(float dt){
+		//Craft
 		if (manufactoryQueue.size > 0)
 			if(manufactoryQueue.first().craft(dt))
 				manufactoryQueue.removeFirst();

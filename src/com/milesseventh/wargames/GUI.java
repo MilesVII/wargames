@@ -296,6 +296,15 @@ public class GUI {
 		String dialogTitle = "NO TITLE SET";
 		//Drawing layout
 		switch (dialog){
+		case STATS:
+			dialogTitle = "Statistics and data";
+			aligner.setSize(.4f, .9f);
+			aligner.next(0, 1);
+			caption(aligner.position, "Faction" + focusedStruct.ownerFaction.name, font, false, null);
+			aligner.next(1, 0);
+			aligner.setSize(.6f, 1f);
+			caption(aligner.position, "TYPE: " + focusedStruct.type.name(), font, false, null);
+			break;
 		case LABORATORY:
 			dialogTitle = "Laboratory";
 			aligner.setSize(.4f, 1f);
@@ -424,7 +433,8 @@ public class GUI {
 	}
 	
 	private static final int PIE_MENU_SECTOR_MARGIN = 5;
-	public void piemenu(Vector2 position, float radius, Color unselected, Color selected, int size, Callback action){
+	public void piemenu(Vector2 position, float radius, Color unselected, Color selected, int size, Callback action, String[] captions){
+		String caption = null;
 		for(int i = 0; i < size; i++){
 			float angle = Utils.getAngle(context.getUIFromWorldV(Utils.WorldMousePosition).sub(position));
 			if (angle > i * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN &&
@@ -432,9 +442,13 @@ public class GUI {
 				if (Utils.isTouchJustReleased)
 					action.action(i);
 				sr.setColor(selected);
+				if (captions != null)
+					caption = captions[i];
 			} else
 				sr.setColor(unselected);
 			Utils.drawTrueArc(sr, position, 20, i * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN, (360 / (float) size) - 2 * PIE_MENU_SECTOR_MARGIN, 70);
+			if (caption != null)
+				prompt(GUI_COLORS_DEFAULT[1], caption, Utils.getVector(position).add(0, radius * -2f), true);
 		}
 	}
 	
@@ -456,9 +470,21 @@ public class GUI {
 	}
 	
 	private void prompt(Color back, String prompt){
+//		glay.setText(subFont, prompt);
+//		sr.setColor(back);
+//		Vector2 corner = Utils.getVector(Utils.UIMousePosition.x + 5, Math.max(Utils.UIMousePosition.y - glay.height - 5, 0));
+//		sr.rect(corner.x, corner.y, glay.width + PROMPT_BORDER * 2, glay.height + PROMPT_BORDER * 2);
+//		caption(corner.add(PROMPT_BORDER, PROMPT_BORDER), prompt, subFont, true, null);
+		prompt(back, prompt, Utils.UIMousePosition, false);
+	}
+	
+	private void prompt(Color back, String prompt, Vector2 position, boolean centered){
 		glay.setText(subFont, prompt);
 		sr.setColor(back);
-		Vector2 corner = Utils.getVector(Utils.UIMousePosition.x + 5, Math.max(Utils.UIMousePosition.y - glay.height - 5, 0));
+		Vector2 corner = centered ? 
+		                 	Utils.getVector(position.x - glay.width / 2f - PROMPT_BORDER, 
+		                 	                Math.max(position.y - glay.height / 2f - PROMPT_BORDER, 0)):
+		                 	Utils.getVector(position.x + 5, Math.max(position.y - glay.height - 5, 0));
 		sr.rect(corner.x, corner.y, glay.width + PROMPT_BORDER * 2, glay.height + PROMPT_BORDER * 2);
 		caption(corner.add(PROMPT_BORDER, PROMPT_BORDER), prompt, subFont, true, null);
 	}

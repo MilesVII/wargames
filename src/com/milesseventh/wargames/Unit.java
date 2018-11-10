@@ -8,15 +8,16 @@ public class Unit {
 	
 	public static final float MAX_CARGO = 1;
 	
-	public float[] techLevel = {0, 0, 0, 0, 0, 0};
+	public float[] techLevel;
 	public Faction owner;
 	public Type type;
 	public Structure manufacturer;
 	
-	public Unit(Structure _manufacturer, Type _type) {
-		manufacturer = _manufacturer;
+	public Unit(Structure nmanufacturer, Type ntype, float[] ntech) {
+		manufacturer = nmanufacturer;
 		owner = manufacturer.ownerFaction;
-		type = _type;
+		type = ntype;
+		techLevel = ntech;
 	}
 	
 	public void setTechLevel(Technology t, float in){
