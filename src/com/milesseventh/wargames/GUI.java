@@ -185,7 +185,7 @@ public class GUI {
 	public static final Callback GUI_ACT_BUTTON_CLOSE = new Callback(){
 		@Override
 		public void action(int source) {
-			WG.antistatic.currentDialog = WG.Dialog.NONE;
+			WG.antistatic.uistate = WG.UIState.FREE;
 		}
 	};
 	
@@ -285,6 +285,7 @@ public class GUI {
 	};
 	
 	public Structure focusedStruct;
+	public Squad focusedSquad;
 	private Aligner aligner;
 	private CraftingDialog craftingDialogState = new CraftingDialog();
 	public void dialog(WG.Dialog dialog){
@@ -439,8 +440,10 @@ public class GUI {
 			float angle = Utils.getAngle(context.getUIFromWorldV(Utils.WorldMousePosition).sub(position));
 			if (angle > i * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN &&
 			    angle < (i + 1) * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN){
-				if (Utils.isTouchJustReleased)
+				if (Utils.isTouchJustReleased){
+					WG.antistatic.uistate = WG.UIState.FREE;
 					action.action(i);
+				}
 				sr.setColor(selected);
 				if (captions != null)
 					caption = captions[i];

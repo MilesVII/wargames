@@ -18,8 +18,11 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
 public class WG extends ApplicationAdapter {
-	public enum Dialog{
-		NONE, STATS, LABORATORY, CRAFTING, LOADING
+	public enum Dialog {
+		NONE, STATS, LABORATORY, CRAFTING, DEPLOYMENT
+	}
+	public enum UIState {
+		FREE, DIALOG, PIEMENU, MOVINGORDER
 	}
 	
 	//Game constants
@@ -34,8 +37,8 @@ public class WG extends ApplicationAdapter {
 	public static final float STRUCTURE_ICON_RADIUS = 12,
 	                          PIE_MENU_RADIUS = 22,
 	                          DIALOG_HEIGHT = .8f,
-	                          ICON_SIDE = 42,
-	                          STRUCTURE_DEPLOYMENT_SPREAD_MIN = 32;
+	                          ICON_SIDE = 32,
+	                          STRUCTURE_DEPLOYMENT_SPREAD_MIN = 16;
 	
 	//Variables
 	public static WG antistatic;
@@ -49,9 +52,10 @@ public class WG extends ApplicationAdapter {
 	private BitmapFont font;
 	private boolean preTouched = false;
 	public GUI gui;
+	public UIState uistate = UIState.FREE;
 	private Piemenuable focusedObject = null; // no pie menu opened if null, can be 
-	public Dialog currentDialog = Dialog.NONE;
-	public float prevPitchGestureDistance = -1;
+	private Dialog currentDialog = Dialog.NONE;
+	private float prevPitchGestureDistance = -1;
 	
 	private float loadingProgress = 0;
 	private long dtholder;//(float)(System.currentTimeMillis()
@@ -198,13 +202,13 @@ public class WG extends ApplicationAdapter {
 			for (Squad marchordie: Faction.debug.squads){
 				gui.drawWorldIconOnHUD(Faction.SQUAD_ICON, marchordie.position, marchordie.lostDirection, ICON_SIDE, GUI.GUI_COLOR_SEVENTH);
 			}
-		if (focusedObject != null)
-			gui.piemenu(getUIFromWorldV(focusedObject.getWorldPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, focusedObject.getActionsAmount(), Structure.PIEMENU_ACTIONS_CITY, Structure.PIEMENU_CAPTIONS_CITY);
-		if (currentDialog != Dialog.NONE)
+		if (uistate == UIState.PIEMENU && focusedObject != null)
+			gui.piemenu(getUIFromWorldV(focusedObject.getWorldPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, focusedObject.getActionsAmount(), focusedObject.getAction(), focusedObject.getCaptions());
+		if (uistate == UIState.DIALOG && currentDialog != Dialog.NONE)
 			gui.dialog(currentDialog);
 		hsr.end();
-		if (!Gdx.input.isTouched())
-			focusedObject = null;
+		/*if (!Gdx.input.isTouched())
+			focusedObject = null;*/
 	}
 	
 	private void update(){
@@ -216,16 +220,6 @@ public class WG extends ApplicationAdapter {
 				Faction.debug.registerStructure(new Structure(_np, Structure.StructureType.CITY, Faction.debug));
 			}
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.SPACE)){
-//			System.out.println("_____YARD____");
-//			for (Unit u: Faction.debug.capital.yard){
-//				System.out.println("TYPE:" + u.type.toString());
-//				for (float f: u.techLevel)
-//					System.out.println("TECH: " + f);
-//				System.out.println("_____________");
-//			}
-			System.out.println(Faction.debug.capital.yard.size());
-		}
 		
 		//Debug mechanics
 		//sm.getCurrent().doInvestigation();
@@ -233,37 +227,44 @@ public class WG extends ApplicationAdapter {
 		//...
 		Faction.debug.update(Gdx.graphics.getDeltaTime());
 		Faction.debug.doInvestigation(Gdx.graphics.getDeltaTime() * 1000f);
-		for (Structure s: Faction.debug.structs)
-			s.update();
 		
-		//Camera debug controls
-		if (Gdx.input.isKeyPressed(Input.Keys.A)){
-			//Zoom in
-			camera.zoom = Math.max(camera.zoom -= CAM_ZOOM_STEP, CAM_ZOOM_MIN);
+		//Mechanics
+		if (uistate == UIState.MOVINGORDER && Utils.isTouchJustReleased){
+			Vector2[] path = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, 6, ((Squad)focusedObject).position, Utils.WorldMousePosition));
+			if (path != null)
+				((Squad)focusedObject).setPath(path);
+			uistate = UIState.FREE;
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.Z)){
-			//Zoom out
-			camera.zoom = Math.min(camera.zoom += CAM_ZOOM_STEP, 1);
-		}
-		if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
-			camera.translate(-2, 0);
-		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT))
-			camera.translate(2, 0);
-		if (Gdx.input.isKeyPressed(Input.Keys.DOWN))
-			camera.translate(0, -2);
-		if (Gdx.input.isKeyPressed(Input.Keys.UP))
-			camera.translate(0, 2);
 		
-		//Camera gestures
+		//Camera controls
 		if (!Gdx.input.isTouched())
 			prevPitchGestureDistance = -1;
-		if (focusedObject == null && currentDialog == Dialog.NONE && Gdx.input.isTouched(0)){
-			if (Gdx.input.isTouched(1)){
-				if (prevPitchGestureDistance != -1)
-					camera.zoom += (prevPitchGestureDistance - Utils.getVector(getUIMouseX(1), getUIMouseY(1)).sub(getUIMouseX(0), getUIMouseY(0)).len()) / (float)UI_W;
-				prevPitchGestureDistance = Utils.getVector(getUIMouseX(1), getUIMouseY(1)).sub(getUIMouseX(0), getUIMouseY(0)).len();
-			} else
-				camera.translate(Gdx.input.getDeltaX() * -1 * camera.zoom, Gdx.input.getDeltaY() * camera.zoom);
+		if (uistate == UIState.FREE){
+			if (Gdx.input.isKeyPressed(Input.Keys.A)){
+				//Zoom in
+				camera.zoom = Math.max(camera.zoom -= CAM_ZOOM_STEP, CAM_ZOOM_MIN);
+			}
+			if (Gdx.input.isKeyPressed(Input.Keys.Z)){
+				//Zoom out
+				camera.zoom = Math.min(camera.zoom += CAM_ZOOM_STEP, 1);
+			}
+			if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
+				camera.translate(-2, 0);
+			if (Gdx.input.isKeyPressed(Input.Keys.RIGHT))
+				camera.translate(2, 0);
+			if (Gdx.input.isKeyPressed(Input.Keys.DOWN))
+				camera.translate(0, -2);
+			if (Gdx.input.isKeyPressed(Input.Keys.UP))
+				camera.translate(0, 2);
+			
+			//Camera gestures
+			if (Gdx.input.isTouched(0))
+				if (Gdx.input.isTouched(1)){
+					if (prevPitchGestureDistance != -1)
+						camera.zoom += (prevPitchGestureDistance - Utils.getVector(getUIMouseX(1), getUIMouseY(1)).sub(getUIMouseX(0), getUIMouseY(0)).len()) / (float)UI_W;
+					prevPitchGestureDistance = Utils.getVector(getUIMouseX(1), getUIMouseY(1)).sub(getUIMouseX(0), getUIMouseY(0)).len();
+				} else
+					camera.translate(Gdx.input.getDeltaX() * -1 * camera.zoom, Gdx.input.getDeltaY() * camera.zoom);
 		}
 		//Camera parameters clamping
 		camera.zoom = MathUtils.clamp(camera.zoom, CAM_ZOOM_MIN, 1);
@@ -280,9 +281,16 @@ public class WG extends ApplicationAdapter {
 		_noiseT.dispose();
 	}
 
+	public void openDialog(Dialog dialog){
+		uistate = UIState.DIALOG;
+		currentDialog = dialog;
+	}
+	
 	public void setFocusOnPiemenuable(Piemenuable pma){
-		if (focusedObject == null)
-			focusedObject = pma;
+		if (uistate != UIState.FREE)
+			return;
+		focusedObject = pma;
+		uistate = UIState.PIEMENU;
 		if (pma.getClass().isAssignableFrom(Structure.class))
 			gui.focusedStruct = (Structure) pma;
 	}

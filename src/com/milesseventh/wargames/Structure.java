@@ -127,13 +127,13 @@ public class Structure implements Piemenuable{
 				//System.out.println("Cancelled");
 				break;
 			case(1):
-				WG.antistatic.currentDialog = WG.Dialog.STATS;
+				WG.antistatic.openDialog(WG.Dialog.STATS);
 				break;
 			case(2):
-				WG.antistatic.currentDialog = WG.Dialog.LABORATORY;
+				WG.antistatic.openDialog(WG.Dialog.LABORATORY);
 				break;
 			case(3):
-				WG.antistatic.currentDialog = WG.Dialog.CRAFTING;
+				WG.antistatic.openDialog(WG.Dialog.CRAFTING);
 				break;
 			case(4):
 				WG.antistatic.gui.focusedStruct.deploySquad(WG.antistatic.gui.focusedStruct.yard);
@@ -202,6 +202,12 @@ public class Structure implements Piemenuable{
 		if (manufactoryQueue.size > 0)
 			if(manufactoryQueue.first().craft(dt))
 				manufactoryQueue.removeFirst();
+		
+		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f){
+			if (Gdx.input.justTouched()){
+				WG.antistatic.setFocusOnPiemenuable(this);
+			}
+		}
 	}
 	
 	public Texture getIcon(){
@@ -216,14 +222,6 @@ public class Structure implements Piemenuable{
 	
 	public float getRange(){
 		return range;
-	}
-	
-	public void update(){
-		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f && WG.antistatic.currentDialog == Dialog.NONE){
-			if (Gdx.input.justTouched()){
-				WG.antistatic.setFocusOnPiemenuable(this);
-			}
-		}
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -289,5 +287,10 @@ public class Structure implements Piemenuable{
 	public Callback getAction() {
 		// TODO Auto-generated method stub
 		return PIEMENU_ACTIONS_CITY;
+	}
+
+	@Override
+	public String[] getCaptions() {
+		return PIEMENU_CAPTIONS_CITY;
 	}
 }
