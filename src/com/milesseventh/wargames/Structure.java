@@ -1,10 +1,10 @@
 package com.milesseventh.wargames;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
@@ -117,6 +117,7 @@ public class Structure implements Piemenuable{
 	public StructureType type;
 	private Queue<CraftingOrder> manufactoryQueue = new Queue<CraftingOrder>();
 	public ArrayList<Unit> yard = new ArrayList<Unit>();
+	private Random r = new Random();
 	
 	public static final Callback PIEMENU_ACTIONS_CITY = new Callback(){
 		@Override
@@ -135,7 +136,7 @@ public class Structure implements Piemenuable{
 				WG.antistatic.currentDialog = WG.Dialog.CRAFTING;
 				break;
 			case(4):
-				//DEPLOY
+				WG.antistatic.gui.focusedStruct.deploySquad(WG.antistatic.gui.focusedStruct.yard);
 				break;
 			}
 		}
@@ -223,6 +224,36 @@ public class Structure implements Piemenuable{
 				WG.antistatic.setFocusOnPiemenuable(this);
 			}
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void deploySquad(ArrayList<Unit> units){
+		if (units.isEmpty() || yard.isEmpty())
+			return;
+		
+		Vector2 sposition;
+		int j = 0;
+		do {
+			sposition = Utils.getVector(position).add(Utils.getVector(WG.STRUCTURE_DEPLOYMENT_SPREAD_MIN, 0).rotate(r.nextInt(360)));
+			if (++j > 360){
+				System.out.println("E: Nowhere to deploy");
+				return;
+			}
+		} while (!WG.antistatic.map.isWalkable(sposition.x, sposition.y));
+		Squad s = new Squad(ownerFaction, sposition);
+		
+		for (Unit u: (ArrayList<Unit>)units.clone()){
+			assert(!yard.contains(u));
+			if (yard.contains(u)){
+				yard.remove(u);
+				s.units.add(u);
+			} else {
+				System.out.println("E: Malformed deployment list");
+			}
+		}
+		
+		if (!s.units.isEmpty())
+			ownerFaction.squads.add(s);
 	}
 	
 	public void hit(float _damage){

@@ -34,12 +34,13 @@ public class WG extends ApplicationAdapter {
 	public static final float STRUCTURE_ICON_RADIUS = 12,
 	                          PIE_MENU_RADIUS = 22,
 	                          DIALOG_HEIGHT = .8f,
-	                          ICON_SIDE = 42;
+	                          ICON_SIDE = 42,
+	                          STRUCTURE_DEPLOYMENT_SPREAD_MIN = 32;
 	
 	//Variables
 	public static WG antistatic;
 	private Batch batch, GUIBatch;
-	HeightMap map;
+	public HeightMap map;
 	public OrthographicCamera camera;
 	private ShapeRenderer sr, hsr; 
 	private Marching landOutline, unitsOutline;

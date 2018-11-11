@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 
 public class Squad implements Piemenuable {
 	public Faction owner;
-	public ArrayList<Unit> units;
+	public ArrayList<Unit> units = new ArrayList<Unit>();
 	
 	private Vector2[] path = null;
 	private int pathSegment = -1;
