@@ -498,7 +498,7 @@ public class GUI {
 			color = colors[1];
 			if (Gdx.input.isTouched())
 				color = colors[2];
-			if (Utils.isTouchJustReleased)
+			if (Utils.confirmedTouchOccured)//(Utils.isTouchJustReleased)
 				callback.action(id);
 		}
 		sr.setColor(color);
@@ -536,19 +536,20 @@ public class GUI {
 		caption(Utils.getVector(position).add(glay.width / -2f, glay.height / -2f), 
 		        caption, subFont, true, null);
 	}
-	
 	public void path(Vector2[] path, float width, Color color){
+		path(path, width, color, 0);
+	}
+	public void path(Vector2[] path, float width, Color color, int offset){
 		if (path.length <= 2)
 			return;
 
-		Vector2 currentNode, nextNode = WG.antistatic.getUIFromWorldV(path[0]);
-		for (int i = 0; i < path.length - 1; ++i){
+		Vector2 currentNode, nextNode = WG.antistatic.getUIFromWorldV(path[offset]);
+		for (int i = offset; i < path.length - 1; ++i){
 			currentNode = nextNode;
 			nextNode = WG.antistatic.getUIFromWorldV(path[i + 1]);
 			sr.setColor(color);
-			sr.rectLine(currentNode.x, currentNode.y, nextNode.x, nextNode.y, width);
-			sr.setColor(Color.BLACK);
-			sr.circle(nextNode.x, nextNode.y, 2);
+			//sr.rectLine(currentNode.x, currentNode.y, nextNode.x, nextNode.y, width);
+			sr.circle(currentNode.x, currentNode.y, 2);
 		}
 	}
 	

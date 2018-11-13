@@ -30,7 +30,7 @@ public class Faction {
 	};
 	public static final Texture SQUAD_ICON = new Texture(Gdx.files.internal("squad.png"));
 	
-	public float[] tech         = {1, 1, 1, 1, 1, 1};//{0, 0, 0, 0, 0, 0};
+	public float[] tech         = {0, 0, 0, 0, 0, 0};
 	public int[] techPriorities = {0, 0, 0, 0, 0, 0};
 	public static final int MAXPRIOR = 100;
 	public ArrayList<Craftable> availableCraftables = new ArrayList<Craftable>();

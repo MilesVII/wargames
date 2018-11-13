@@ -33,11 +33,10 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 		SimplexNoise noise = new SimplexNoise(r.nextInt());
 		for (int x = 0; x < getWidth(); x++)
 			for (int y = 0; y < getHeight(); y++){
-				noiseValue = getNoise(noise, x, y, 16f) * 3;
-				noiseValue += getNoise(noise, x, y, 32f);
-				//noiseValue += getNoise(noise, x, y, 64f);
-				noiseValue /= 4f;
-				noiseValue = bulge(x, y, noiseValue);
+				noiseValue = getNoise(noise, x, y, 16f) * 2f;
+				noiseValue += getNoise(noise, x, y, 64f) * .4f;
+				noiseValue /= 2.27f;
+				noiseValue += wall(x, y, noiseValue);
 				noiseValue = MathUtils.clamp(noiseValue, 0, 1);
 				noiseValue = fade(noiseValue);
 				noiseValue = MathUtils.clamp(noiseValue, 0, 1);
@@ -72,14 +71,20 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 	private float fade(float t){
 		return t * t * t * (t * (t * 6 - 15) + 10); 
 	}
-	
+
 	private float bulge(int x, int y, float _n){
 		return (_n + center.dst(x, y) / center.len()) / 1.6f;
 	}
 	
+	private final static float WALL_WIDTH = 32f;
+	private float wall(int x, int y, float _n){
+		float wallHeight = (1 - MathUtils.clamp(Math.min(Math.min(x, getWidth() - x), Math.min(y, getHeight() - y)) / WALL_WIDTH, 0, 1));
+		return wallHeight > .95f ? 1 : wallHeight * .8f;
+	}
+	
 	@Override
 	public float getMeta(float nx, float ny){
-		return noiseMap[Math.round(nx)][Math.round(ny)];
+		return noiseMap[(int)Math.floor(nx)][(int)Math.floor(ny)];
 	}
 
 	@Override

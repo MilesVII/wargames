@@ -149,12 +149,15 @@ public class WG extends ApplicationAdapter {
 	@Override
 	public void render () {
 		//Cursor coordinates update
-		Utils.UIMousePosition.x = getUIMouseX();
-		Utils.UIMousePosition.y = getUIMouseY();
-		Utils.WorldMousePosition.x = getWorldMouseX();
-		Utils.WorldMousePosition.y = getWorldMouseY();
+		Utils.UIMousePosition.x = getUIMouseX(); Utils.UIMousePosition.y = getUIMouseY();
+		Utils.WorldMousePosition.x = getWorldMouseX(); Utils.WorldMousePosition.y = getWorldMouseY();
 		Utils.isTouchJustReleased = (preTouched != Gdx.input.isTouched() && !Gdx.input.justTouched());//&& pretouched == true instead?
 		preTouched = Gdx.input.isTouched();
+		if (Gdx.input.justTouched()){
+			Utils.UIEnteringTapPosition.x = getUIMouseX(); Utils.UIEnteringTapPosition.y = getUIMouseY();
+		}
+		Utils.confirmedTouchOccured = Utils.isTouchJustReleased && Utils.UIEnteringTapPosition.dst(getUIMouseX(), getUIMouseY()) < Utils.confirmationTapDistance;
+		System.out.println(Utils.UIEnteringTapPosition.dst(getUIMouseX(), getUIMouseY()));
 		
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -177,7 +180,6 @@ public class WG extends ApplicationAdapter {
 			loadingProgress = -2;
 		};
 		
-		update();
 		
 		camera.update();
 		sr.setProjectionMatrix(camera.combined);
@@ -190,9 +192,20 @@ public class WG extends ApplicationAdapter {
 		batch.end();
 
 		hsr.begin(ShapeType.Filled);
+		if (uistate == UIState.MOVINGORDER){
+			Vector2[] path = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, 6, ((Squad)focusedObject).position, Utils.WorldMousePosition));
+			if (path != null)
+				gui.path(path, 2, Color.BLACK);
+			if (Utils.confirmedTouchOccured){
+				if (path != null)
+					((Squad)focusedObject).setPath(path);
+				uistate = UIState.FREE;
+			}
+		}
 		
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+		update();
 		
 		//for (Faction runhorsey: sm.getFractions())
 			for (Structure neverlookback: Faction.debug.structs){
@@ -228,18 +241,10 @@ public class WG extends ApplicationAdapter {
 		Faction.debug.update(Gdx.graphics.getDeltaTime());
 		Faction.debug.doInvestigation(Gdx.graphics.getDeltaTime() * 1000f);
 		
-		//Mechanics
-		if (uistate == UIState.MOVINGORDER && Utils.isTouchJustReleased){
-			Vector2[] path = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, 6, ((Squad)focusedObject).position, Utils.WorldMousePosition));
-			if (path != null)
-				((Squad)focusedObject).setPath(path);
-			uistate = UIState.FREE;
-		}
-		
 		//Camera controls
 		if (!Gdx.input.isTouched())
 			prevPitchGestureDistance = -1;
-		if (uistate == UIState.FREE){
+		if (uistate == UIState.FREE || uistate == UIState.MOVINGORDER){
 			if (Gdx.input.isKeyPressed(Input.Keys.A)){
 				//Zoom in
 				camera.zoom = Math.max(camera.zoom -= CAM_ZOOM_STEP, CAM_ZOOM_MIN);

@@ -3,6 +3,7 @@ package com.milesseventh.wargames;
 import java.util.ArrayList;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.milesseventh.wargames.WG.Dialog;
@@ -28,6 +29,8 @@ public class Squad implements Piemenuable {
 	
 	public void update(float dt){
 		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f){
+			if (pathSegment != -1)
+				WG.antistatic.gui.path(path, 2, Color.BLACK, pathSegment);
 			if (Gdx.input.justTouched()){
 				WG.antistatic.setFocusOnPiemenuable(this);
 			}
