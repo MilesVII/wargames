@@ -2,6 +2,7 @@ package com.milesseventh.wargames;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Colors;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -146,6 +147,11 @@ public class GUI {
 			new Color(0, 0, 0, 1),        //hovered
 			new Color(.5f, .5f, .5f, .8f) //pressed
 		};
+	public static final Color[] GUI_COLORS_TRANSPARENT = {
+			new Color(0, 0, 0, 0),     //superdefault
+			new Color(0, 0, 0, 1),        //hovered
+			new Color(.5f, .5f, .5f, .8f) //pressed
+		};
 	public static final Color[] GUI_COLORS_SEVENTH_PROGRESS = {
 			new Color(218f/255f, 64f/255f, 0, 1f),     //done
 			new Color(0, 0, 0, 0),                     //left
@@ -158,6 +164,14 @@ public class GUI {
 			new Color(218f/255f, 64f/255f, 0, .84f), //done
 			new Color(0, 0, 0, 0),                   //left
 		};
+	public static final Color[] GUI_COLORS_PROGRESS_REPAIRING_TRANSPARENT = {
+			new Color(0, 1f, 0, 1f),  //done
+			new Color(0,  0, 0,  0),  //left
+		};
+	public static final Color[] GUI_COLORS_PROGRESS_DAMAGED_TRANSPARENT = {
+			new Color(1f, 0, 0, 1f), //done
+			new Color( 0, 0, 0,  0), //left
+		};
 	
 	public static final Color GUI_COLOR_SEVENTH = new Color(218/255f, 64/255f, 0f, 1f);
 	public static final Color GUI_COLOR_TEXT_DEF = new Color(1f, 1f, 1f, 1f);
@@ -169,7 +183,7 @@ public class GUI {
 	};
 	
 	private static GlyphLayout glay = new GlyphLayout();
-	//Engaged 0; 1-6; 11; 12; 13-18; 22; 23;
+	//Engaged 0; 1-6; 11; 12; 13-18; 22; 23; 24
 	//Reserved 7-10; 19-21;
 	private Scrollbar[] scrollbars = new Scrollbar[32];
 	
@@ -182,9 +196,10 @@ public class GUI {
 	               DIM_BUTTON_CNT_CLOSE;
 	
 	public static float DIM_VSCROLLBAR_WIDTH = .2f;
-	public static final Callback GUI_ACT_BUTTON_CLOSE = new Callback(){
+	public final Callback GUI_ACT_BUTTON_CLOSE = new Callback(){
 		@Override
 		public void action(int source) {
+			yardDialogState.selectedUnitsForDeployment.clear();
 			WG.antistatic.uistate = WG.UIState.FREE;
 		}
 	};
@@ -272,6 +287,33 @@ public class GUI {
 		}
 	};
 	
+	private final ListEntryCallback GUI_LEC_DEPLOYMENT = new ListEntryCallback() {
+		@Override
+		public void action(int id) {
+			Unit u = focusedStruct.yard.get(id);
+			yardDialogState.lastChecked = u;
+			
+			if (yardDialogState.selectedUnitsForDeployment.contains(u)){
+				yardDialogState.selectedUnitsForDeployment.remove(u);
+			} else {
+				if (!u.isRepairing)
+					yardDialogState.selectedUnitsForDeployment.add(u);
+			}
+		}
+		
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			Unit u = focusedStruct.yard.get(id);
+			if (u.isRepairing || u.isDamaged())
+				progressbar(position, size, u.condition / u.getMaxCondition(), 
+				            u.isRepairing ? GUI.GUI_COLORS_PROGRESS_REPAIRING_TRANSPARENT :
+				                            GUI.GUI_COLORS_PROGRESS_DAMAGED_TRANSPARENT);
+			advancedButton(position, size, id, this, color, 
+			               u.name, null/*TODO: prompt*/, 
+			               yardDialogState.selectedUnitsForDeployment.contains(u) ? GUI.GUI_COLOR_SEVENTH : null);
+		}
+	};
+	
 	private final Callback GUI_ACT_CRAFTING_ORDER = new Callback(){
 		@Override
 		public void action(int id) {
@@ -284,10 +326,36 @@ public class GUI {
 		}
 	};
 	
+	private final Callback GUI_ACT_DEPLOY = new Callback(){
+		@Override
+		public void action(int id) {
+			WG.antistatic.gui.focusedStruct.deploySquad(yardDialogState.selectedUnitsForDeployment);
+			yardDialogState.selectedUnitsForDeployment.clear();
+		}
+	};
+	
+	private final Callback GUI_ACT_REPAIR = new Callback(){
+		@Override
+		public void action(int id) {
+			Unit u = yardDialogState.lastChecked;
+			if (u.isRepairing)
+				focusedStruct.cancelRepairing(u);
+			else 
+				if (yardDialogState.lastChecked.canBeRepaired(focusedStruct)){
+					if (yardDialogState.selectedUnitsForDeployment.contains(u))
+						yardDialogState.selectedUnitsForDeployment.remove(u);
+					focusedStruct.orderRepairing(u);
+				} else {
+					System.out.println("Not enough resources");
+				}
+		}
+	};
+	
 	public Structure focusedStruct;
 	public Squad focusedSquad;
 	private Aligner aligner;
 	private CraftingDialog craftingDialogState = new CraftingDialog();
+	private YardDialog yardDialogState = new YardDialog();
 	public void dialog(WG.Dialog dialog){
 		//Drawing dialog backround and close button
 		sr.setColor(GUI_COLORS_DEFAULT[0]);
@@ -370,7 +438,7 @@ public class GUI {
 					scrollbars[13 + i].update(Scrollbar.GUI_SB_DEFAULT_STATES);
 					scrollbars[13 + i].render(GUI_COLORS_SCROLLBAR_COLORS);
 					craftingDialogState.selectedT[i] = scrollbars[13 + i].offset / (float) Scrollbar.GUI_SB_DEFAULT_MAXVAL * 
-					                                    Faction.debug.techLevel(Technology.values()[i]);
+					                                   Faction.debug.techLevel(Technology.values()[i]);
 					
 					aligner.next(1, 0);
 					caption(aligner.position, 
@@ -393,6 +461,79 @@ public class GUI {
 			aligner.next(0, -1);
 			advancedButton(aligner.position, aligner.size, -1, GUI_ACT_CRAFTING_ORDER, 
 			               GUI_COLORS_DEFAULT, "Place an order", null, null);
+			break;
+		case YARD:
+			dialogTitle = "Vehicle Yard";
+			aligner.setSize(.4f, .1f);
+			advancedButton(aligner.position, aligner.size, -1, GUI_ACT_DEPLOY, 
+			               GUI_COLORS_DEFAULT, "Deploy", null, null);
+			aligner.next(0, 1);
+			aligner.setSize(.4f, .8f);
+			list(aligner.position, aligner.size, focusedStruct.yard.size(), GUI_LEC_DEPLOYMENT, GUI_COLORS_DEFAULT, 24);
+			aligner.next(0, 1);
+			aligner.setSize(.4f, .1f);
+			caption(aligner.position, "Yard", font, true, null);
+			aligner.reset();
+			aligner.setSize(.4f, 1);
+			aligner.next(1, 1);
+			
+			if (yardDialogState.lastChecked != null){
+				Unit u = yardDialogState.lastChecked;
+				
+				aligner.setSize(.6f, .1f);
+				aligner.next(0, -1);
+				caption(aligner.position, u.type.name() + " " + u.name, 
+				        font, true, null);
+				aligner.next(0, -1);
+				if (u.isDamaged()){
+					caption(aligner.position, 
+					        "Condition: " + (u.isRepairing ? "Repairing" : "Damaged"), 
+					        font, true, null);
+					aligner.next(0, -1);
+					advancedButton(aligner.position, aligner.size, -1, GUI_ACT_REPAIR, 
+					               GUI_COLORS_DEFAULT, u.isRepairing ? "Cancel Repair" : "Repair", null, 
+					               yardDialogState.lastChecked.canBeRepaired(focusedStruct) ? null : Color.DARK_GRAY);
+					
+				}
+			}
+			/*
+			 * tech level with sb
+			 * condition
+			 * upgrade | repair
+			 * form squad
+			for (int i = 0; i < Heartstrings.Technology.values().length; ++i){
+				if (!scrollbars[13 + i].initialized)
+					scrollbars[13 + i].init(Utils.getVector(aligner.position), 
+					                       Utils.getVector(aligner.size), 
+					                       false, Scrollbar.GUI_SB_DEFAULT_THUMB);
+				if (Utils.arrayContains(Heartstrings.get(craftingDialogState.selected, Heartstrings.craftableProperties).availableTechs, 
+				                        Heartstrings.Technology.values()[i])){
+					scrollbars[13 + i].update(Scrollbar.GUI_SB_DEFAULT_STATES);
+					scrollbars[13 + i].render(GUI_COLORS_SCROLLBAR_COLORS);
+					craftingDialogState.selectedT[i] = scrollbars[13 + i].offset / (float) Scrollbar.GUI_SB_DEFAULT_MAXVAL * 
+					                                    Faction.debug.techLevel(Technology.values()[i]);
+					
+					aligner.next(1, 0);
+					caption(aligner.position, 
+					        String.format(Heartstrings.tProperties[i].shortTitle + " %6.2f%%", 
+					                      craftingDialogState.selectedT[i] * 100f), 
+					        font, true, null);
+					aligner.next(-1, -1);
+				}
+			}
+			aligner.next(0, -1);
+			if (!scrollbars[22].initialized)
+				scrollbars[22].init(aligner.position, aligner.size, false, Scrollbar.GUI_SB_DEFAULT_THUMB);
+			scrollbars[22].update(Heartstrings.getMaxCraftingOrder(craftingDialogState.selected, focusedStruct, 
+			                                                       craftingDialogState.selectedT, craftingDialogState.selectedST) + 1);
+			scrollbars[22].render(GUI_COLORS_SCROLLBAR_COLORS);
+			aligner.next(1, 0);
+			caption(aligner.position, "Order: " + scrollbars[22].offset, font, true, null);
+			aligner.next(-1, 0);
+			aligner.setSize(.6f, .12f);
+			aligner.next(0, -1);
+			advancedButton(aligner.position, aligner.size, -1, GUI_ACT_CRAFTING_ORDER, 
+			               GUI_COLORS_DEFAULT, "Place an order", null, null);*/
 			break;
 		case NONE:
 			break;

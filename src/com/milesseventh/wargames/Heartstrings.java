@@ -36,7 +36,7 @@ public class Heartstrings {
 	//title, shortTitle, maxMarkup
 	public static TechnologyProperties[] tProperties = {
 		new TechnologyProperties("Firepower",   "FPW", 70f),
-		new TechnologyProperties("Armor",       "ARM", 40f),
+		new TechnologyProperties("Armor",       "ARM", 80f),
 		new TechnologyProperties("Accuracy",    "ACC", 50f),
 		new TechnologyProperties("Speed",       "SPD", 30f),
 		new TechnologyProperties("Cargo load",  "CRG", 40f),
@@ -352,6 +352,29 @@ public class Heartstrings {
 		return minOrder;
 	}
 
+	public static float getRepairCostInMetal(Unit u, Structure operator){
+		if (!u.isDamaged())
+			return 0;
+		
+		return ((u.getMaxCondition() - u.condition) / u.getMaxCondition()) *      //Damage fraction
+		        getCraftingCost(fromUnitType(u.type), 
+		        	Structure.Resource.METAL, operator, 
+		        	u.techLevel, u.st, 1) *                                       //Cost of bulding of a new analog unit
+		        (1.2f - operator.ownerFaction.techLevel(Technology.ENGINEERING)); //Faction engineering capabilities
+	}
+	
+	public static Craftable fromUnitType(Unit.Type type){
+		switch (type){
+		case BUILDER:
+			return Craftable.BUILDER;
+		case FIGHTER:
+			return Craftable.FIGHTER;
+		case TRANSPORTER:
+			return Craftable.TRANSPORTER;
+		}
+		return Craftable.FIGHTER;
+	}
+	
 	public static <E extends Enum<E>, S> S get(E e, S[] s){
 		try{
 			return s[e.ordinal()];

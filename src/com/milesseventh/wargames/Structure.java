@@ -69,13 +69,13 @@ public class Structure implements Piemenuable{
 					++Faction.debug.scienceDataAvailable;
 					break;
 				case TRANSPORTER:
-					yard.add(new Unit(manufacturer, Unit.Type.TRANSPORTER, tech));
+					yard.add(new Unit(manufacturer, Unit.Type.TRANSPORTER, tech, st));
 					break;
 				case BUILDER:
-					yard.add(new Unit(manufacturer, Unit.Type.BUILDER, tech));
+					yard.add(new Unit(manufacturer, Unit.Type.BUILDER, tech, st));
 					break;
 				case FIGHTER:
-					yard.add(new Unit(manufacturer, Unit.Type.FIGHTER, tech));
+					yard.add(new Unit(manufacturer, Unit.Type.FIGHTER, tech, st));
 					break;
 				}
 			}
@@ -97,13 +97,13 @@ public class Structure implements Piemenuable{
 	//                                             C   M   ML   R  AMD   MB
 	public static final float[] DEFAULT_RANGES = { 22,  0, 17, 12,  27,  42};//Firing range
 	public static final float[] DEFAULT_MAXCDS = {420, 70, 42, 70, 120, 200};//Max vitality
+	public static final float[] DEFAULT_REPAIR = {  8,  0,  0,  0,   0,   2};//Repair speed
 	public static final int[]   PIEMENU_ACTCNT = {  5,  0,  0,  0,   0,   0};//Pie menu actions amount
 
-	
-	
 	public static final float MAX_CRAFTING_RESOURCE_DISCOUNT = .32f;
 	public static final float MAX_CRAFTING_SPEED_DISCOUNT = .7f;
 	public static final float DEFAULT_CRAFTING_PER_MS = .7f;
+	public static final float REPAIR_SPEED_TECH_BONUS = 16f;
 	public static final int EVOLUTION_PER_UNIT_CRAFTED = 2;
 	public static final int EVOLUTION_PER_SQUAD_DESTROYED = 3;
 	public static final int EVOLUTION_PER_RESOURCE_CONVERTED = 2;
@@ -116,6 +116,7 @@ public class Structure implements Piemenuable{
 	public Vector2 position;
 	public StructureType type;
 	private Queue<CraftingOrder> manufactoryQueue = new Queue<CraftingOrder>();
+	private Queue<Unit> repairingQueue = new Queue<Unit>();
 	public ArrayList<Unit> yard = new ArrayList<Unit>();
 	private Random r = new Random();
 	
@@ -136,7 +137,7 @@ public class Structure implements Piemenuable{
 				WG.antistatic.openDialog(WG.Dialog.CRAFTING);
 				break;
 			case(4):
-				WG.antistatic.gui.focusedStruct.deploySquad(WG.antistatic.gui.focusedStruct.yard);
+				WG.antistatic.openDialog(WG.Dialog.YARD);
 				break;
 			}
 		}
@@ -168,12 +169,6 @@ public class Structure implements Piemenuable{
 			return false;
 	}
 	
-	public float transfer(Resource _resType, float trans){
-		float transaction = Math.min(trans, resources[_resType.ordinal()]);
-		resources[_resType.ordinal()] -= transaction;
-		return transaction;
-	}
-	
 	public float getCraftingBonus(){
 		return MAX_CRAFTING_RESOURCE_DISCOUNT * (evolution / (float)MAX_EVOLUTION);
 	}
@@ -197,12 +192,54 @@ public class Structure implements Piemenuable{
 		manufactoryQueue.addLast(new CraftingOrder(this, c, amount, t, st, wa));
 	}
 	
+	public void repairUnits(float dt){
+		if (repairingQueue.size > 0){
+			float repair = DEFAULT_REPAIR[type.ordinal()] + 
+			               REPAIR_SPEED_TECH_BONUS * ownerFaction.techLevel(Technology.ENGINEERING);
+			repair *= dt;
+			do {
+				Unit u = repairingQueue.first();
+				if (u.getMaxCondition() - u.condition > repair){
+					u.condition += repair;
+					repair = -1;
+				} else {
+					repair -= u.getMaxCondition() - u.condition;
+					u.condition = u.getMaxCondition();
+					u.isRepairing = false;
+					repairingQueue.removeFirst();
+				}
+			} while(repair > 0 && repairingQueue.size > 0);
+		}
+	}
+	
+	public void orderRepairing(Unit u){
+		assert(yard.contains(u));
+		assert(u.canBeRepaired(this));
+		assert(this.tryRemoveResource(Resource.METAL, Heartstrings.getRepairCostInMetal(u, this)));
+		repairingQueue.addLast(u);
+		u.isRepairing = true;
+	}
+	
+	private static final float REPAIR_CANCELATION_REFUND = .8f;
+	public void cancelRepairing(Unit u){
+		assert(yard.contains(u));
+		assert(u.isRepairing);
+		u.isRepairing = false;
+		repairingQueue.removeValue(u, false);
+		
+		addResource(Resource.METAL, Heartstrings.getRepairCostInMetal(u, this) * REPAIR_CANCELATION_REFUND); //refund
+	}
+	
 	public void update(float dt){
 		//Craft
 		if (manufactoryQueue.size > 0)
 			if(manufactoryQueue.first().craft(dt))
 				manufactoryQueue.removeFirst();
 		
+		//Repairing
+		repairUnits(dt);
+		
+		//Interaction
 		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f){
 			if (Gdx.input.justTouched()){
 				WG.antistatic.setFocusOnPiemenuable(this);

@@ -19,7 +19,7 @@ import com.badlogic.gdx.math.Vector2;
 
 public class WG extends ApplicationAdapter {
 	public enum Dialog {
-		NONE, STATS, LABORATORY, CRAFTING, DEPLOYMENT
+		NONE, STATS, LABORATORY, CRAFTING, YARD, TRADE
 	}
 	public enum UIState {
 		FREE, DIALOG, PIEMENU, MOVINGORDER
@@ -72,7 +72,7 @@ public class WG extends ApplicationAdapter {
 		FreeTypeFontGenerator ftfg = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Prototype.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = 22;
-		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.,-<>!?/%\"'";
+		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.,-<>!?/%\"'&";
 		
 		font = ftfg.generateFont(parameter);
 		font.setColor(Color.WHITE);
@@ -157,7 +157,7 @@ public class WG extends ApplicationAdapter {
 			Utils.UIEnteringTapPosition.x = getUIMouseX(); Utils.UIEnteringTapPosition.y = getUIMouseY();
 		}
 		Utils.confirmedTouchOccured = Utils.isTouchJustReleased && Utils.UIEnteringTapPosition.dst(getUIMouseX(), getUIMouseY()) < Utils.confirmationTapDistance;
-		System.out.println(Utils.UIEnteringTapPosition.dst(getUIMouseX(), getUIMouseY()));
+		//System.out.println(Utils.UIEnteringTapPosition.dst(getUIMouseX(), getUIMouseY()));
 		
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
