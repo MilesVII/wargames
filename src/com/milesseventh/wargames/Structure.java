@@ -85,7 +85,15 @@ public class Structure implements Piemenuable{
 		}
 		
 	}
-	
+	public class UpgradeOrder {
+		public Unit unit;
+		public float time;
+		
+		public UpgradeOrder(Unit nu, float nt){
+			unit = nu;
+			time = nt;
+		}
+	}
 	private float[] resources = {0, 0, 0, 0, 0, 0};
 	public enum Resource {
 		ORE, METAL, AMMO, MISSILE, OIL, FUEL
@@ -117,6 +125,8 @@ public class Structure implements Piemenuable{
 	public StructureType type;
 	private Queue<CraftingOrder> manufactoryQueue = new Queue<CraftingOrder>();
 	private Queue<Unit> repairingQueue = new Queue<Unit>();
+	private Queue<UpgradeOrder> upgradingQueue = new Queue<UpgradeOrder>();
+	
 	public ArrayList<Unit> yard = new ArrayList<Unit>();
 	private Random r = new Random();
 	
@@ -230,6 +240,14 @@ public class Structure implements Piemenuable{
 		addResource(Resource.METAL, Heartstrings.getRepairCostInMetal(u, this) * REPAIR_CANCELATION_REFUND); //refund
 	}
 	
+	public void orderUprgade(Unit u, float[] t, ArrayList<SpecialTechnology> stToAdd){
+		assert(yard.contains(u));
+		u.st.addAll(stToAdd);
+		u.techLevel = t;
+		yard.remove(u);
+		upgradingQueue.addLast(new UpgradeOrder(u, 0));
+	}
+	
 	public void update(float dt){
 		//Craft
 		if (manufactoryQueue.size > 0)
@@ -238,6 +256,14 @@ public class Structure implements Piemenuable{
 		
 		//Repairing
 		repairUnits(dt);
+		
+		//Upgrading
+		if (upgradingQueue.size > 0)
+			if (upgradingQueue.first().time < dt){
+				yard.add(upgradingQueue.first().unit);
+				upgradingQueue.removeFirst();
+			} else
+				upgradingQueue.first().time -= dt;
 		
 		//Interaction
 		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f){

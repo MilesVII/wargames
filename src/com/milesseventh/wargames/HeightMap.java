@@ -69,12 +69,12 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 	}
 	
 	private float fade(float t){
-		return t * t * t * (t * (t * 6 - 15) + 10); 
+		return t * t * t * (t * (t * 6 - 15) + 10) - (t > .5f ? 0 : .017f); 
 	}
 
-	private float bulge(int x, int y, float _n){
+	/*private float bulge(int x, int y, float _n){
 		return (_n + center.dst(x, y) / center.len()) / 1.6f;
-	}
+	}*/
 	
 	private final static float WALL_WIDTH = 32f;
 	private float wall(int x, int y, float _n){

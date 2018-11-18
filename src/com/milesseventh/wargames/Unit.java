@@ -32,17 +32,17 @@ public class Unit {
 		type = ntype;
 		techLevel = ntech;
 		st = nst;
-		condition = getMaxCondition() * .3f;
+		condition = getMaxCondition();
 		
 		switch (type){
 		case FIGHTER:
-			name = "MFU-" + r.nextInt(128) + " \"" + FIGHTER_NAMES[r.nextInt(FIGHTER_NAMES.length)] + "\"";
+			name = "MFV-" + r.nextInt(128) + " \"" + FIGHTER_NAMES[r.nextInt(FIGHTER_NAMES.length)] + "\"";
 			break;
 		case TRANSPORTER:
 			name = "MT-" + r.nextInt(256);
 			break;
 		case BUILDER:
-			name = "MCU #" + r.nextInt(32);
+			name = "MCV #" + r.nextInt(32);
 			break;
 		}
 	}

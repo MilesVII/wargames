@@ -362,6 +362,12 @@ public class Heartstrings {
 		        	u.techLevel, u.st, 1) *                                       //Cost of bulding of a new analog unit
 		        (1.2f - operator.ownerFaction.techLevel(Technology.ENGINEERING)); //Faction engineering capabilities
 	}
+
+	public static float getUpgradeCostInMetal(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd, Structure operator){
+		//getCraftingCost(fromUnitType(u.type), Structure.Resource.METAL, operator, u.techLevel, u.st, 1)
+		//getCraftingCost(fromUnitType(u.type), Structure.Resource.METAL, operator, nt, u.st, 1)
+		return Float.POSITIVE_INFINITY; //TODO
+	}
 	
 	public static Craftable fromUnitType(Unit.Type type){
 		switch (type){
