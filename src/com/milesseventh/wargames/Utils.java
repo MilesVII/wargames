@@ -26,6 +26,10 @@ public class Utils {
 		return (float)(_len * Math.sin(Math.toRadians(_dir)));
 	}
 
+	public static float remap(float x, float froml, float fromh, float tol, float toh){
+		return (x - froml) / (fromh - froml) * (toh - tol) + tol;
+	}
+	
 	public static boolean isBuildingAllowed(HeightMap _map, float _x, float _y){
 		return _map.getMeta(_x, _y) < _map.getMetaThreshold();
 	}

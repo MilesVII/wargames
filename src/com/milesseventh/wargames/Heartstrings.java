@@ -2,6 +2,8 @@ package com.milesseventh.wargames;
 
 import java.util.ArrayList;
 
+import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
+import com.milesseventh.wargames.Heartstrings.Technology;
 import com.milesseventh.wargames.SpecialTechnologyProperties.TechnologyRequirement;
 import com.milesseventh.wargames.Structure.Resource;
 
@@ -322,51 +324,78 @@ public class Heartstrings {
 				cost += stProperties[i].priceMarkupInMetal;
 		return cost;
 	}
-	
-	public static float getCraftingCost(Craftable unit, Resource res, Structure manufacturer, float[] t, ArrayList<SpecialTechnology> st, int count){
+	public static float getCraftingCost(CraftingDialog cd, Resource r, int count){
+		return getCraftingCost(cd.selected, r, cd.selectedT, cd.selectedST, count);
+	}
+	public static float getCraftingCost(Craftable unit, Resource res, float[] t, ArrayList<SpecialTechnology> st, int count){
 		switch(unit){
 		case AMMO:
 		case SCIENCE:
-			return ((get(unit, craftableProperties).getSingleCraftingCost(res) + getTechMarkup(t, st)) * (1 - manufacturer.getCraftingBonus()) * count);
+			return ((get(unit, craftableProperties).getSingleCraftingCost(res) + getTechMarkup(t, st)) * count);
 		case BUILDER:
 		case FIGHTER:
 		case MISSILE:
 		case TRANSPORTER:
 			float cost = 0, craftingCost = get(unit, craftableProperties).getSingleCraftingCost(res) + getTechMarkup(t, st);
 			for (int i = 0; i < count; i++)
-				cost += craftingCost * (1 - manufacturer.getCraftingBonus(i));
+				cost += craftingCost;
 			return cost;
 		default:
 			return -1;
 		}
 	}
 	
+	public static float getWorkamount(Unit u, float[] t, ArrayList<SpecialTechnology> st){
+		return getWorkamount(fromUnitType(u.type), t, st);
+	}
+	public static float getWorkamount(Craftable c, float[] t, ArrayList<SpecialTechnology> st){
+		float wa = get(c, craftableProperties).workamount;
+		for (int i = 0; i < Technology.values().length; ++i)
+			wa += tProperties[i].maxMarkup * t[i];
+		for (SpecialTechnology i : st)
+			wa += get(i, stProperties).workamountMarkup;
+		
+		return wa;
+	}
+	
 	public static int getMaxCraftingOrder(Craftable unit, Structure manufacturer, float[] t, ArrayList<SpecialTechnology> st){
 		int order, minOrder = Integer.MAX_VALUE;//INF
 		for (Resource r: get(unit, craftableProperties).ingridients){
 			order = (int) Math.floor(manufacturer.getResource(r) / (get(unit, craftableProperties).getSingleCraftingCost(r) + getTechMarkup(t, st)));
-			while(getCraftingCost(unit, r, manufacturer, t ,st, order) <= manufacturer.getResource(r))
+			while(getCraftingCost(unit, r, t ,st, order) <= manufacturer.getResource(r))
 				order ++;
 			minOrder = Math.min(minOrder, order - 1);
 		}
 		return minOrder;
 	}
 
-	public static float getRepairCostInMetal(Unit u, Structure operator){
+	public static float getRepairCostInMetal(Unit u){
 		if (!u.isDamaged())
 			return 0;
 		
 		return ((u.getMaxCondition() - u.condition) / u.getMaxCondition()) *      //Damage fraction
 		        getCraftingCost(fromUnitType(u.type), 
-		        	Structure.Resource.METAL, operator, 
-		        	u.techLevel, u.st, 1) *                                       //Cost of bulding of a new analog unit
-		        (1.2f - operator.ownerFaction.techLevel(Technology.ENGINEERING)); //Faction engineering capabilities
+		        	Structure.Resource.METAL,
+		        	u.techLevel, u.st, 1);                                        //Cost of bulding of a new analog unit
 	}
 
-	public static float getUpgradeCostInMetal(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd, Structure operator){
-		//getCraftingCost(fromUnitType(u.type), Structure.Resource.METAL, operator, u.techLevel, u.st, 1)
-		//getCraftingCost(fromUnitType(u.type), Structure.Resource.METAL, operator, nt, u.st, 1)
-		return Float.POSITIVE_INFINITY; //TODO
+	private static final ArrayList<SpecialTechnology> imperialistscums = new ArrayList<SpecialTechnology>();
+	public static float getUpgradeCostInMetal(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
+		imperialistscums.clear();
+		imperialistscums.addAll(u.st);
+		imperialistscums.addAll(stToAdd);
+		
+		return 
+		getCraftingCost(fromUnitType(u.type), Structure.Resource.METAL, nt, imperialistscums, 1) -
+		getCraftingCost(fromUnitType(u.type), Structure.Resource.METAL, u.techLevel, u.st, 1);
+	}
+	
+	public static float getUpgradeWorkamount(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
+		imperialistscums.clear();
+		imperialistscums.addAll(u.st);
+		imperialistscums.addAll(stToAdd);
+
+		return getWorkamount(u, nt, imperialistscums) - getWorkamount(u, u.techLevel, u.st);
 	}
 	
 	public static Craftable fromUnitType(Unit.Type type){

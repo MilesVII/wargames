@@ -30,7 +30,7 @@ public class Faction {
 	};
 	public static final Texture SQUAD_ICON = new Texture(Gdx.files.internal("squad.png"));
 	
-	public float[] tech         = {0, 0, 0, 0, 0, 0};
+	public float[] tech         = {1, 1, 1, 1, 1, 1};//{0, 0, 0, 0, 0, 0};
 	public int[] techPriorities = {0, 0, 0, 0, 0, 0};
 	public static final int MAXPRIOR = 100;
 	public ArrayList<Craftable> availableCraftables = new ArrayList<Craftable>();
@@ -40,7 +40,6 @@ public class Faction {
 	
 	public static final float INVESTIGATION_PER_MS = .2f,
 	                          ST_INVESTIGATION_PER_MS = .2f;
-	public static final int INITIAL_CAPITAL_EVOLUTION = Math.round(Structure.MAX_EVOLUTION * .2f);
 	
 	public String name;
 	public Color factionColor;
@@ -59,12 +58,11 @@ public class Faction {
 		availableCraftables.add(Craftable.BUILDER);
 		capital = new Structure(_pos, Structure.StructureType.CITY, this);
 		structs.add(capital);
-		capital.addResource(Resource.ORE, 1000);
-		capital.addResource(Resource.METAL, 10000);
+		capital.addResource(Resource.ORE, 100);
+		capital.addResource(Resource.METAL, 1000);
 		capital.addResource(Resource.OIL, 2000);
 		capital.addResource(Resource.FUEL, 20000);
 		capital.addResource(Resource.AMMO, 10000);
-		capital.evolution = INITIAL_CAPITAL_EVOLUTION;
 		scienceDataAvailable = 70000;
 		
 		debug = this;

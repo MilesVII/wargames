@@ -17,7 +17,7 @@ public class YardDialog {
 		
 		if (selectedUnitsForDeployment.contains(u))
 			selectedUnitsForDeployment.remove(u);
-		else if (!u.isRepairing)
+		else if (u.state == Unit.State.PARKED)
 			selectedUnitsForDeployment.add(u);
 		
 		availableST = Heartstrings.get(Heartstrings.fromUnitType(u.type), Heartstrings.craftableProperties).availableSTs;

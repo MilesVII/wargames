@@ -53,7 +53,7 @@ public class Structure implements Piemenuable{
 		}
 		
 		public boolean craft(float dt){
-			done += DEFAULT_CRAFTING_PER_MS * dt * MAX_CRAFTING_SPEED_DISCOUNT * (evolution / (float)MAX_EVOLUTION);
+			done += manufacturer.getCraftSpeed() * dt;
 			done = Math.min(workamount * (float)amount, done);
 			
 			int nunitsDone = (int)Math.ceil(done / workamount);
@@ -103,29 +103,20 @@ public class Structure implements Piemenuable{
 		CITY, MINER, ML, RADAR, AMD, MB 
 	}
 	//                                             C   M   ML   R  AMD   MB
-	public static final float[] DEFAULT_RANGES = { 22,  0, 17, 12,  27,  42};//Firing range
-	public static final float[] DEFAULT_MAXCDS = {420, 70, 42, 70, 120, 200};//Max vitality
-	public static final float[] DEFAULT_REPAIR = {  8,  0,  0,  0,   0,   2};//Repair speed
+	private static final float[] DEFAULT_RANGES = { 22,  0, 17, 12,  27,  42};//Firing range
+	private static final float[] DEFAULT_MAXCDS = {420, 70, 42, 70, 120, 200};//Max vitality
+	private static final float[] DEFAULT_CRFTSP = {.8f,  0,  0,  0,   0, .2f};//Unit craft/repair/upgrade speed
 	public static final int[]   PIEMENU_ACTCNT = {  5,  0,  0,  0,   0,   0};//Pie menu actions amount
-
-	public static final float MAX_CRAFTING_RESOURCE_DISCOUNT = .32f;
-	public static final float MAX_CRAFTING_SPEED_DISCOUNT = .7f;
-	public static final float DEFAULT_CRAFTING_PER_MS = .7f;
-	public static final float REPAIR_SPEED_TECH_BONUS = 16f;
-	public static final int EVOLUTION_PER_UNIT_CRAFTED = 2;
-	public static final int EVOLUTION_PER_SQUAD_DESTROYED = 3;
-	public static final int EVOLUTION_PER_RESOURCE_CONVERTED = 2;
-	public static final int MAX_EVOLUTION = 70000;
-	public int evolution = 0; //Evolution factor defines the speed of crafting and firepower of defence systems
 	
 	private float range;//Radius of circle that will be added to faction's territory
 	public Faction ownerFaction;//ID of faction that owns this unit
 	private float vitality, maxVitality;
 	public Vector2 position;
 	public StructureType type;
+	
 	private Queue<CraftingOrder> manufactoryQueue = new Queue<CraftingOrder>();
 	private Queue<Unit> repairingQueue = new Queue<Unit>();
-	private Queue<UpgradeOrder> upgradingQueue = new Queue<UpgradeOrder>();
+	private Queue<Unit> upgradingQueue = new Queue<Unit>();
 	
 	public ArrayList<Unit> yard = new ArrayList<Unit>();
 	private Random r = new Random();
@@ -179,73 +170,62 @@ public class Structure implements Piemenuable{
 			return false;
 	}
 	
-	public float getCraftingBonus(){
-		return MAX_CRAFTING_RESOURCE_DISCOUNT * (evolution / (float)MAX_EVOLUTION);
-	}
-	
-	public float getCraftingBonus(int unitsCrafted){
-		return MAX_CRAFTING_RESOURCE_DISCOUNT * Math.min(1f, (evolution + EVOLUTION_PER_UNIT_CRAFTED * unitsCrafted) / (float)MAX_EVOLUTION);
-	}
-	
 	public void orderCrafting(Craftable c, int amount, float[] t, ArrayList<SpecialTechnology> st){
 		Resource[] ingridients = Heartstrings.get(c, Heartstrings.craftableProperties).ingridients;
 		for (int i = 0; i < ingridients.length; ++i)
-			if (!tryRemoveResource(ingridients[i], Heartstrings.getCraftingCost(c, ingridients[i], this, t, st, amount)))
+			if (!tryRemoveResource(ingridients[i], Heartstrings.getCraftingCost(c, ingridients[i], t, st, amount)))
 				System.err.println("Bankrupt occured while withdrawing crafting order price");
 		
-		float wa = Heartstrings.get(c, Heartstrings.craftableProperties).workamount;
-		for (int i = 0; i < Technology.values().length; ++i)
-			wa += Heartstrings.tProperties[i].maxMarkup * t[i];
-		for (SpecialTechnology i : st)
-			wa += Heartstrings.get(i, Heartstrings.stProperties).workamountMarkup;
+		float wa = Heartstrings.getWorkamount(c, t, st);
 		
 		manufactoryQueue.addLast(new CraftingOrder(this, c, amount, t, st, wa));
 	}
 	
 	public void repairUnits(float dt){
 		if (repairingQueue.size > 0){
-			float repair = DEFAULT_REPAIR[type.ordinal()] + 
-			               REPAIR_SPEED_TECH_BONUS * ownerFaction.techLevel(Technology.ENGINEERING);
-			repair *= dt;
+			float repairAvailable = getCraftSpeed() * dt;
+			
 			do {
 				Unit u = repairingQueue.first();
-				if (u.getMaxCondition() - u.condition > repair){
-					u.condition += repair;
-					repair = -1;
+				if (u.getMaxCondition() - u.condition > repairAvailable){
+					u.condition += repairAvailable;
+					repairAvailable = -1;
 				} else {
-					repair -= u.getMaxCondition() - u.condition;
+					repairAvailable -= u.getMaxCondition() - u.condition;
 					u.condition = u.getMaxCondition();
-					u.isRepairing = false;
+					u.state = Unit.State.PARKED;
 					repairingQueue.removeFirst();
 				}
-			} while(repair > 0 && repairingQueue.size > 0);
+			} while(repairAvailable > 0 && repairingQueue.size > 0);
 		}
 	}
 	
 	public void orderRepairing(Unit u){
 		assert(yard.contains(u));
 		assert(u.canBeRepaired(this));
-		assert(this.tryRemoveResource(Resource.METAL, Heartstrings.getRepairCostInMetal(u, this)));
+		assert(this.tryRemoveResource(Resource.METAL, Heartstrings.getRepairCostInMetal(u)));
 		repairingQueue.addLast(u);
-		u.isRepairing = true;
+		u.state = Unit.State.REPAIRING;
 	}
 	
 	private static final float REPAIR_CANCELATION_REFUND = .8f;
 	public void cancelRepairing(Unit u){
 		assert(yard.contains(u));
-		assert(u.isRepairing);
-		u.isRepairing = false;
+		assert(u.state == Unit.State.REPAIRING);
+		u.state = Unit.State.PARKED;
 		repairingQueue.removeValue(u, false);
 		
-		addResource(Resource.METAL, Heartstrings.getRepairCostInMetal(u, this) * REPAIR_CANCELATION_REFUND); //refund
+		addResource(Resource.METAL, Heartstrings.getRepairCostInMetal(u) * REPAIR_CANCELATION_REFUND); //refund
 	}
 	
-	public void orderUprgade(Unit u, float[] t, ArrayList<SpecialTechnology> stToAdd){
+	public void orderUprgade(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
 		assert(yard.contains(u));
+		assert(this.tryRemoveResource(Resource.METAL, Heartstrings.getUpgradeCostInMetal(u, nt, stToAdd)));
 		u.st.addAll(stToAdd);
-		u.techLevel = t;
-		yard.remove(u);
-		upgradingQueue.addLast(new UpgradeOrder(u, 0));
+		u.techLevel = nt;
+		u.upgradeTime = Heartstrings.getUpgradeWorkamount(u, nt, stToAdd) / getCraftSpeed();
+		u.state = Unit.State.UPGRADING;
+		upgradingQueue.addLast(u);
 	}
 	
 	public void update(float dt){
@@ -259,11 +239,11 @@ public class Structure implements Piemenuable{
 		
 		//Upgrading
 		if (upgradingQueue.size > 0)
-			if (upgradingQueue.first().time < dt){
-				yard.add(upgradingQueue.first().unit);
+			if (upgradingQueue.first().upgradeTime < dt){
+				upgradingQueue.first().state = Unit.State.PARKED;
 				upgradingQueue.removeFirst();
 			} else
-				upgradingQueue.first().time -= dt;
+				upgradingQueue.first().upgradeTime -= dt;
 		
 		//Interaction
 		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f){
@@ -285,6 +265,13 @@ public class Structure implements Piemenuable{
 	
 	public float getRange(){
 		return range;
+	}
+	
+	private static final float MIN_CRFTSP_K = .8f, MAX_CRFTSP_K = 1.7f;
+	public float getCraftSpeed(){
+		return Utils.remap(ownerFaction.techLevel(Technology.ENGINEERING), 0, 1, 
+		                   DEFAULT_CRFTSP[type.ordinal()] * MIN_CRFTSP_K, 
+		                   DEFAULT_CRFTSP[type.ordinal()] * MAX_CRFTSP_K) * 10f;
 	}
 	
 	@SuppressWarnings("unchecked")

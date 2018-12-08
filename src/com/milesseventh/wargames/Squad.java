@@ -28,12 +28,15 @@ public class Squad implements Piemenuable {
 	}
 	
 	public void update(float dt){
-		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f){
+		//Interaction
+		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f &&
+			WG.antistatic.uistate == WG.UIState.FREE){
 			if (pathSegment != -1)
 				WG.antistatic.gui.path(path, 2, Color.BLACK, pathSegment);
 			if (Gdx.input.justTouched()){
 				WG.antistatic.setFocusOnPiemenuable(this);
 			}
+			WG.antistatic.gui.prompt("Squad!");
 		}
 		
 		//Move column on path

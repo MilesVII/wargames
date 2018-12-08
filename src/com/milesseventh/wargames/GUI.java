@@ -297,10 +297,10 @@ public class GUI {
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
 			Unit u = focusedStruct.yard.get(id);
-			if (u.isRepairing || u.isDamaged())
+			if (u.state == Unit.State.REPAIRING || u.isDamaged())
 				progressbar(position, size, u.condition / u.getMaxCondition(), 
-				            u.isRepairing ? GUI.GUI_COLORS_PROGRESS_REPAIRING_TRANSPARENT :
-				                            GUI.GUI_COLORS_PROGRESS_DAMAGED_TRANSPARENT);
+				            u.state == Unit.State.REPAIRING ? GUI.GUI_COLORS_PROGRESS_REPAIRING_TRANSPARENT :
+				                                              GUI.GUI_COLORS_PROGRESS_DAMAGED_TRANSPARENT);
 			advancedButton(position, size, id, this, color, 
 			               u.name, null/*TODO: prompt*/, 
 			               yardDialogState.selectedUnitsForDeployment.contains(u) ? GUI.GUI_COLOR_SEVENTH : null);
@@ -311,7 +311,7 @@ public class GUI {
 		@Override
 		public void action(int id) {
 			SpecialTechnology st = yardDialogState.availableST[id];
-			if (!yardDialogState.lastChecked.st.contains(st))
+			//if (!yardDialogState.lastChecked.st.contains(st))
 				yardDialogState.checkST(st);
 		}
 		
@@ -319,10 +319,19 @@ public class GUI {
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
 			SpecialTechnologyProperties stp = Heartstrings.get(yardDialogState.availableST[id], Heartstrings.stProperties);
 			if (focusedStruct.ownerFaction.isInvestigated(yardDialogState.availableST[id]))
-				advancedButton(position, size, id, this, color, 
-				               stp.title, stp.description, 
-				               yardDialogState.stToAdd.contains(yardDialogState.availableST[id]) ? GUI.GUI_COLOR_SEVENTH : null);
+				if(!yardDialogState.lastChecked.st.contains(yardDialogState.availableST[id]))
+					advancedButton(position, size, id, this, color, 
+					               stp.title, stp.description, 
+					               yardDialogState.stToAdd.contains(yardDialogState.availableST[id]) ? GUI.GUI_COLOR_SEVENTH : null);
+				else
+					advancedButton(position, size, id, GUI_ACT_DUMMY, GUI_COLORS_TRANSPARENT, 
+					               stp.title, stp.description, GUI.GUI_COLOR_SEVENTH);
 		}
+	};
+
+	private final Callback GUI_ACT_DUMMY = new Callback(){
+		@Override
+		public void action(int id) {}
 	};
 	
 	private final Callback GUI_ACT_CRAFTING_ORDER = new Callback(){
@@ -341,7 +350,7 @@ public class GUI {
 		@Override
 		public void action(int id) {
 			WG.antistatic.gui.focusedStruct.deploySquad(yardDialogState.selectedUnitsForDeployment);
-			yardDialogState.selectedUnitsForDeployment.clear();
+			yardDialogState.reset();
 		}
 	};
 	
@@ -349,7 +358,7 @@ public class GUI {
 		@Override
 		public void action(int id) {
 			Unit u = yardDialogState.lastChecked;
-			if (u.isRepairing)
+			if (u.state == Unit.State.REPAIRING)
 				focusedStruct.cancelRepairing(u);
 			else 
 				if (yardDialogState.lastChecked.canBeRepaired(focusedStruct)){
@@ -362,17 +371,35 @@ public class GUI {
 		}
 	};
 	
+	/**Collects offsets from scrollbars assigned to YM's upgrade dialog and transforms them into techLevel array
+	 * 
+	 * @return
+	 */
+	private float[] guiYMHarvestUpgradeNTData(){
+		Unit u = yardDialogState.lastChecked;
+		float[] nt = {0, 0, 0, 0, 0, 0};
+		for (int i = 25; i <= 30; ++i)
+			nt[i - 25] = Utils.remap(scrollbars[i].offset, 0, guiYMgetTUpgradeSBStates(i - 25) - 1, 
+			                         u.techLevel[i - 25], focusedStruct.ownerFaction.tech[i - 25]);
+		return nt;
+	}
+	
+	/**Calculates amount of states for technology scrollbars' update() for YM's upgrade dialog
+	 * 
+	 * @return
+	 */
+	private int guiYMgetTUpgradeSBStates(int i){
+		return (int)Math.floor((focusedStruct.ownerFaction.tech[i] - yardDialogState.lastChecked.techLevel[i]) * 100f) + 1;
+	}
+	
 	private final Callback GUI_ACT_UPGRADE = new Callback(){
 		@Override
 		public void action(int id) {
 			Unit u = yardDialogState.lastChecked;
-			float[] nt = {0, 0, 0, 0, 0, 0};
-			for (int i = 25; i <= 30; ++i)
-				nt[i - 25] = scrollbars[i].offset + u.techLevel[i - 25];
-			//TODO: Upgrade ordering to structure
-			//Check if enough resources
-			//Send order to structure to upgrade
-			focusedStruct.orderUprgade(u, nt, yardDialogState.stToAdd);
+			float[] nt = guiYMHarvestUpgradeNTData();
+			
+			if (focusedStruct.getResource(Structure.Resource.METAL) >= Heartstrings.getUpgradeCostInMetal(u, nt, yardDialogState.stToAdd))
+				focusedStruct.orderUprgade(u, nt, yardDialogState.stToAdd);
 		}
 	};
 	
@@ -396,8 +423,12 @@ public class GUI {
 			aligner.next(0, 1);
 			caption(aligner.position, "Faction" + focusedStruct.ownerFaction.name, font, false, null);
 			aligner.next(1, 0);
-			aligner.setSize(.6f, 1f);
+			aligner.setSize(.6f, .1f);
 			caption(aligner.position, "TYPE: " + focusedStruct.type.name(), font, false, null);
+			for (Structure.Resource r: Structure.Resource.values()){
+				aligner.next(0, -1);
+				caption(aligner.position, r.name() + ": " + focusedStruct.getResource(r), font, false, null);
+			}
 			break;
 		case LABORATORY:
 			dialogTitle = "Laboratory";
@@ -483,6 +514,8 @@ public class GUI {
 			aligner.next(-1, 0);
 			aligner.setSize(.6f, .12f);
 			aligner.next(0, -1);
+			caption(aligner.position, "Price: " + Heartstrings.getCraftingCost(craftingDialogState, Structure.Resource.METAL, 1) + "M", font, true, null);
+			aligner.next(0, -1);
 			advancedButton(aligner.position, aligner.size, -1, GUI_ACT_CRAFTING_ORDER, 
 			               GUI_COLORS_DEFAULT, "Place an order", null, null);
 			break;
@@ -501,8 +534,8 @@ public class GUI {
 			aligner.setSize(.4f, 1);
 			aligner.next(1, 1);
 			
-			if (yardDialogState.lastChecked != null){
-				Unit u = yardDialogState.lastChecked;
+			Unit u = yardDialogState.lastChecked;
+			if (u != null){
 				
 				aligner.setSize(.6f, .1f);
 				aligner.next(0, -1);
@@ -511,50 +544,57 @@ public class GUI {
 				aligner.next(0, -1);
 				if (u.isDamaged()){
 					caption(aligner.position, 
-					        "Condition: " + (u.isRepairing ? "Repairing" : "Damaged"), 
+					        "Condition: " + (u.state == Unit.State.REPAIRING ? "Repairing" : "Damaged"), 
 					        font, true, null);
 					aligner.next(0, -1);
 					advancedButton(aligner.position, aligner.size, -1, GUI_ACT_REPAIR, 
-					               GUI_COLORS_DEFAULT, u.isRepairing ? "Cancel Repair" : "Repair", null, 
+					               GUI_COLORS_DEFAULT, u.state == Unit.State.REPAIRING ? "Cancel Repair" : "Repair", null, 
 					               yardDialogState.lastChecked.canBeRepaired(focusedStruct) ? null : Color.DARK_GRAY);
 					
 				} else {
-					caption(aligner.position, "Upgrade: ", 
-					        font, true, null);
-					aligner.next(0, -1);
-					aligner.setSize(.3f, .1f);
-					/////////////////////////
-					for (int i = 0; i < Heartstrings.Technology.values().length; ++i){
-						if (!scrollbars[25 + i].initialized)
-							scrollbars[25 + i].init(Utils.getVector(aligner.position), 
-							                        Utils.getVector(aligner.size), 
-							                        false, Scrollbar.GUI_SB_DEFAULT_THUMB);
-						if (Utils.arrayContains(Heartstrings.get(Heartstrings.fromUnitType(yardDialogState.lastChecked.type), 
-						                                         Heartstrings.craftableProperties).availableTechs, 
-						                        Heartstrings.Technology.values()[i])){
-							scrollbars[25 + i].update((int)Math.floor((focusedStruct.ownerFaction.tech[i] - yardDialogState.lastChecked.techLevel[i]) * 100f) + 1);
-							scrollbars[25 + i].render(GUI_COLORS_SCROLLBAR_COLORS);
-							
-							caption(aligner.position, 
-							        String.format(Heartstrings.tProperties[i].shortTitle + " %3.0f/%3.0f%%", 
-							                      scrollbars[25 + i].offset + Math.floor(yardDialogState.lastChecked.techLevel[i] * 100f), Math.floor(focusedStruct.ownerFaction.tech[i] * 100f)), 
-							        font, true, null);
-							aligner.next(0, -1);
+					if (u.state == Unit.State.PARKED) {
+						caption(aligner.position, "Upgrade: ", 
+						        font, true, null);
+						aligner.next(0, -1);
+						aligner.setSize(.3f, .1f);
+						for (int i = 0; i < Heartstrings.Technology.values().length; ++i){
+							if (!scrollbars[25 + i].initialized)
+								scrollbars[25 + i].init(Utils.getVector(aligner.position), 
+								                        Utils.getVector(aligner.size), 
+								                        false, Scrollbar.GUI_SB_DEFAULT_THUMB);
+							if (Utils.arrayContains(Heartstrings.get(Heartstrings.fromUnitType(yardDialogState.lastChecked.type), 
+							                                         Heartstrings.craftableProperties).availableTechs, 
+							                        Heartstrings.Technology.values()[i])){
+								scrollbars[25 + i].update(guiYMgetTUpgradeSBStates(i));
+								scrollbars[25 + i].render(GUI_COLORS_SCROLLBAR_COLORS);
+								
+								caption(aligner.position, 
+								        String.format(Heartstrings.tProperties[i].shortTitle + " %3.0f/%3.0f%%", 
+								                      scrollbars[25 + i].offset + Math.floor(yardDialogState.lastChecked.techLevel[i] * 100f), Math.floor(focusedStruct.ownerFaction.tech[i] * 100f)), 
+								        font, true, null);
+								aligner.next(0, -1);
+							}
 						}
+						aligner.reset();
+						aligner.setSize(.7f, .1f);
+						aligner.next(1, 1);
+						aligner.setSize(.3f, .7f);
+						list(aligner.position, aligner.size, yardDialogState.availableST.length, GUI_LEC_YM_ST, GUI_COLORS_DEFAULT, 31);
+						aligner.setSize(.3f, .1f);
+						aligner.next(-1, -1);
+						aligner.setSize(.6f, .1f);
+						advancedButton(aligner.position, aligner.size, -1, GUI_ACT_UPGRADE, 
+						               GUI_COLORS_DEFAULT, "Upgrade", null, 
+						               yardDialogState.lastChecked.canBeRepaired(focusedStruct) ? null : Color.DARK_GRAY);
+						aligner.next(0, 1);
+						caption(aligner.position, "Upgrade cost: " + Heartstrings.getUpgradeCostInMetal(u, guiYMHarvestUpgradeNTData(), yardDialogState.stToAdd) + "M", font, true, null);
+					} else if (u.state == Unit.State.UPGRADING){
+						caption(aligner.position, "Upgrading...", 
+						        font, true, null);
+					} else {
+						caption(aligner.position, "EVERYTHING IS PLAIN WRONG", 
+						        font, true, null);
 					}
-					/////////////////////////
-					aligner.reset();
-					aligner.setSize(.7f, .1f);
-					aligner.next(1, 1);
-					aligner.setSize(.3f, .7f);
-					list(aligner.position, aligner.size, yardDialogState.availableST.length, GUI_LEC_YM_ST, GUI_COLORS_DEFAULT, 31);
-					aligner.setSize(.3f, .1f);
-					aligner.next(-1, -1);
-					aligner.setSize(.6f, .1f);
-					advancedButton(aligner.position, aligner.size, -1, GUI_ACT_UPGRADE, 
-					               GUI_COLORS_DEFAULT, "Upgrade", null, 
-					               yardDialogState.lastChecked.canBeRepaired(focusedStruct) ? null : Color.DARK_GRAY);
-					
 				}
 			}
 			
@@ -638,16 +678,13 @@ public class GUI {
 		}
 	}
 	
-	private void prompt(Color back, String prompt){
-//		glay.setText(subFont, prompt);
-//		sr.setColor(back);
-//		Vector2 corner = Utils.getVector(Utils.UIMousePosition.x + 5, Math.max(Utils.UIMousePosition.y - glay.height - 5, 0));
-//		sr.rect(corner.x, corner.y, glay.width + PROMPT_BORDER * 2, glay.height + PROMPT_BORDER * 2);
-//		caption(corner.add(PROMPT_BORDER, PROMPT_BORDER), prompt, subFont, true, null);
+	public void prompt(String prompt){
+		prompt(GUI_COLORS_DEFAULT[0], prompt);
+	}
+	public void prompt(Color back, String prompt){
 		prompt(back, prompt, Utils.UIMousePosition, false);
 	}
-	
-	private void prompt(Color back, String prompt, Vector2 position, boolean centered){
+	public void prompt(Color back, String prompt, Vector2 position, boolean centered){
 		glay.setText(subFont, prompt);
 		sr.setColor(back);
 		Vector2 corner = centered ? 
