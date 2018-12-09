@@ -29,12 +29,13 @@ public class Unit {
 	
 	public float upgradeTime;
 	
+	@SuppressWarnings("unchecked")
 	public Unit(Structure nmanufacturer, Type ntype, float[] ntech, ArrayList<SpecialTechnology> nst) {
 		manufacturer = nmanufacturer;
 		owner = manufacturer.ownerFaction;
 		type = ntype;
-		techLevel = ntech;
-		st = nst;
+		techLevel = ntech.clone();
+		st = (ArrayList<SpecialTechnology>)nst.clone();
 		condition = getMaxCondition();
 		
 		switch (type){
@@ -68,28 +69,4 @@ public class Unit {
 	public boolean canBeRepaired(Structure operator){
 		return operator.getResource(Structure.Resource.METAL) >= Heartstrings.getRepairCostInMetal(this);
 	}
-	
-	/*@Override
-	public int hashCode(){
-		int h = 17;
-		for (float r: techLevel)
-			h = h * 71 + (int)(r * 100);
-		h = h * 71 + manufacturer.hashCode();
-		h = h * 71 + type.ordinal();
-		return h;
-	}
-	
-	@Override
-	public boolean equals(Object o){
-		if (o == this)
-			return true;
-		if (!(o instanceof Unit))
-			return false;
-		Unit u = (Unit) o;
-		
-		for (int i = 0; i < techLevel.length; i++)
-			if (techLevel[i] != u.techLevel[i])
-				return false;
-		return (type == u.type);
-	}*/
 }

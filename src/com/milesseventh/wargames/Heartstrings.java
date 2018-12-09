@@ -281,11 +281,11 @@ public class Heartstrings {
 			                        },
 			                        new SpecialTechnology[] {//Fighter
 			                        	//SpecialTechnology.COLUMN_INTERCEPTION,
-			                        	SpecialTechnology.ESPIONAGE,
 			                        	SpecialTechnology.FORTIFICATION,
 			                        	SpecialTechnology.MOBILE_ATTACK,
 			                        	SpecialTechnology.SIEGE_I,
-			                        	SpecialTechnology.SIEGE_II
+			                        	SpecialTechnology.SIEGE_II,
+			                        	SpecialTechnology.ESPIONAGE
 			                        },
 			                        70),
 			new CraftableProperties("Ammo", 

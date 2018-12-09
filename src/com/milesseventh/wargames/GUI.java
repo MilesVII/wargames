@@ -147,9 +147,9 @@ public class GUI {
 			new Color(.5f, .5f, .5f, .8f) //pressed
 		};
 	public static final Color[] GUI_COLORS_TRANSPARENT = {
-			new Color(0, 0, 0, 0),     //superdefault
-			new Color(0, 0, 0, 1),        //hovered
-			new Color(.5f, .5f, .5f, .8f) //pressed
+			new Color(0, 0, 0, 0), //superdefault
+			new Color(0, 0, 0, 0), //hovered
+			new Color(0, 0, 0, 0)  //pressed
 		};
 	public static final Color[] GUI_COLORS_SEVENTH_PROGRESS = {
 			new Color(218f/255f, 64f/255f, 0, 1f),     //done
@@ -302,7 +302,7 @@ public class GUI {
 				            u.state == Unit.State.REPAIRING ? GUI.GUI_COLORS_PROGRESS_REPAIRING_TRANSPARENT :
 				                                              GUI.GUI_COLORS_PROGRESS_DAMAGED_TRANSPARENT);
 			advancedButton(position, size, id, this, color, 
-			               u.name, null/*TODO: prompt*/, 
+			               (yardDialogState.lastChecked == u ? ">" : "") + u.name, null/*TODO: prompt*/, 
 			               yardDialogState.selectedUnitsForDeployment.contains(u) ? GUI.GUI_COLOR_SEVENTH : null);
 		}
 	};
@@ -379,8 +379,11 @@ public class GUI {
 		Unit u = yardDialogState.lastChecked;
 		float[] nt = {0, 0, 0, 0, 0, 0};
 		for (int i = 25; i <= 30; ++i)
-			nt[i - 25] = Utils.remap(scrollbars[i].offset, 0, guiYMgetTUpgradeSBStates(i - 25) - 1, 
-			                         u.techLevel[i - 25], focusedStruct.ownerFaction.tech[i - 25]);
+			if (guiYMgetTUpgradeSBStates(i - 25) == 1) //In case unit tech equals fraction tech
+				nt[i - 25] = u.techLevel[i - 25];
+			else
+				nt[i - 25] = Utils.remap(scrollbars[i].offset, 0, guiYMgetTUpgradeSBStates(i - 25) - 1, 
+				                         u.techLevel[i - 25], focusedStruct.ownerFaction.tech[i - 25]);
 		return nt;
 	}
 	

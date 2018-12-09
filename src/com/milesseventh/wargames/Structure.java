@@ -106,7 +106,7 @@ public class Structure implements Piemenuable{
 	private static final float[] DEFAULT_RANGES = { 22,  0, 17, 12,  27,  42};//Firing range
 	private static final float[] DEFAULT_MAXCDS = {420, 70, 42, 70, 120, 200};//Max vitality
 	private static final float[] DEFAULT_CRFTSP = {.8f,  0,  0,  0,   0, .2f};//Unit craft/repair/upgrade speed
-	public static final int[]   PIEMENU_ACTCNT = {  5,  0,  0,  0,   0,   0};//Pie menu actions amount
+	public static final int[]    PIEMENU_ACTCNT = {  5,  0,  0,  0,   0,   0};//Pie menu actions amount
 	
 	private float range;//Radius of circle that will be added to faction's territory
 	public Faction ownerFaction;//ID of faction that owns this unit
@@ -150,7 +150,7 @@ public class Structure implements Piemenuable{
 		position = npos.cpy();
 		ownerFaction = owner;
 		type = st;
-		range = DEFAULT_RANGES[type.ordinal()];//Assign firing range and condition on the assumption of type
+		range = DEFAULT_RANGES[type.ordinal()]; //Assign firing range and condition on the assumption of type
 		vitality = maxVitality = DEFAULT_MAXCDS[type.ordinal()];
 	}
 	
@@ -222,8 +222,9 @@ public class Structure implements Piemenuable{
 		assert(yard.contains(u));
 		assert(this.tryRemoveResource(Resource.METAL, Heartstrings.getUpgradeCostInMetal(u, nt, stToAdd)));
 		u.st.addAll(stToAdd);
-		u.techLevel = nt;
 		u.upgradeTime = Heartstrings.getUpgradeWorkamount(u, nt, stToAdd) / getCraftSpeed();
+		u.techLevel = nt;
+		u.condition = u.getMaxCondition(); //In case armor was upgraded
 		u.state = Unit.State.UPGRADING;
 		upgradingQueue.addLast(u);
 	}
