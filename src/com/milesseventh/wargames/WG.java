@@ -216,7 +216,7 @@ public class WG extends ApplicationAdapter {
 				gui.drawWorldIconOnHUD(Faction.SQUAD_ICON, marchordie.position, marchordie.lostDirection, ICON_SIDE, GUI.GUI_COLOR_SEVENTH);
 			}
 		if (uistate == UIState.PIEMENU && focusedObject != null)
-			gui.piemenu(getUIFromWorldV(focusedObject.getWorldPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, focusedObject.getActionsAmount(), focusedObject.getAction(), focusedObject.getCaptions());
+			gui.piemenu(getUIFromWorldV(focusedObject.getWorldPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, focusedObject.getEntries());
 		if (uistate == UIState.DIALOG && currentDialog != Dialog.NONE)
 			gui.dialog(currentDialog);
 		hsr.end();

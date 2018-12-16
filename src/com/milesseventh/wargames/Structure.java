@@ -10,6 +10,7 @@ import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
+import com.milesseventh.wargames.Squad.State;
 import com.milesseventh.wargames.WG.Dialog;
 
 public class Structure implements Piemenuable{
@@ -121,37 +122,50 @@ public class Structure implements Piemenuable{
 	public ArrayList<Unit> yard = new ArrayList<Unit>();
 	private Random r = new Random();
 	
-	public static final Callback PIEMENU_ACTIONS_CITY = new Callback(){
+	public final ArrayList<PiemenuEntry> PIEMENU = new ArrayList<PiemenuEntry>();
+	private void rebuildPiemenu(){
+		PIEMENU.clear();
+		PIEMENU.add(PiemenuEntry.PME_CANCEL);
+		PIEMENU.add(PME_STATS);
+		PIEMENU.add(PME_LAB);
+		PIEMENU.add(PME_CRAFT);
+		PIEMENU.add(PME_YARD);
+		
+	}
+	
+	public final PiemenuEntry PME_STATS = new PiemenuEntry("Stats", new Callback(){
 		@Override
 		public void action(int source) {
-			switch(source){
-			case(0):
-				//System.out.println("Cancelled");
-				break;
-			case(1):
-				WG.antistatic.openDialog(WG.Dialog.STATS);
-				break;
-			case(2):
-				WG.antistatic.openDialog(WG.Dialog.LABORATORY);
-				break;
-			case(3):
-				WG.antistatic.openDialog(WG.Dialog.CRAFTING);
-				break;
-			case(4):
-				WG.antistatic.openDialog(WG.Dialog.YARD);
-				break;
-			}
+			WG.antistatic.openDialog(WG.Dialog.STATS);
 		}
-	};
-	public static final String[] PIEMENU_CAPTIONS_CITY = {
-		"Cancel", "Stats", "R&D", "Craft", "Deploy"
-	};
+	});
+	public final PiemenuEntry PME_LAB = new PiemenuEntry("R&D", new Callback(){
+		@Override
+		public void action(int source) {
+			WG.antistatic.openDialog(WG.Dialog.LABORATORY);
+		}
+	});
+	public final PiemenuEntry PME_CRAFT = new PiemenuEntry("Craft", new Callback(){
+		@Override
+		public void action(int source) {
+			WG.antistatic.openDialog(WG.Dialog.CRAFTING);
+		}
+	});
+	public final PiemenuEntry PME_YARD = new PiemenuEntry("Deploy", new Callback(){
+		@Override
+		public void action(int source) {
+			WG.antistatic.openDialog(WG.Dialog.YARD);
+		}
+	});
+	
 	public Structure(Vector2 npos, StructureType st, Faction owner) {
 		position = npos.cpy();
 		ownerFaction = owner;
 		type = st;
 		range = DEFAULT_RANGES[type.ordinal()]; //Assign firing range and condition on the assumption of type
 		vitality = maxVitality = DEFAULT_MAXCDS[type.ordinal()];
+		
+		rebuildPiemenu();
 	}
 	
 	public float getResource(Resource _resType){
@@ -328,20 +342,8 @@ public class Structure implements Piemenuable{
 	public Vector2 getWorldPosition() {
 		return position;
 	}
-
 	@Override
-	public int getActionsAmount() {
-		return PIEMENU_ACTCNT[type.ordinal()];
-	}
-
-	@Override
-	public Callback getAction() {
-		// TODO Auto-generated method stub
-		return PIEMENU_ACTIONS_CITY;
-	}
-
-	@Override
-	public String[] getCaptions() {
-		return PIEMENU_CAPTIONS_CITY;
+	public ArrayList<PiemenuEntry> getEntries() {
+		return PIEMENU;
 	}
 }

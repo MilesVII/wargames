@@ -1,5 +1,7 @@
 package com.milesseventh.wargames;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -643,24 +645,24 @@ public class GUI {
 	}
 	
 	private static final int PIE_MENU_SECTOR_MARGIN = 5;
-	public void piemenu(Vector2 position, float radius, Color unselected, Color selected, int size, Callback action, String[] captions){
-		String caption = null;
-		for(int i = 0; i < size; i++){
+	public void piemenu(Vector2 position, float radius, Color unselected, Color selected, ArrayList<PiemenuEntry> pm){
+		int selectedIndex = -1;
+		for(int i = 0; i < pm.size(); i++){
 			float angle = Utils.getAngle(context.getUIFromWorldV(Utils.WorldMousePosition).sub(position));
-			if (angle > i * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN &&
-			    angle < (i + 1) * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN){
+			if (angle > i * (360 / (float) pm.size()) + PIE_MENU_SECTOR_MARGIN &&
+			    angle < (i + 1) * (360 / (float) pm.size()) + PIE_MENU_SECTOR_MARGIN){
 				if (Utils.isTouchJustReleased){
 					WG.antistatic.uistate = WG.UIState.FREE;
-					action.action(i);
+					if (pm.get(i).action != null)
+						pm.get(i).action.action(0);
 				}
 				sr.setColor(selected);
-				if (captions != null)
-					caption = captions[i];
+				selectedIndex = i;
 			} else
 				sr.setColor(unselected);
-			Utils.drawTrueArc(sr, position, 20, i * (360 / (float) size) + PIE_MENU_SECTOR_MARGIN, (360 / (float) size) - 2 * PIE_MENU_SECTOR_MARGIN, 70);
-			if (caption != null)
-				prompt(GUI_COLORS_DEFAULT[1], caption, Utils.getVector(position).add(0, radius * -2f), true);
+			Utils.drawTrueArc(sr, position, 20, i * (360 / (float) pm.size()) + PIE_MENU_SECTOR_MARGIN, (360 / (float) pm.size()) - 2 * PIE_MENU_SECTOR_MARGIN, 70);
+			if (pm.get(i).caption != null && selectedIndex != -1)
+				prompt(GUI_COLORS_DEFAULT[1], pm.get(selectedIndex).caption, Utils.getVector(position).add(0, radius * -2f), true);
 		}
 	}
 	
