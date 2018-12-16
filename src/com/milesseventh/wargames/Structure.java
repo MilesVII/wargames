@@ -10,8 +10,6 @@ import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
-import com.milesseventh.wargames.Squad.State;
-import com.milesseventh.wargames.WG.Dialog;
 
 public class Structure implements Piemenuable{
 	//////////////////////////////////////////////////////////////////
@@ -100,20 +98,15 @@ public class Structure implements Piemenuable{
 		ORE, METAL, AMMO, MISSILE, OIL, FUEL
 	}
 	
-	public enum StructureType{
-		CITY, MINER, ML, RADAR, AMD, MB 
+	public enum Type{
+		CITY, MINER, MB, ML, RADAR, AMD 
 	}
-	//                                             C   M   ML   R  AMD   MB
-	private static final float[] DEFAULT_RANGES = { 22,  0, 17, 12,  27,  42};//Firing range
-	private static final float[] DEFAULT_MAXCDS = {420, 70, 42, 70, 120, 200};//Max vitality
-	private static final float[] DEFAULT_CRFTSP = {.8f,  0,  0,  0,   0, .2f};//Unit craft/repair/upgrade speed
-	public static final int[]    PIEMENU_ACTCNT = {  5,  0,  0,  0,   0,   0};//Pie menu actions amount
 	
 	private float range;//Radius of circle that will be added to faction's territory
 	public Faction ownerFaction;//ID of faction that owns this unit
 	private float vitality, maxVitality;
 	public Vector2 position;
-	public StructureType type;
+	public Type type;
 	
 	private Queue<CraftingOrder> manufactoryQueue = new Queue<CraftingOrder>();
 	private Queue<Unit> repairingQueue = new Queue<Unit>();
@@ -158,12 +151,12 @@ public class Structure implements Piemenuable{
 		}
 	});
 	
-	public Structure(Vector2 npos, StructureType st, Faction owner) {
+	public Structure(Vector2 npos, Type st, Faction owner) {
 		position = npos.cpy();
 		ownerFaction = owner;
 		type = st;
-		range = DEFAULT_RANGES[type.ordinal()]; //Assign firing range and condition on the assumption of type
-		vitality = maxVitality = DEFAULT_MAXCDS[type.ordinal()];
+		//range = Heartstrings.get
+		vitality = maxVitality = 1;//Heartstrings.get
 		
 		rebuildPiemenu();
 	}
@@ -284,9 +277,10 @@ public class Structure implements Piemenuable{
 	
 	private static final float MIN_CRFTSP_K = .8f, MAX_CRFTSP_K = 1.7f;
 	public float getCraftSpeed(){
+		float cs = Heartstrings.get(type, Heartstrings.structureProperties).craftSpeed;
+		
 		return Utils.remap(ownerFaction.techLevel(Technology.ENGINEERING), 0, 1, 
-		                   DEFAULT_CRFTSP[type.ordinal()] * MIN_CRFTSP_K, 
-		                   DEFAULT_CRFTSP[type.ordinal()] * MAX_CRFTSP_K) * 10f;
+		                   cs * MIN_CRFTSP_K, cs * MAX_CRFTSP_K) * 10f;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -331,10 +325,6 @@ public class Structure implements Piemenuable{
 		if (vitality > maxVitality){
 			vitality = maxVitality;
 		}
-	}
-	
-	public static int getPieMenuActionsNumber(StructureType st){
-		return PIEMENU_ACTCNT[st.ordinal()];
 	}
 	
 	//Piemenuable interface implementation

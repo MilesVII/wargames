@@ -62,19 +62,24 @@ public class Utils {
 		return _place;
 	}
 	
-	private static final int DBG_MIN_CITY_DST = 17, DBG_MAX_CITY_DST = 48;
-	public static boolean debugCheckPlaceForNewStructure(HeightMap _map, Faction _f, Vector2 _place){
-		Structure _nrst = debugFindNearestStructure(_f.structs, _place);
-		return (_nrst.position.dst2(_place) < DBG_MAX_CITY_DST * DBG_MAX_CITY_DST &&
-			_nrst.position.dst2(_place) > DBG_MIN_CITY_DST * DBG_MIN_CITY_DST &&
-			(_map.getMeta(_place.x, _place.y) < DBG_MAX_CITY_H && _map.getMeta(_place.x, _place.y) > DBG_MIN_CITY_H));
+	public static Structure findNearestStructure(Faction f, Vector2 from){
+		if (f == null){
+			Structure nearest = Faction.factions.get(0).structs.get(0);
+			for (Faction faction: Faction.factions){
+				Structure t = findNearestStructureCore(faction, from);
+				if (from.dst2(t.position) < from.dst2(nearest.position))
+					nearest = t;
+			}
+			return nearest;
+		} else
+			return findNearestStructureCore(f, from);
 	}
 	
-	private static Structure debugFindNearestStructure(ArrayList<Structure> cities, Vector2 _from){
-		Structure minStructure = cities.get(0);
-		for (Structure _to: cities)
-			if (_from.dst2(_to.position) < _from.dst2(minStructure.position))
-				minStructure = _to;
+	private static Structure findNearestStructureCore(Faction f, Vector2 from){
+		Structure minStructure = f.structs.get(0);
+		for (Structure to: f.structs)
+			if (from.dst2(to.position) < from.dst2(minStructure.position))
+				minStructure = to;
 		return minStructure;
 	}
 	

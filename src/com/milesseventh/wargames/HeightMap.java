@@ -19,13 +19,13 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 	
 	//private static Color workingColor = Color.BLACK;
 	private float[][] noiseMap;
-	private Vector2 size, center;
+	private Vector2 size;
 	private Pixmap pm;
 	private Random r = new Random();
 
 	public HeightMap(Vector2 _size, Color[] cs){
 		size = _size;
-		center = size.cpy().scl(.5f);
+		//center = size.cpy().scl(.5f);
 		
 		noiseMap = new float[getWidth()][getHeight()];
 		pm = new Pixmap(getWidth(), getHeight(), Pixmap.Format.RGBA8888);
@@ -38,7 +38,7 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 				noiseValue /= 2.27f;
 				noiseValue += wall(x, y, noiseValue);
 				noiseValue = MathUtils.clamp(noiseValue, 0, 1);
-				noiseValue = fade(noiseValue);
+				noiseValue = (float)Math.pow(fade(noiseValue), 1.1f);
 				noiseValue = MathUtils.clamp(noiseValue, 0, 1);
 				
 				pm.setColor(Utils.getGradColor(cs, noiseValue));

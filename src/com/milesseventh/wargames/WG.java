@@ -22,7 +22,7 @@ public class WG extends ApplicationAdapter {
 		NONE, STATS, LABORATORY, CRAFTING, YARD, TRADE
 	}
 	public enum UIState {
-		FREE, DIALOG, PIEMENU, MOVINGORDER
+		FREE, DIALOG, PIEMENU, MENU, MOVINGORDER
 	}
 	
 	//Game constants
@@ -38,7 +38,7 @@ public class WG extends ApplicationAdapter {
 	                          PIE_MENU_RADIUS = 22,
 	                          DIALOG_HEIGHT = .8f,
 	                          ICON_SIDE = 32,
-	                          STRUCTURE_DEPLOYMENT_SPREAD_MIN = 16;
+	                          STRUCTURE_DEPLOYMENT_SPREAD_MIN = 10;
 	
 	//Variables
 	public static WG antistatic;
@@ -53,9 +53,11 @@ public class WG extends ApplicationAdapter {
 	private boolean preTouched = false;
 	public GUI gui;
 	public UIState uistate = UIState.FREE;
-	private Piemenuable focusedObject = null; // no pie menu opened if null, can be 
+	private Piemenuable focusedObject = null; // no pie menu opened if null
 	private Dialog currentDialog = Dialog.NONE;
 	private float prevPitchGestureDistance = -1;
+	private ListEntryCallback menuLEC;
+	private int menuLength;
 	
 	private float loadingProgress = 0;
 	private long dtholder;//(float)(System.currentTimeMillis()
@@ -98,29 +100,20 @@ public class WG extends ApplicationAdapter {
 	public void resize(int width, int height) {
 		if (width >= height){
 			camera = new OrthographicCamera(WORLD_W, WORLD_W * height / (float)width);
-			//UI_W = UI_W_DEF;
-			//UI_H = Math.round(UI_W * height / (float)width);
 		} else {
 			camera = new OrthographicCamera(WORLD_H * width / (float)height, WORLD_H);
-			//UI_H = UI_H_DEF;
-			//UI_W = Math.round(UI_H * width / (float)height);
 		}
-		//System.out.println(""+UI_W+"x"+UI_H);
+
 		UI_W = width;
 		UI_H = height;
-		//System.out.println(""+UI_W+"x"+UI_H);
+
 		
 		camera.translate(WORLD_W / 2.0f, WORLD_H / 2.0f);
-		//viewport = new FitViewport(WORLD_W, VP_H, camera);
-		
-		//viewport.update(width, height);
 		
 		OrthographicCamera hudCamera = new OrthographicCamera(UI_W, UI_H);
 		
 		hudCamera.combined.translate(-UI_W/2f, -UI_H/2f, 0);
-		//hudmx = hudCamera.combined;
 		
-		//
 		GUIBatch.setProjectionMatrix(hudCamera.combined);
 		GUIBatch.enableBlending();
 		hsr.setProjectionMatrix(hudCamera.combined);
@@ -157,7 +150,6 @@ public class WG extends ApplicationAdapter {
 			Utils.UIEnteringTapPosition.x = getUIMouseX(); Utils.UIEnteringTapPosition.y = getUIMouseY();
 		}
 		Utils.confirmedTouchOccured = Utils.isTouchJustReleased && Utils.UIEnteringTapPosition.dst(getUIMouseX(), getUIMouseY()) < Utils.confirmationTapDistance;
-		//System.out.println(Utils.UIEnteringTapPosition.dst(getUIMouseX(), getUIMouseY()));
 		
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -175,7 +167,6 @@ public class WG extends ApplicationAdapter {
 		} else if (loadingProgress == -1){//Map generated
 			_noiseT = new Texture(map.getPixmap());
 			_marchT = new Texture(landOutline.getRendered());
-			//Faction[] _ = {new Faction(Color.BLUE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map))};
 			new Faction(Color.BLUE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map));
 			loadingProgress = -2;
 		};
@@ -219,20 +210,13 @@ public class WG extends ApplicationAdapter {
 			gui.piemenu(getUIFromWorldV(focusedObject.getWorldPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, focusedObject.getEntries());
 		if (uistate == UIState.DIALOG && currentDialog != Dialog.NONE)
 			gui.dialog(currentDialog);
+		if (uistate == UIState.MENU && menuLEC != null)
+			gui.menu(menuLEC, GUI.GUI_COLORS_DEFAULT, menuLength);;
 		hsr.end();
-		/*if (!Gdx.input.isTouched())
-			focusedObject = null;*/
 	}
 	
 	private void update(){
 		//Debug controls
-		if (Gdx.input.isKeyPressed(Input.Keys.C)){
-			//Try to build a city
-			Vector2 _np = new Vector2(getWorldMouseX(), getWorldMouseY());
-			if (Utils.debugCheckPlaceForNewStructure(map, Faction.debug, _np)){
-				Faction.debug.registerStructure(new Structure(_np, Structure.StructureType.CITY, Faction.debug));
-			}
-		}
 		
 		//Debug mechanics
 		//sm.getCurrent().doInvestigation();
@@ -290,7 +274,7 @@ public class WG extends ApplicationAdapter {
 		uistate = UIState.DIALOG;
 		currentDialog = dialog;
 	}
-	
+
 	public void setFocusOnPiemenuable(Piemenuable pma){
 		if (uistate != UIState.FREE)
 			return;
@@ -298,6 +282,15 @@ public class WG extends ApplicationAdapter {
 		uistate = UIState.PIEMENU;
 		if (pma.getClass().isAssignableFrom(Structure.class))
 			gui.focusedStruct = (Structure) pma;
+	}
+	
+	public void setMenu(ListEntryCallback lec, int length){
+		if (uistate != UIState.FREE && uistate != UIState.PIEMENU)
+			return;
+		uistate = UIState.MENU;
+		
+		menuLEC = lec;
+		menuLength = length;
 	}
 	
 	private float getWorldMouseX(){

@@ -34,7 +34,7 @@ public class Heartstrings {
 		WARHEAD_FRAGMENTATION_II, //Req: WF_I, ACC(35%), SPD(40%)
 		FLARES,                   //Allows missiles to use decoy flares; Req: SW, RADIO, ENG(50%)
 	} 
-	
+
 	//title, shortTitle, maxMarkup
 	public static TechnologyProperties[] tProperties = {
 		new TechnologyProperties("Firepower",   "FPW", 70f),
@@ -43,6 +43,15 @@ public class Heartstrings {
 		new TechnologyProperties("Speed",       "SPD", 30f),
 		new TechnologyProperties("Cargo load",  "CRG", 40f),
 		new TechnologyProperties("Engineering", "ENG", 120f)
+	};
+	//title, fightingRange, maxCondition, craftSpeed
+	public static StructureProperties[] structureProperties = {
+		new StructureProperties("City",             22f, 420f, .8f),
+		new StructureProperties("Mining Outpost",     0,  70f,   0),
+		new StructureProperties("Military Outpost", 42f, 200f, .2f),
+		new StructureProperties("Missile Silo",     17f,  42f,   0),
+		new StructureProperties("Radar",            12f,  70f,   0),
+		new StructureProperties("AMD",              27f, 120f,   0)
 	};
 	
 	//title, description, investigationWorkamount, workamountMarkup, investigationPrice, 

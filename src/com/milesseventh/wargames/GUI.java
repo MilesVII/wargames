@@ -184,7 +184,7 @@ public class GUI {
 	};
 	
 	private static GlyphLayout glay = new GlyphLayout();
-	//Engaged 0; 1-6; 11; 12; 13-18; 22; 23; 24; 25-30; 31
+	//Engaged 0; 1-6; 11; 12; 13-18; 22; 23; 24; 25-30; 31, 32
 	//Reserved 7-10; 19-21;
 	private Scrollbar[] scrollbars = new Scrollbar[32];
 	
@@ -615,6 +615,18 @@ public class GUI {
 		showPostponedPrompt();
 		caption(normalToUI(Utils.getVector(0, 1f), true).add(DIM_MARGIN.x, (DIM_BUTTON_SIZ_CLOSE.y - font.getCapHeight()) / 2f),
 		        dialogTitle, font, true, null);
+	}
+	
+	public void menu(ListEntryCallback entry, Color[] colors, int length){
+		Vector2 size = Utils.getVector();
+		size.x = WG.UI_W * .4f;
+		size.y = LIST_ENTRY_HEIGHT * (float)length;
+		
+		Vector2 position = Utils.getVector();
+		position.x = (WG.UI_W - size.x) / 2f;
+		position.y = (WG.UI_H - size.y) / 2f;
+		
+		list(position, size, length, entry, colors, 32);
 	}
 	
 	private static final float SCROLLBAR_RWIDTH = .1f, LIST_ENTRY_HEIGHT = 43f;

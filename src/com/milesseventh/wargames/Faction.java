@@ -15,6 +15,8 @@ import com.milesseventh.wargames.SpecialTechnologyProperties.TechnologyRequireme
 import com.milesseventh.wargames.Structure.Resource;
 
 public class Faction {
+	public static ArrayList<Faction> factions = new ArrayList<Faction>();
+	
 	public static Faction debug;
 	public static Squad debugCol;
 	
@@ -56,7 +58,7 @@ public class Faction {
 		availableCraftables.add(Craftable.SCIENCE);
 		availableCraftables.add(Craftable.TRANSPORTER);
 		availableCraftables.add(Craftable.BUILDER);
-		capital = new Structure(_pos, Structure.StructureType.CITY, this);
+		capital = new Structure(_pos, Structure.Type.CITY, this);
 		structs.add(capital);
 		capital.addResource(Resource.ORE, 100);
 		capital.addResource(Resource.METAL, 1000);
@@ -68,7 +70,8 @@ public class Faction {
 		debug = this;
 		debugCol = new Squad(this, _pos);
 		//squads.add(debugCol);
-		
+
+		factions.add(this);
 	}
 	
 	public void update(float dt){
