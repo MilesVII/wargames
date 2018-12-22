@@ -99,6 +99,7 @@ public class Structure implements Piemenuable{
 		CITY, MINER, MB, ML, RADAR, AMD 
 	}
 	
+	public String name;
 	private float range;//Radius of circle that will be added to faction's territory
 	public Faction ownerFaction;//ID of faction that owns this unit
 	private float vitality, maxVitality;
@@ -149,6 +150,7 @@ public class Structure implements Piemenuable{
 	});
 	
 	public Structure(Vector2 npos, Type st, Faction owner) {
+		name = "City 17";
 		position = npos.cpy();
 		ownerFaction = owner;
 		type = st;
@@ -239,6 +241,8 @@ public class Structure implements Piemenuable{
 			if (Gdx.input.justTouched()){
 				WG.antistatic.setFocusOnPiemenuable(this);
 			}
+			
+			WG.antistatic.gui.prompt(name);
 		}
 	}
 	

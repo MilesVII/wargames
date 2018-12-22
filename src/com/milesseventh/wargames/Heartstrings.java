@@ -38,13 +38,13 @@ public class Heartstrings {
 		FLARES,                   //Allows missiles to use decoy flares; Req: SW, RADIO, ENG(50%)
 	} 
 
-	//name, sign, description ORE, METAL, AMMO, OIL, FUEL, MISSILE
+	//name, sign, description
 	public static ResourceProperties[] rProperties = {
-		new ResourceProperties("Iron Ore",    "T",   "Raw iron ore. Can be converted into Metal when stored in the City"),
-		new ResourceProperties("Metal Ingot", "M",   "Metal slug. Main building material and currency"),
 		new ResourceProperties("Ammo Boxes",  "pcs", "Ammunition. Used by squads and structures to defend themselves"),
 		new ResourceProperties("Raw Oil",     "bbl", "Raw oil. Can be converted into Fuel when stored in the City"),
 		new ResourceProperties("Fuel",        "bbl", "Fuel. used by squads when moving"),
+		new ResourceProperties("Iron Ore",    "T",   "Raw iron ore. Can be converted into Metal when stored in the City"),
+		new ResourceProperties("Metal Ingot", "M",   "Metal slug. Main building material and currency"),
 		new ResourceProperties("Missile",     "pcs", "Ballistic Missile. Can be launched from Missile Silo. High jack this buddy!")
 	};
 	//title, shortTitle, maxMarkup

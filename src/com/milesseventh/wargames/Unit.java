@@ -17,6 +17,7 @@ public class Unit {
 	public static final float MAX_CARGO = 100f;
 	public static final float[] MAX_CONDITIONS_NO_ARM_TECH  = {700, 120, 320};
 	public static final float[] MAX_CONDITIONS_MAX_ARM_TECH = {1500, 750, 520};
+	public static final float[] MAX_FUEL_CONSUMPTION = {2, 1, 7};
 	
 	public String name;
 	public float[] techLevel;
@@ -58,6 +59,10 @@ public class Unit {
 	
 	public int getCapacity(){
 		return Math.round(techLevel[Technology.CARGO.ordinal()] * MAX_CARGO);
+	}
+	
+	public float getFuelConsumption(){
+		return MAX_FUEL_CONSUMPTION[type.ordinal()] * Utils.remap(techLevel[Technology.SPEED.ordinal()], 0, 1, 1, .3f);
 	}
 	
 	public float getMaxCondition(){

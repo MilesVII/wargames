@@ -12,8 +12,13 @@ public class Squad implements Piemenuable {
 		STAND, MOVING
 	}
 	
+	private static final String[] SQUAD_NAMES = {"Alfa", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Kilo", "Lima", "November", "Romeo", "Sierra", "Tango", "Uniform", "Victor", "Whiskey", "X-ray", "Yankee", "Zulu"};
+	private static int nameSelector = 0;
+	
 	public Faction owner;
 	public ArrayList<Unit> units = new ArrayList<Unit>();
+	public String name;
+	public ResourceStorage resources;
 	
 	private Vector2[] path = null;
 	private int pathSegment = -1;
@@ -24,6 +29,12 @@ public class Squad implements Piemenuable {
 	public static final float STRUCTURE_INTERACTION_DISTANCE2 = 120;
 	
 	public Squad(Faction nowner, Vector2 nposition) {
+		name = SQUAD_NAMES[nameSelector++];
+		nameSelector %= SQUAD_NAMES.length;
+		resources = new ResourceStorage("Squad " + name);
+		
+		resources.add(Resource.FUEL, 2000f);
+		
 		position = nposition.cpy();
 		owner = nowner;
 		rebuildPiemenu();
@@ -50,7 +61,7 @@ public class Squad implements Piemenuable {
 			if (Gdx.input.justTouched())
 				WG.antistatic.setFocusOnPiemenuable(this);
 			
-			WG.antistatic.gui.prompt("Squad!");
+			WG.antistatic.gui.prompt(name + "\n" + units.size() + "units\n" + resources.get(Resource.FUEL) + Heartstrings.get(Resource.FUEL, Heartstrings.rProperties).sign + " of fuel");
 		}
 		
 		//Move column on path
@@ -60,6 +71,16 @@ public class Squad implements Piemenuable {
 				pathSegment = 0;
 			} else {
 				float step = getSpeed() * dt;
+				
+				float fuelWasted = step * getFuelConsumption();
+				System.out.println(fuelWasted);
+				if (resources.isEnough(Resource.FUEL, fuelWasted))
+					resources.tryRemove(Resource.FUEL, fuelWasted);
+				else {
+					step = step * resources.get(Resource.FUEL) / fuelWasted;
+					resources.set(Resource.FUEL, 0);
+				}
+				
 				while(step >= position.dst(path[pathSegment + 1])){
 					++pathSegment;
 					step -= position.dst(path[pathSegment]);
@@ -95,6 +116,13 @@ public class Squad implements Piemenuable {
 			if (u.type == type)
 				return true;
 		return false;
+	}
+	
+	public float getFuelConsumption(){
+		float fc = 0;
+		for (Unit u: units)
+			fc += u.getFuelConsumption();
+		return fc;
 	}
 	
 	private ListEntryCallback LEC_BUILD_MENU = new ListEntryCallback(){
