@@ -16,7 +16,10 @@ import com.badlogic.gdx.utils.Align;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
-import com.sun.webkit.ColorChooser;
+import com.milesseventh.wargames.dialogs.CraftingDialog;
+import com.milesseventh.wargames.dialogs.TradeDialog;
+import com.milesseventh.wargames.dialogs.YardDialog;
+import com.milesseventh.wargames.properties.SpecialTechnologyProperties;
 
 public class GUI {
 	public class Aligner {
@@ -352,13 +355,13 @@ public class GUI {
 	private final ListEntryCallback GUI_LEC_TRADE_RESOURCES = new ListEntryCallback() {
 		@Override
 		public void action(int id) {
-			Structure.Resource resource = Structure.Resource.values()[id];
+			Resource resource = Resource.values()[id];
 			tradeDialogState.selectedResource = resource;
 		}
 		
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
-			Structure.Resource resource = Structure.Resource.values()[id];
+			Resource resource = Resource.values()[id];
 			advancedButton(position, size, id, this, color, 
 			               resource.name(), null, 
 			               tradeDialogState.selectedResource == resource ? GUI.GUI_COLOR_SEVENTH : null);
@@ -394,12 +397,22 @@ public class GUI {
 			scrollbars[22].offset = 0;
 		}
 	};
-	
+
 	private final Callback GUI_ACT_DEPLOY = new Callback(){
 		@Override
 		public void action(int id) {
 			WG.antistatic.gui.focusedStruct.deploySquad(yardDialogState.selectedUnitsForDeployment);
 			yardDialogState.reset();
+		}
+	};
+	
+	private final Callback GUI_ACT_DEPLOY_ALL = new Callback(){
+		@Override
+		public void action(int id) {
+			for (int i = 0; i < focusedStruct.yard.size(); ++i)
+				if (!yardDialogState.selectedUnitsForDeployment.contains(focusedStruct.yard.get(i)))
+					GUI_LEC_YARD_MANAGEMENT.action(i);
+			GUI_ACT_DEPLOY.action(-1);
 		}
 	};
 	
@@ -450,7 +463,7 @@ public class GUI {
 			Unit u = yardDialogState.lastChecked;
 			float[] nt = guiYMHarvestUpgradeNTData();
 			
-			if (focusedStruct.getResource(Structure.Resource.METAL) >= Heartstrings.getUpgradeCostInMetal(u, nt, yardDialogState.stToAdd)){
+			if (focusedStruct.resources.get(Resource.METAL) >= Heartstrings.getUpgradeCostInMetal(u, nt, yardDialogState.stToAdd)){
 				if (yardDialogState.selectedUnitsForDeployment.contains(u))
 					yardDialogState.selectedUnitsForDeployment.remove(u);
 				focusedStruct.orderUprgade(u, nt, yardDialogState.stToAdd);
@@ -481,9 +494,9 @@ public class GUI {
 			aligner.next(1, 0);
 			aligner.setSize(.6f, .1f);
 			caption(aligner.position, "TYPE: " + focusedStruct.type.name(), font, VALIGN_TOP, null);
-			for (Structure.Resource r: Structure.Resource.values()){
+			for (Resource r: Resource.values()){
 				aligner.next(0, -1);
-				caption(aligner.position, r.name() + ": " + focusedStruct.getResource(r), font, VALIGN_TOP, null);
+				caption(aligner.position, r.name() + ": " + focusedStruct.resources.get(r), font, VALIGN_TOP, null);
 			}
 			break;
 		case LABORATORY:
@@ -570,7 +583,11 @@ public class GUI {
 			aligner.next(-1, 0);
 			aligner.setSize(.6f, .12f);
 			aligner.next(0, -1);
-			caption(aligner.position, "Price: " + Heartstrings.getCraftingCost(craftingDialogState, Structure.Resource.METAL, 1) + "M", 
+			
+			int price = Heartstrings.getCraftingCost(craftingDialogState, Resource.METAL, 1);
+			int amount = scrollbars[22].offset;
+			
+			caption(aligner.position, "Price: " + price + "M × " + amount + " = " + (price * amount) + "M", 
 			        font, VALIGN_BOTTOM, null);
 			aligner.next(0, -1);
 			advancedButton(aligner.position, aligner.size, -1, GUI_ACT_CRAFTING_ORDER, 
@@ -582,7 +599,10 @@ public class GUI {
 			advancedButton(aligner.position, aligner.size, -1, GUI_ACT_DEPLOY, 
 			               GUI_COLORS_DEFAULT, "Deploy", null, null);
 			aligner.next(0, 1);
-			aligner.setSize(.4f, .8f);
+			advancedButton(aligner.position, aligner.size, -1, GUI_ACT_DEPLOY_ALL, 
+		               GUI_COLORS_DEFAULT, "Deploy All", null, null);
+			aligner.next(0, 1);
+			aligner.setSize(.4f, .7f);
 			list(aligner.position, aligner.size, focusedStruct.yard.size(), GUI_LEC_YARD_MANAGEMENT, GUI_COLORS_DEFAULT, 24);
 			aligner.next(0, 1);
 			aligner.setSize(.4f, .1f);
@@ -665,7 +685,7 @@ public class GUI {
 			//focusedStruct is set manually from Squad's piemenu action
 			
 			aligner.setSize(.3f, .9f);
-			list(aligner.position, aligner.size, Structure.Resource.values().length, GUI_LEC_TRADE_RESOURCES, GUI_COLORS_DEFAULT, 33);
+			list(aligner.position, aligner.size, Resource.values().length, GUI_LEC_TRADE_RESOURCES, GUI_COLORS_DEFAULT, 33);
 			aligner.next(0, 1);
 			aligner.setSize(.3f, .1f);
 			caption(aligner.position, "Structure name", font, VALIGN_BOTTOM, null);

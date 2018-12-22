@@ -1,7 +1,9 @@
-package com.milesseventh.wargames;
+package com.milesseventh.wargames.dialogs;
 
 import java.util.ArrayList;
 
+import com.milesseventh.wargames.Faction;
+import com.milesseventh.wargames.Heartstrings;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;

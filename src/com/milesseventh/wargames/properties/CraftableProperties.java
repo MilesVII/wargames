@@ -1,8 +1,8 @@
-package com.milesseventh.wargames;
+package com.milesseventh.wargames.properties;
 
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
-import com.milesseventh.wargames.Structure.Resource;
+import com.milesseventh.wargames.Resource;
 
 public class CraftableProperties {
 	public String title, description;

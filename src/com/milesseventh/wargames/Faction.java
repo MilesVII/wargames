@@ -5,14 +5,12 @@ import java.util.ArrayList;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
-import com.milesseventh.wargames.SpecialTechnologyProperties.TechnologyRequirement;
-import com.milesseventh.wargames.Structure.Resource;
+import com.milesseventh.wargames.properties.SpecialTechnologyProperties.TechnologyRequirement;
 
 public class Faction {
 	public static ArrayList<Faction> factions = new ArrayList<Faction>();
@@ -60,11 +58,11 @@ public class Faction {
 		availableCraftables.add(Craftable.BUILDER);
 		capital = new Structure(_pos, Structure.Type.CITY, this);
 		structs.add(capital);
-		capital.addResource(Resource.ORE, 100);
-		capital.addResource(Resource.METAL, 1000);
-		capital.addResource(Resource.OIL, 2000);
-		capital.addResource(Resource.FUEL, 20000);
-		capital.addResource(Resource.AMMO, 10000);
+		capital.resources.add(Resource.ORE, 100);
+		capital.resources.add(Resource.METAL, 1000);
+		capital.resources.add(Resource.OIL, 2000);
+		capital.resources.add(Resource.FUEL, 20000);
+		capital.resources.add(Resource.AMMO, 10000);
 		scienceDataAvailable = 70000;
 		
 		debug = this;

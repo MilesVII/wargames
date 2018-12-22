@@ -2,10 +2,13 @@ package com.milesseventh.wargames;
 
 import java.util.ArrayList;
 
-import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
-import com.milesseventh.wargames.Heartstrings.Technology;
-import com.milesseventh.wargames.SpecialTechnologyProperties.TechnologyRequirement;
-import com.milesseventh.wargames.Structure.Resource;
+import com.milesseventh.wargames.dialogs.CraftingDialog;
+import com.milesseventh.wargames.properties.CraftableProperties;
+import com.milesseventh.wargames.properties.ResourceProperties;
+import com.milesseventh.wargames.properties.SpecialTechnologyProperties;
+import com.milesseventh.wargames.properties.SpecialTechnologyProperties.TechnologyRequirement;
+import com.milesseventh.wargames.properties.StructureProperties;
+import com.milesseventh.wargames.properties.TechnologyProperties;
 
 public class Heartstrings {
 	public enum Technology{
@@ -35,6 +38,15 @@ public class Heartstrings {
 		FLARES,                   //Allows missiles to use decoy flares; Req: SW, RADIO, ENG(50%)
 	} 
 
+	//name, sign, description ORE, METAL, AMMO, OIL, FUEL, MISSILE
+	public static ResourceProperties[] rProperties = {
+		new ResourceProperties("Iron Ore",    "T",   "Raw iron ore. Can be converted into Metal when stored in the City"),
+		new ResourceProperties("Metal Ingot", "M",   "Metal slug. Main building material and currency"),
+		new ResourceProperties("Ammo Boxes",  "pcs", "Ammunition. Used by squads and structures to defend themselves"),
+		new ResourceProperties("Raw Oil",     "bbl", "Raw oil. Can be converted into Fuel when stored in the City"),
+		new ResourceProperties("Fuel",        "bbl", "Fuel. used by squads when moving"),
+		new ResourceProperties("Missile",     "pcs", "Ballistic Missile. Can be launched from Missile Silo. High jack this buddy!")
+	};
 	//title, shortTitle, maxMarkup
 	public static TechnologyProperties[] tProperties = {
 		new TechnologyProperties("Firepower",   "FPW", 70f),
@@ -333,25 +345,11 @@ public class Heartstrings {
 				cost += stProperties[i].priceMarkupInMetal;
 		return cost;
 	}
-	public static float getCraftingCost(CraftingDialog cd, Resource r, int count){
+	public static int getCraftingCost(CraftingDialog cd, Resource r, int count){
 		return getCraftingCost(cd.selected, r, cd.selectedT, cd.selectedST, count);
 	}
-	public static float getCraftingCost(Craftable unit, Resource res, float[] t, ArrayList<SpecialTechnology> st, int count){
-		switch(unit){
-		case AMMO:
-		case SCIENCE:
-			return ((get(unit, craftableProperties).getSingleCraftingCost(res) + getTechMarkup(t, st)) * count);
-		case BUILDER:
-		case FIGHTER:
-		case MISSILE:
-		case TRANSPORTER:
-			float cost = 0, craftingCost = get(unit, craftableProperties).getSingleCraftingCost(res) + getTechMarkup(t, st);
-			for (int i = 0; i < count; i++)
-				cost += craftingCost;
-			return cost;
-		default:
-			return -1;
-		}
+	public static int getCraftingCost(Craftable unit, Resource res, float[] t, ArrayList<SpecialTechnology> st, int count){
+		return Math.round(get(unit, craftableProperties).getSingleCraftingCost(res) + getTechMarkup(t, st)) * count;
 	}
 	
 	public static float getWorkamount(Unit u, float[] t, ArrayList<SpecialTechnology> st){
@@ -370,33 +368,31 @@ public class Heartstrings {
 	public static int getMaxCraftingOrder(Craftable unit, Structure manufacturer, float[] t, ArrayList<SpecialTechnology> st){
 		int order, minOrder = Integer.MAX_VALUE;//INF
 		for (Resource r: get(unit, craftableProperties).ingridients){
-			order = (int) Math.floor(manufacturer.getResource(r) / (get(unit, craftableProperties).getSingleCraftingCost(r) + getTechMarkup(t, st)));
-			while(getCraftingCost(unit, r, t ,st, order) <= manufacturer.getResource(r))
+			order = (int) Math.floor(manufacturer.resources.get(r) / (get(unit, craftableProperties).getSingleCraftingCost(r) + getTechMarkup(t, st)));
+			while(getCraftingCost(unit, r, t ,st, order) <= manufacturer.resources.get(r))
 				order ++;
 			minOrder = Math.min(minOrder, order - 1);
 		}
 		return minOrder;
 	}
 
-	public static float getRepairCostInMetal(Unit u){
+	public static int getRepairCostInMetal(Unit u){
 		if (!u.isDamaged())
 			return 0;
 		
-		return ((u.getMaxCondition() - u.condition) / u.getMaxCondition()) *      //Damage fraction
-		        getCraftingCost(fromUnitType(u.type), 
-		        	Structure.Resource.METAL,
-		        	u.techLevel, u.st, 1);                                        //Cost of bulding of a new analog unit
+		return Math.round((u.getMaxCondition() - u.condition) / u.getMaxCondition()) *      //Damage fraction
+		                  getCraftingCost(fromUnitType(u.type), Resource.METAL, u.techLevel, u.st, 1); //Cost of bulding of a new analog unit
 	}
 
 	private static final ArrayList<SpecialTechnology> imperialistscums = new ArrayList<SpecialTechnology>();
-	public static float getUpgradeCostInMetal(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
+	public static int getUpgradeCostInMetal(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
 		imperialistscums.clear();
 		imperialistscums.addAll(u.st);
 		imperialistscums.addAll(stToAdd);
 		
 		return 
-		getCraftingCost(fromUnitType(u.type), Structure.Resource.METAL, nt, imperialistscums, 1) -
-		getCraftingCost(fromUnitType(u.type), Structure.Resource.METAL, u.techLevel, u.st, 1);
+		getCraftingCost(fromUnitType(u.type), Resource.METAL, nt, imperialistscums, 1) -
+		getCraftingCost(fromUnitType(u.type), Resource.METAL, u.techLevel, u.st, 1);
 	}
 	
 	public static float getUpgradeWorkamount(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){

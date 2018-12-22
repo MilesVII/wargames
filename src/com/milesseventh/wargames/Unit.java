@@ -56,8 +56,8 @@ public class Unit {
 		techLevel[t.ordinal()] = MathUtils.clamp(in, 0, 1);
 	}
 	
-	public float getCapacity(){
-		return techLevel[Technology.CARGO.ordinal()] * MAX_CARGO;
+	public int getCapacity(){
+		return Math.round(techLevel[Technology.CARGO.ordinal()] * MAX_CARGO);
 	}
 	
 	public float getMaxCondition(){
@@ -71,6 +71,6 @@ public class Unit {
 	}
 	
 	public boolean canBeRepaired(Structure operator){
-		return operator.getResource(Structure.Resource.METAL) >= Heartstrings.getRepairCostInMetal(this);
+		return operator.resources.get(Resource.METAL) >= Heartstrings.getRepairCostInMetal(this);
 	}
 }

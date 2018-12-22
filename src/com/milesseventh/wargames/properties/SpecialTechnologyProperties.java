@@ -1,12 +1,15 @@
-package com.milesseventh.wargames;
+package com.milesseventh.wargames.properties;
 
+import com.milesseventh.wargames.Faction;
+import com.milesseventh.wargames.Heartstrings;
+import com.milesseventh.wargames.Utils;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
 
 public class SpecialTechnologyProperties {
 	public static class TechnologyRequirement{
-		Technology tech;
-		float level;
+		public Technology tech;
+		public float level;
 		
 		public TechnologyRequirement(Technology t, float minLevel){
 			tech = t;

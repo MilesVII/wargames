@@ -59,10 +59,10 @@ public class Structure implements Piemenuable{
 			for (int i = 0; i < nunitsDone; ++i){
 				switch(craftable){
 				case AMMO:
-					addResource(Resource.AMMO, 1);
+					resources.add(Resource.AMMO, 1);
 					break;
 				case MISSILE:
-					addResource(Resource.MISSILE, 1);
+					resources.add(Resource.MISSILE, 1);
 					break;
 				case SCIENCE:
 					++Faction.debug.scienceDataAvailable;
@@ -93,10 +93,7 @@ public class Structure implements Piemenuable{
 			time = nt;
 		}
 	}
-	private float[] resources = {0, 0, 0, 0, 0, 0};
-	public enum Resource {
-		ORE, METAL, AMMO, MISSILE, OIL, FUEL
-	}
+	public ResourceStorage resources = new ResourceStorage("Structure storage");
 	
 	public enum Type{
 		CITY, MINER, MB, ML, RADAR, AMD 
@@ -161,26 +158,10 @@ public class Structure implements Piemenuable{
 		rebuildPiemenu();
 	}
 	
-	public float getResource(Resource _resType){
-		return resources[_resType.ordinal()];
-	}
-	
-	public void addResource(Resource _resType, float _add){
-		resources[_resType.ordinal()] += _add;
-	}
-	
-	public boolean tryRemoveResource(Resource _resType, float _subtr){
-		if (resources[_resType.ordinal()] >= _subtr){
-			resources[_resType.ordinal()] -= _subtr;
-			return true;
-		} else
-			return false;
-	}
-	
 	public void orderCrafting(Craftable c, int amount, float[] t, ArrayList<SpecialTechnology> st){
 		Resource[] ingridients = Heartstrings.get(c, Heartstrings.craftableProperties).ingridients;
 		for (int i = 0; i < ingridients.length; ++i)
-			if (!tryRemoveResource(ingridients[i], Heartstrings.getCraftingCost(c, ingridients[i], t, st, amount)))
+			if (!resources.tryRemove(ingridients[i], Heartstrings.getCraftingCost(c, ingridients[i], t, st, amount)))
 				System.err.println("Bankrupt occured while withdrawing crafting order price");
 		
 		float wa = Heartstrings.getWorkamount(c, t, st);
@@ -210,7 +191,7 @@ public class Structure implements Piemenuable{
 	public void orderRepairing(Unit u){
 		assert(yard.contains(u));
 		assert(u.canBeRepaired(this));
-		assert(this.tryRemoveResource(Resource.METAL, Heartstrings.getRepairCostInMetal(u)));
+		assert(resources.tryRemove(Resource.METAL, Math.round(Heartstrings.getRepairCostInMetal(u))));
 		repairingQueue.addLast(u);
 		u.state = Unit.State.REPAIRING;
 	}
@@ -222,12 +203,12 @@ public class Structure implements Piemenuable{
 		u.state = Unit.State.PARKED;
 		repairingQueue.removeValue(u, false);
 		
-		addResource(Resource.METAL, Heartstrings.getRepairCostInMetal(u) * REPAIR_CANCELATION_REFUND); //refund
+		resources.add(Resource.METAL, (int)Math.floor(Heartstrings.getRepairCostInMetal(u) * REPAIR_CANCELATION_REFUND)); //refund
 	}
 	
 	public void orderUprgade(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
 		assert(yard.contains(u));
-		assert(this.tryRemoveResource(Resource.METAL, Heartstrings.getUpgradeCostInMetal(u, nt, stToAdd)));
+		assert(resources.tryRemove(Resource.METAL, Math.round(Heartstrings.getUpgradeCostInMetal(u, nt, stToAdd))));
 		u.st.addAll(stToAdd);
 		u.upgradeTime = Heartstrings.getUpgradeWorkamount(u, nt, stToAdd) / getCraftSpeed();
 		u.techLevel = nt;

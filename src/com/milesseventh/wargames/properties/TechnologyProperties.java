@@ -1,4 +1,4 @@
-package com.milesseventh.wargames;
+package com.milesseventh.wargames.properties;
 
 public class TechnologyProperties {
 	public float maxMarkup;

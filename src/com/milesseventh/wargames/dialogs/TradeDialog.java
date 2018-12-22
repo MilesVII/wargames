@@ -1,9 +1,14 @@
-package com.milesseventh.wargames;
+package com.milesseventh.wargames.dialogs;
 
 import java.util.Comparator;
 
+import com.milesseventh.wargames.Resource;
+import com.milesseventh.wargames.Squad;
+import com.milesseventh.wargames.Unit;
+import com.milesseventh.wargames.Unit.Type;
+
 public class TradeDialog {
-	public Structure.Resource selectedResource;
+	public Resource selectedResource;
 	
 	public TradeDialog() {
 		// TODO Auto-generated constructor stub
