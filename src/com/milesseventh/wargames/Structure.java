@@ -300,7 +300,7 @@ public class Structure implements Piemenuable{
 		Squad s = new Squad(ownerFaction, sposition);
 		
 		for (Unit u: (ArrayList<Unit>)units.clone()){
-			assert(!yard.contains(u));
+			assert(yard.contains(u));
 			if (yard.contains(u)){
 				yard.remove(u);
 				s.units.add(u);

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
+import com.milesseventh.wargames.WG.Dialog;
 
 public class Squad implements Piemenuable {
 	public enum State {
@@ -162,7 +163,8 @@ public class Squad implements Piemenuable {
 	public final PiemenuEntry PME_TRADE = new PiemenuEntry("Trade", new Callback(){
 		@Override
 		public void action(int source) {
-			//TODO: Stub
+			WG.antistatic.gui.focusedStruct = Utils.findNearestStructure(owner, position);
+			WG.antistatic.openDialog(Dialog.TRADE);
 		}
 	});
 	public final PiemenuEntry PME_BUILD = new PiemenuEntry("Build", new Callback(){

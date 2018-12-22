@@ -14,7 +14,7 @@ public class Unit {
 	public enum Type {FIGHTER, TRANSPORTER, BUILDER};
 	public enum State {PARKED, REPAIRING, UPGRADING, ACTIVE, FORTIFIED};
 	
-	public static final float MAX_CARGO = 1;
+	public static final float MAX_CARGO = 100f;
 	public static final float[] MAX_CONDITIONS_NO_ARM_TECH  = {700, 120, 320};
 	public static final float[] MAX_CONDITIONS_MAX_ARM_TECH = {1500, 750, 520};
 	
@@ -54,6 +54,10 @@ public class Unit {
 	
 	public void setTechLevel(Technology t, float in){
 		techLevel[t.ordinal()] = MathUtils.clamp(in, 0, 1);
+	}
+	
+	public float getCapacity(){
+		return techLevel[Technology.CARGO.ordinal()] * MAX_CARGO;
 	}
 	
 	public float getMaxCondition(){

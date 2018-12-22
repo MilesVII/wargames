@@ -282,6 +282,10 @@ public class WG extends ApplicationAdapter {
 		uistate = UIState.PIEMENU;
 		if (pma.getClass().isAssignableFrom(Structure.class))
 			gui.focusedStruct = (Structure) pma;
+		else {
+			assert(pma.getClass().isAssignableFrom(Squad.class));
+			gui.focusedSquad = (Squad) pma;
+		}
 	}
 	
 	public void setMenu(ListEntryCallback lec, int length){

@@ -12,9 +12,11 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Align;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
+import com.sun.webkit.ColorChooser;
 
 public class GUI {
 	public class Aligner {
@@ -41,6 +43,11 @@ public class GUI {
 			if (vdir != 0)
 				refPosition.y += (size.y + DIM_MARGIN.y * 2f) * vdir;
 			restorePosition();
+		}
+		
+		public void shift(float x, float y, int hdir, int vdir){
+			setSize(x, y);
+			next(hdir, vdir);
 		}
 		
 		public void reset(){
@@ -184,9 +191,9 @@ public class GUI {
 	};
 	
 	private static GlyphLayout glay = new GlyphLayout();
-	//Engaged 0; 1-6; 11; 12; 13-18; 22; 23; 24; 25-30; 31, 32
+	//Engaged 0; 1-6; 11; 12; 13-18; 22; 23; 24; 25-30; 31, 32, 33, 34
 	//Reserved 7-10; 19-21;
-	private Scrollbar[] scrollbars = new Scrollbar[32];
+	private Scrollbar[] scrollbars = new Scrollbar[64];
 	
 	public Vector2 DIM_DIALOG_REFPOINT,
 	               DIM_DIALOG_SIZE;
@@ -233,6 +240,7 @@ public class GUI {
 				scrollbars[i] = new Scrollbar();
 	}
 	
+	//LAB: Chooses which ST to investigate
 	private final ListEntryCallback GUI_LEC_ST = new ListEntryCallback() {
 		@Override
 		public void action(int id) {
@@ -255,21 +263,7 @@ public class GUI {
 		}
 	};
 	
-	private final ListEntryCallback GUI_LEC_CST = new ListEntryCallback() {
-		@Override
-		public void action(int id) {
-			craftingDialogState.toggleST(craftingDialogState.availableST[id]);
-		}
-		
-		@Override
-		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
-			SpecialTechnology st = craftingDialogState.availableST[id];
-			advancedButton(position, size, id, this, color, 
-			               Heartstrings.get(st, Heartstrings.stProperties).title, 
-			               null, (craftingDialogState.isSTSelected(st)) ? GUI.GUI_COLOR_SEVENTH : null);
-		}
-	};
-	
+	//CRAFT: Higher list, radio selector of type of available craftable item
 	private final ListEntryCallback GUI_LEC_CRAFTABLE = new ListEntryCallback() {
 		@Override
 		public void action(int id) {
@@ -288,10 +282,31 @@ public class GUI {
 		}
 	};
 	
+	//CRAFT: Lower list, selects special technologies of selected craftable item
+	private final ListEntryCallback GUI_LEC_CST = new ListEntryCallback() {
+		@Override
+		public void action(int id) {
+			craftingDialogState.toggleST(craftingDialogState.availableST[id]);
+		}
+		
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			SpecialTechnology st = craftingDialogState.availableST[id];
+			advancedButton(position, size, id, this, color, 
+			               Heartstrings.get(st, Heartstrings.stProperties).title, 
+			               null, (craftingDialogState.isSTSelected(st)) ? GUI.GUI_COLOR_SEVENTH : null);
+		}
+	};
+	
+	//YARD: List on the left side of screen, allows selecting units for upgrading and deploying
 	private final ListEntryCallback GUI_LEC_YARD_MANAGEMENT = new ListEntryCallback() {
 		@Override
 		public void action(int id) {
-			yardDialogState.select(focusedStruct.yard.get(id));
+			Unit u = focusedStruct.yard.get(id);
+			
+			if (u.state == Unit.State.PARKED)
+				yardDialogState.select(u);
+			
 			for (int i = 25; i <= 30; ++i)
 				scrollbars[i].initialized = false;
 		}
@@ -305,10 +320,12 @@ public class GUI {
 				                                              GUI.GUI_COLORS_PROGRESS_DAMAGED_TRANSPARENT);
 			advancedButton(position, size, id, this, color, 
 			               (yardDialogState.lastChecked == u ? ">" : "") + u.name, null/*TODO: prompt*/, 
-			               yardDialogState.selectedUnitsForDeployment.contains(u) ? GUI.GUI_COLOR_SEVENTH : null);
+			               yardDialogState.selectedUnitsForDeployment.contains(u) ? GUI.GUI_COLOR_SEVENTH : 
+			                                                                        u.state == Unit.State.UPGRADING ? Color.CYAN : null);
 		}
 	};
 	
+	//YARD: List of ST available to add before upgrading unit
 	private final ListEntryCallback GUI_LEC_YM_ST = new ListEntryCallback() {
 		@Override
 		public void action(int id) {
@@ -328,6 +345,36 @@ public class GUI {
 				else
 					advancedButton(position, size, id, GUI_ACT_DUMMY, GUI_COLORS_TRANSPARENT, 
 					               stp.title, stp.description, GUI.GUI_COLOR_SEVENTH);
+		}
+	};
+	
+	//TRADE: Resource selector on the left
+	private final ListEntryCallback GUI_LEC_TRADE_RESOURCES = new ListEntryCallback() {
+		@Override
+		public void action(int id) {
+			Structure.Resource resource = Structure.Resource.values()[id];
+			tradeDialogState.selectedResource = resource;
+		}
+		
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			Structure.Resource resource = Structure.Resource.values()[id];
+			advancedButton(position, size, id, this, color, 
+			               resource.name(), null, 
+			               tradeDialogState.selectedResource == resource ? GUI.GUI_COLOR_SEVENTH : null);
+		}
+	};
+	
+	//TRADE: Transporters list on the right
+	private final ListEntryCallback GUI_LEC_TRADE_TRANSPORTERS = new ListEntryCallback() {
+		@Override
+		public void action(int id) {}
+		
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			Unit u =  TradeDialog.getTransporterByID(focusedSquad, id);
+			advancedButton(position, size, id, this, color, 
+			               u.name, null, null);
 		}
 	};
 
@@ -403,8 +450,11 @@ public class GUI {
 			Unit u = yardDialogState.lastChecked;
 			float[] nt = guiYMHarvestUpgradeNTData();
 			
-			if (focusedStruct.getResource(Structure.Resource.METAL) >= Heartstrings.getUpgradeCostInMetal(u, nt, yardDialogState.stToAdd))
+			if (focusedStruct.getResource(Structure.Resource.METAL) >= Heartstrings.getUpgradeCostInMetal(u, nt, yardDialogState.stToAdd)){
+				if (yardDialogState.selectedUnitsForDeployment.contains(u))
+					yardDialogState.selectedUnitsForDeployment.remove(u);
 				focusedStruct.orderUprgade(u, nt, yardDialogState.stToAdd);
+			}
 		}
 	};
 	
@@ -413,6 +463,7 @@ public class GUI {
 	private Aligner aligner;
 	private CraftingDialog craftingDialogState = new CraftingDialog();
 	private YardDialog yardDialogState = new YardDialog();
+	private TradeDialog tradeDialogState = new TradeDialog();
 	public void dialog(WG.Dialog dialog){
 		//Drawing dialog backround and close button
 		sr.setColor(GUI_COLORS_DEFAULT[0]);
@@ -426,13 +477,13 @@ public class GUI {
 			dialogTitle = "Statistics and data";
 			aligner.setSize(.4f, .9f);
 			aligner.next(0, 1);
-			caption(aligner.position, "Faction" + focusedStruct.ownerFaction.name, font, false, null);
+			caption(aligner.position, "Faction" + focusedStruct.ownerFaction.name, font, VALIGN_TOP, null);
 			aligner.next(1, 0);
 			aligner.setSize(.6f, .1f);
-			caption(aligner.position, "TYPE: " + focusedStruct.type.name(), font, false, null);
+			caption(aligner.position, "TYPE: " + focusedStruct.type.name(), font, VALIGN_TOP, null);
 			for (Structure.Resource r: Structure.Resource.values()){
 				aligner.next(0, -1);
-				caption(aligner.position, r.name() + ": " + focusedStruct.getResource(r), font, false, null);
+				caption(aligner.position, r.name() + ": " + focusedStruct.getResource(r), font, VALIGN_TOP, null);
 			}
 			break;
 		case LABORATORY:
@@ -456,7 +507,7 @@ public class GUI {
 				            Faction.debug.getRelativeInvestigationPriority(Technology.values()[i]) * Faction.debug.investition,
 				            GUI_COLORS_SEVENTH_PROGRESS_TRANSPARENT);
 				caption(Utils.getVector(aligner.position).add(3f, captionCenteringOffset), 
-				        Heartstrings.tProperties[i].title, font, true, null);
+				        Heartstrings.tProperties[i].title, font, VALIGN_BOTTOM, null);
 				Faction.debug.techPriorities[i] = scrollbars[1 + i].offset;
 				
 				aligner.next(1, 0);
@@ -474,11 +525,11 @@ public class GUI {
 			scrollbars[23].update(Scrollbar.GUI_SB_DEFAULT_STATES);
 			scrollbars[23].render(GUI_COLORS_SCROLLBAR_COLORS);
 			caption(Utils.getVector(aligner.position).add(3f, captionCenteringOffset), 
-			        "Investition", font, true, null);
+			        "Investition", font, VALIGN_BOTTOM, null);
 			Faction.debug.investition = scrollbars[23].offset / ((float)Scrollbar.GUI_SB_DEFAULT_MAXVAL);
 			
 			aligner.next(0, -1);
-			caption(aligner.position, String.format("Science data available: %.2f", Faction.debug.scienceDataAvailable), font, true, null);
+			caption(aligner.position, String.format("Science data available: %.2f", Faction.debug.scienceDataAvailable), font, VALIGN_BOTTOM, null);
 			break;
 		case CRAFTING:
 			dialogTitle = "Assembly Factory";
@@ -504,7 +555,7 @@ public class GUI {
 					caption(aligner.position, 
 					        String.format(Heartstrings.tProperties[i].shortTitle + " %6.2f%%", 
 					                      craftingDialogState.selectedT[i] * 100f), 
-					        font, true, null);
+					        font, VALIGN_BOTTOM, null);
 					aligner.next(-1, -1);
 				}
 			}
@@ -515,11 +566,12 @@ public class GUI {
 			                                                       craftingDialogState.selectedT, craftingDialogState.selectedST) + 1);
 			scrollbars[22].render(GUI_COLORS_SCROLLBAR_COLORS);
 			aligner.next(1, 0);
-			caption(aligner.position, "Order: " + scrollbars[22].offset, font, true, null);
+			caption(aligner.position, "Order: " + scrollbars[22].offset, font, VALIGN_BOTTOM, null);
 			aligner.next(-1, 0);
 			aligner.setSize(.6f, .12f);
 			aligner.next(0, -1);
-			caption(aligner.position, "Price: " + Heartstrings.getCraftingCost(craftingDialogState, Structure.Resource.METAL, 1) + "M", font, true, null);
+			caption(aligner.position, "Price: " + Heartstrings.getCraftingCost(craftingDialogState, Structure.Resource.METAL, 1) + "M", 
+			        font, VALIGN_BOTTOM, null);
 			aligner.next(0, -1);
 			advancedButton(aligner.position, aligner.size, -1, GUI_ACT_CRAFTING_ORDER, 
 			               GUI_COLORS_DEFAULT, "Place an order", null, null);
@@ -534,7 +586,7 @@ public class GUI {
 			list(aligner.position, aligner.size, focusedStruct.yard.size(), GUI_LEC_YARD_MANAGEMENT, GUI_COLORS_DEFAULT, 24);
 			aligner.next(0, 1);
 			aligner.setSize(.4f, .1f);
-			caption(aligner.position, "Yard", font, true, null);
+			caption(aligner.position, "Yard", font, VALIGN_BOTTOM, null);
 			aligner.reset();
 			aligner.setSize(.4f, 1);
 			aligner.next(1, 1);
@@ -545,12 +597,12 @@ public class GUI {
 				aligner.setSize(.6f, .1f);
 				aligner.next(0, -1);
 				caption(aligner.position, u.type.name() + " " + u.name, 
-				        font, true, null);
+				        font, VALIGN_BOTTOM, null);
 				aligner.next(0, -1);
 				if (u.isDamaged()){
 					caption(aligner.position, 
 					        "Condition: " + (u.state == Unit.State.REPAIRING ? "Repairing" : "Damaged"), 
-					        font, true, null);
+					        font, VALIGN_BOTTOM, null);
 					aligner.next(0, -1);
 					advancedButton(aligner.position, aligner.size, -1, GUI_ACT_REPAIR, 
 					               GUI_COLORS_DEFAULT, u.state == Unit.State.REPAIRING ? "Cancel Repair" : "Repair", null, 
@@ -559,7 +611,7 @@ public class GUI {
 				} else {
 					if (u.state == Unit.State.PARKED) {
 						caption(aligner.position, "Upgrade: ", 
-						        font, true, null);
+						        font, VALIGN_BOTTOM, null);
 						aligner.next(0, -1);
 						aligner.setSize(.3f, .1f);
 						for (int i = 0; i < Heartstrings.Technology.values().length; ++i){
@@ -576,7 +628,7 @@ public class GUI {
 								caption(aligner.position, 
 								        String.format(Heartstrings.tProperties[i].shortTitle + " %3.0f/%3.0f%%", 
 								                      scrollbars[25 + i].offset + Math.floor(yardDialogState.lastChecked.techLevel[i] * 100f), Math.floor(focusedStruct.ownerFaction.tech[i] * 100f)), 
-								        font, true, null);
+								        font, VALIGN_BOTTOM, null);
 								aligner.next(0, -1);
 							}
 						}
@@ -592,17 +644,42 @@ public class GUI {
 						               GUI_COLORS_DEFAULT, "Upgrade", null, 
 						               yardDialogState.lastChecked.canBeRepaired(focusedStruct) ? null : Color.DARK_GRAY);
 						aligner.next(0, 1);
-						caption(aligner.position, "Upgrade cost: " + Heartstrings.getUpgradeCostInMetal(u, guiYMHarvestUpgradeNTData(), yardDialogState.stToAdd) + "M", font, true, null);
+						caption(aligner.position, "Upgrade cost: " + Heartstrings.getUpgradeCostInMetal(u, guiYMHarvestUpgradeNTData(), yardDialogState.stToAdd) + "M",
+						        font, VALIGN_BOTTOM, null);
 					} else if (u.state == Unit.State.UPGRADING){
 						caption(aligner.position, "Upgrading...", 
-						        font, true, null);
+						        font, VALIGN_BOTTOM, null);
 					} else {
 						caption(aligner.position, "EVERYTHING IS PLAIN WRONG", 
-						        font, true, null);
+						        font, VALIGN_BOTTOM, null);
 					}
 				}
 			}
 			
+			
+			break;
+		case TRADE:
+			dialogTitle = "The economy, stupid";
+			
+			//focusedSquad is set during WG.openDialog()
+			//focusedStruct is set manually from Squad's piemenu action
+			
+			aligner.setSize(.3f, .9f);
+			list(aligner.position, aligner.size, Structure.Resource.values().length, GUI_LEC_TRADE_RESOURCES, GUI_COLORS_DEFAULT, 33);
+			aligner.next(0, 1);
+			aligner.setSize(.3f, .1f);
+			caption(aligner.position, "Structure name", font, VALIGN_BOTTOM, null);
+			aligner.reset();
+			aligner.shift(.7f, .0f, 1, 0);
+			aligner.setSize(.3f, .9f);
+			list(aligner.position, aligner.size, TradeDialog.countTransporters(focusedSquad), GUI_LEC_TRADE_TRANSPORTERS, GUI_COLORS_DEFAULT, 34);
+			aligner.next(0, 1);
+			caption(aligner.position, "Squad name", font, VALIGN_BOTTOM, null);
+			aligner.reset();
+			
+			aligner.shift(.3f, .1f, 1, 9);
+			aligner.setSize(.4f, .1f);
+			caption(aligner.position, "Titol text", font, VALIGN_BOTTOM, null);
 			
 			break;
 		case NONE:
@@ -614,7 +691,7 @@ public class GUI {
 		aligner.reset();
 		showPostponedPrompt();
 		caption(normalToUI(Utils.getVector(0, 1f), true).add(DIM_MARGIN.x, (DIM_BUTTON_SIZ_CLOSE.y - font.getCapHeight()) / 2f),
-		        dialogTitle, font, true, null);
+		        dialogTitle, font, VALIGN_BOTTOM, null);
 	}
 	
 	public void menu(ListEntryCallback entry, Color[] colors, int length){
@@ -702,14 +779,19 @@ public class GUI {
 		prompt(back, prompt, Utils.UIMousePosition, false);
 	}
 	public void prompt(Color back, String prompt, Vector2 position, boolean centered){
+		//TODO: Rewrite with VALIGN constants available now
 		glay.setText(subFont, prompt);
 		sr.setColor(back);
-		Vector2 corner = centered ? 
-		                 	Utils.getVector(position.x - glay.width / 2f - PROMPT_BORDER, 
-		                 	                Math.max(position.y - glay.height / 2f - PROMPT_BORDER, 0)):
-		                 	Utils.getVector(position.x + 5, Math.max(position.y - glay.height - 5, 0));
+		Vector2 corner;
+		if (centered)
+			corner = Utils.getVector(position.x - glay.width / 2f - PROMPT_BORDER, 
+			                         Math.max(position.y - glay.height / 2f - PROMPT_BORDER, 0));
+		else
+			corner = Utils.getVector(position.x + 5, Math.max(position.y - glay.height - 5, 0));
+		
 		sr.rect(corner.x, corner.y, glay.width + PROMPT_BORDER * 2, glay.height + PROMPT_BORDER * 2);
-		caption(corner.add(PROMPT_BORDER, PROMPT_BORDER), prompt, subFont, true, null);
+		//caption(corner.add(PROMPT_BORDER, PROMPT_BORDER), prompt, subFont, Align.left, WG.UI_W * .25f, VALIGN_BOTTOM, null);
+		caption(corner.add(PROMPT_BORDER, PROMPT_BORDER), prompt, subFont, VALIGN_BOTTOM, null);
 	}
 	
 	public void button(Vector2 position, Vector2 size, int id, Callback callback, Color[] colors){
@@ -730,7 +812,7 @@ public class GUI {
 		button(position, size, id, callback, colors);
 		if (caption != null){
 			glay.setText(font, caption);
-			caption(Utils.getVector(position).add(DIM_MARGIN.x, (size.y - glay.height) * .5f), caption, font, true, textColor);
+			caption(Utils.getVector(position).add(DIM_MARGIN.x, (size.y - glay.height) * .5f), caption, font, VALIGN_BOTTOM, textColor);
 		}
 		if (prompt != null && UIMouseHovered(position, size)){
 			postponePrompt(GUI_COLORS_DEFAULT[0], prompt);
@@ -754,7 +836,7 @@ public class GUI {
 		String caption = String.valueOf(Math.round(progress * 100f));
 		glay.setText(subFont, caption);
 		caption(Utils.getVector(position).add(glay.width / -2f, glay.height / -2f), 
-		        caption, subFont, true, null);
+		        caption, subFont, VALIGN_BOTTOM, null);
 	}
 	public void path(Vector2[] path, float width, Color color){
 		path(path, width, color, 0);
@@ -768,12 +850,18 @@ public class GUI {
 			currentNode = nextNode;
 			nextNode = WG.antistatic.getUIFromWorldV(path[i + 1]);
 			sr.setColor(color);
-			//sr.rectLine(currentNode.x, currentNode.y, nextNode.x, nextNode.y, width);
-			sr.circle(currentNode.x, currentNode.y, 2);
+			sr.rectLine(currentNode.x, currentNode.y, nextNode.x, nextNode.y, width);
+			//sr.circle(currentNode.x, currentNode.y, 2);
 		}
 	}
-	
-	public void caption(Vector2 position, String text, BitmapFont font, boolean alignToBottom, Color color){
+
+	public static final float VALIGN_BOTTOM = 1f;
+	public static final float VALIGN_MIDDLE = .5f;
+	public static final float VALIGN_TOP = 0f;
+	public void caption(Vector2 position, String text, BitmapFont font, float alignToBottom, Color color){
+		caption(position, text, font, Align.left, 0, alignToBottom, color);
+	}
+	public void caption(Vector2 position, String text, BitmapFont font, int halign, float targetWidth, float alignToBottom, Color color){
 		sr.flush();
 		glay.setText(font, text);
 		
@@ -782,7 +870,8 @@ public class GUI {
 			font.setColor(GUI_COLOR_TEXT_DEF);
 		else
 			font.setColor(color);
-		font.draw(batch, text, position.x, position.y + (alignToBottom ? glay.height : 0));
+		//font.draw(batch, text, position.x, position.y);
+		font.draw(batch, text, position.x, position.y + glay.height * alignToBottom, targetWidth, halign, targetWidth > 0);
 		batch.end();
 
 		Gdx.gl.glEnable(GL20.GL_BLEND); //TODO: Investigate and fix the crutch
