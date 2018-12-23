@@ -1,5 +1,6 @@
 package com.milesseventh.wargames;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import com.badlogic.gdx.graphics.Color;
@@ -58,23 +59,52 @@ public class Utils {
 		return _place;
 	}
 	
-	public static Structure findNearestStructure(Faction f, Vector2 from){
+	public static Squad findNearestSquad(Faction f, Vector2 from, Squad except){
 		if (f == null){
-			Structure nearest = Faction.factions.get(0).structs.get(0);
+			Squad nearest = null;
 			for (Faction faction: Faction.factions){
-				Structure t = findNearestStructureCore(faction, from);
-				if (from.dst2(t.position) < from.dst2(nearest.position))
+				Squad t = findNearestSquadCore(faction, from, except);
+				if (nearest == null || from.dst2(t.position) < from.dst2(nearest.position))
 					nearest = t;
 			}
 			return nearest;
 		} else
-			return findNearestStructureCore(f, from);
+			return findNearestSquadCore(f, from, except);
 	}
 	
-	private static Structure findNearestStructureCore(Faction f, Vector2 from){
-		Structure minStructure = f.structs.get(0);
+	private static Squad findNearestSquadCore(Faction f, Vector2 from, Squad except){
+		Squad minSquad = null;
+		for (Squad to: f.squads)
+			if (minSquad == null || (to != except && from.dst2(to.position) < from.dst2(minSquad.position)))
+				minSquad = to;
+		return minSquad;
+	}
+	
+	public static void findStructuresWithinRadius2(ArrayList<Structure> results, Faction f, Vector2 from, float radius2, Structure except){
+		results.clear();
 		for (Structure to: f.structs)
-			if (from.dst2(to.position) < from.dst2(minStructure.position))
+			if (to != except && from.dst2(to.position) <= radius2)
+				results.add(to);
+	}
+
+	public static Structure findNearestStructure(Faction f, Vector2 from, Structure except){
+		if (f == null){
+			Structure nearest = null;
+			for (Faction faction: Faction.factions){
+				Structure t = findNearestStructureCore(faction, from, except);
+				if (nearest == null || from.dst2(t.position) < from.dst2(nearest.position))
+					nearest = t;
+			}
+			return nearest;
+		} else
+			return findNearestStructureCore(f, from, except);
+	}
+	
+	private static Structure findNearestStructureCore(Faction f, Vector2 from, Structure except){
+		Structure minStructure = null;
+		for (Structure to: f.structs)
+			if (minStructure == null || 
+			    (to != except && from.dst2(to.position) < from.dst2(minStructure.position)))
 				minStructure = to;
 		return minStructure;
 	}

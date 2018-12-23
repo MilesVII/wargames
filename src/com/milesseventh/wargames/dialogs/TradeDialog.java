@@ -5,15 +5,19 @@ import java.util.Comparator;
 import com.milesseventh.wargames.Resource;
 import com.milesseventh.wargames.Squad;
 import com.milesseventh.wargames.Unit;
-import com.milesseventh.wargames.Unit.Type;
 
 public class TradeDialog {
-	public Resource selectedResource;
+	public Resource selectedResource = null;
 	
 	public TradeDialog() {
 		// TODO Auto-generated constructor stub
 	}
-
+	
+	public float getMaxLoadable(Squad s){
+		return Math.min(s.tradePartner.get(selectedResource), 
+		                s.getCapacity() - (s.resources.sum() - s.resources.get(Resource.MISSILE)));
+	}
+	
 	public static int countTransporters(Squad s){
 		int i = 0;
 		for (Unit u: s.units)

@@ -15,9 +15,6 @@ public class Unit {
 	public enum State {PARKED, REPAIRING, UPGRADING, ACTIVE, FORTIFIED};
 	
 	public static final float MAX_CARGO = 100f;
-	public static final float[] MAX_CONDITIONS_NO_ARM_TECH  = {700, 120, 320};
-	public static final float[] MAX_CONDITIONS_MAX_ARM_TECH = {1500, 750, 520};
-	public static final float[] MAX_FUEL_CONSUMPTION = {2, 1, 7};
 	
 	public String name;
 	public float[] techLevel;
@@ -62,12 +59,12 @@ public class Unit {
 	}
 	
 	public float getFuelConsumption(){
-		return MAX_FUEL_CONSUMPTION[type.ordinal()] * Utils.remap(techLevel[Technology.SPEED.ordinal()], 0, 1, 1, .3f);
+		return Heartstrings.get(type, Heartstrings.uProperties).fuelConsumption * Utils.remap(techLevel[Technology.SPEED.ordinal()], 0, 1, 1, .3f);
 	}
 	
 	public float getMaxCondition(){
-		return MathUtils.lerp(MAX_CONDITIONS_NO_ARM_TECH[type.ordinal()], 
-		                      MAX_CONDITIONS_MAX_ARM_TECH[type.ordinal()], 
+		return MathUtils.lerp(Heartstrings.get(type, Heartstrings.uProperties).minMaxCondition, 
+		                      Heartstrings.get(type, Heartstrings.uProperties).maxMaxCondition, 
 		                      techLevel[Technology.ARMOR.ordinal()]);
 	}
 	

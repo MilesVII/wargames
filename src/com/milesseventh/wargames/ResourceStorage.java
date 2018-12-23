@@ -7,6 +7,13 @@ public class ResourceStorage {
 	public ResourceStorage(String nname) {
 		name = nname;
 	}
+	
+	public float sum(){
+		float r = 0;
+		for (float i: resources)
+			r += i;
+		return r;
+	}
 
 	public void add(Resource r, float size){
 		resources[r.ordinal()] += size;

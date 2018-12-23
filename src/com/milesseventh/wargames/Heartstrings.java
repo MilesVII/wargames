@@ -9,15 +9,11 @@ import com.milesseventh.wargames.properties.SpecialTechnologyProperties;
 import com.milesseventh.wargames.properties.SpecialTechnologyProperties.TechnologyRequirement;
 import com.milesseventh.wargames.properties.StructureProperties;
 import com.milesseventh.wargames.properties.TechnologyProperties;
+import com.milesseventh.wargames.properties.UnitProperties;
 
 public class Heartstrings {
 	public enum Technology{
-		FIREPOWER, 
-		ARMOR, 
-		ACCURACY, 
-		SPEED, 
-		CARGO, 
-		ENGINEERING
+		FIREPOWER, ARMOR, ACCURACY, SPEED, CARGO, ENGINEERING
 	}
 	public enum Craftable{
 		SCIENCE, TRANSPORTER, BUILDER, FIGHTER, AMMO, MISSILE
@@ -40,21 +36,21 @@ public class Heartstrings {
 
 	//name, sign, description
 	public static ResourceProperties[] rProperties = {
+		new ResourceProperties("Iron Ore",    "T",   "Raw iron ore. Can be converted into Metal when stored in the City"),
+		new ResourceProperties("Metal Ingot", "M",   "Metal slug. Main building material and currency"),
 		new ResourceProperties("Ammo Boxes",  "pcs", "Ammunition. Used by squads and structures to defend themselves"),
 		new ResourceProperties("Raw Oil",     "bbl", "Raw oil. Can be converted into Fuel when stored in the City"),
 		new ResourceProperties("Fuel",        "bbl", "Fuel. used by squads when moving"),
-		new ResourceProperties("Iron Ore",    "T",   "Raw iron ore. Can be converted into Metal when stored in the City"),
-		new ResourceProperties("Metal Ingot", "M",   "Metal slug. Main building material and currency"),
 		new ResourceProperties("Missile",     "pcs", "Ballistic Missile. Can be launched from Missile Silo. High jack this buddy!")
 	};
 	//title, shortTitle, maxMarkup
 	public static TechnologyProperties[] tProperties = {
-		new TechnologyProperties("Firepower",   "FPW", 70f),
-		new TechnologyProperties("Armor",       "ARM", 80f),
-		new TechnologyProperties("Accuracy",    "ACC", 50f),
-		new TechnologyProperties("Speed",       "SPD", 30f),
-		new TechnologyProperties("Cargo load",  "CRG", 40f),
-		new TechnologyProperties("Engineering", "ENG", 120f)
+		new TechnologyProperties("Firepower",   "FPW", 70f), //Improves potential damage from squad's fire
+		new TechnologyProperties("Armor",       "ARM", 80f), //Improves vitality of units
+		new TechnologyProperties("Accuracy",    "ACC", 50f), //Improves fire efficiency and fighting radius
+		new TechnologyProperties("Speed",       "SPD", 30f), //Improves speed and reduces fuel consumption
+		new TechnologyProperties("Cargo load",  "CRG", 40f), //Improves transporters' capacity
+		new TechnologyProperties("Engineering", "ENG", 120f) //Improves effectiveness of cities and reduces building costs
 	};
 	//title, fightingRange, maxCondition, craftSpeed
 	public static StructureProperties[] structureProperties = {
@@ -65,7 +61,12 @@ public class Heartstrings {
 		new StructureProperties("Radar",            12f,  70f,   0),
 		new StructureProperties("AMD",              27f, 120f,   0)
 	};
-	
+	//name, fuelConsumption, minMaxCondition, maxMaxCondition
+	public static UnitProperties[] uProperties = {
+		new UnitProperties("Fighter",     2, 700, 1500),
+		new UnitProperties("Transporter", 1, 120, 750),
+		new UnitProperties("MCV",         7, 320, 520)
+	};
 	//title, description, investigationWorkamount, workamountMarkup, investigationPrice, 
 	//priceMarkup, TechnologyRequirement[], SpecialTechnology[]
 	public static SpecialTechnologyProperties[] stProperties = {

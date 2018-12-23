@@ -194,7 +194,7 @@ public class GUI {
 	};
 	
 	private static GlyphLayout glay = new GlyphLayout();
-	//Engaged 0; 1-6; 11; 12; 13-18; 22; 23; 24; 25-30; 31, 32, 33, 34
+	//Engaged 0; 1-6; 11; 12; 13-18; 22; 23; 24; 25-30; 31, 32, 33, 34, 35
 	//Reserved 7-10; 19-21;
 	private Scrollbar[] scrollbars = new Scrollbar[64];
 	
@@ -680,8 +680,10 @@ public class GUI {
 		case TRADE:
 			dialogTitle = "The economy, stupid";
 			
-			//focusedSquad is set during WG.openDialog()
-			//focusedStruct is set manually from Squad's piemenu action
+			if (!scrollbars[35].initialized)
+				scrollbars[35].init(Utils.getVector(aligner.position), 
+				                    Utils.getVector(aligner.size), 
+				                    false, Scrollbar.GUI_SB_DEFAULT_THUMB);
 			
 			aligner.setSize(.3f, .9f);
 			list(aligner.position, aligner.size, Resource.values().length, GUI_LEC_TRADE_RESOURCES, GUI_COLORS_DEFAULT, 33);
@@ -698,8 +700,17 @@ public class GUI {
 			
 			aligner.shift(.3f, .1f, 1, 9);
 			aligner.setSize(.4f, .1f);
-			caption(aligner.position, "Titol text", font, VALIGN_BOTTOM, null);
-			
+			//caption(aligner.position, "Titol text", font, VALIGN_BOTTOM, null);
+			aligner.next(0, -1);
+			if (tradeDialogState.selectedResource != null){
+				scrollbars[35].update((int)Math.floor(tradeDialogState.getMaxLoadable(focusedSquad)));
+				scrollbars[35].render(GUI_COLORS_SCROLLBAR_COLORS);
+				aligner.next(0, -1);
+				caption(aligner.position, "How many resources one side has", font, VALIGN_BOTTOM, null);
+//TODO: stopped here
+				aligner.next(0, -1);
+				caption(aligner.position, "And other", font, VALIGN_BOTTOM, null);
+			}
 			break;
 		case NONE:
 			break;

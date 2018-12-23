@@ -18,7 +18,8 @@ public class Squad implements Piemenuable {
 	public Faction owner;
 	public ArrayList<Unit> units = new ArrayList<Unit>();
 	public String name;
-	public ResourceStorage resources;
+	public ResourceStorage resources, tradePartner;
+	private ArrayList<Structure> interactableStructures = new ArrayList<Structure>();
 	
 	private Vector2[] path = null;
 	private int pathSegment = -1;
@@ -58,14 +59,14 @@ public class Squad implements Piemenuable {
 			if (state == State.MOVING)
 				WG.antistatic.gui.path(path, 2, Color.BLACK, pathSegment);
 			
-			if (Gdx.input.justTouched())
+			if (Gdx.input.justTouched())// && piemenu.size() > 0) it won't break anyway, and piemenu with only one action would be more demonstrative than nothing
 				WG.antistatic.setFocusOnPiemenuable(this);
 			
-			WG.antistatic.gui.prompt(name + "\n" + units.size() + "units\n" + resources.get(Resource.FUEL) + Heartstrings.get(Resource.FUEL, Heartstrings.rProperties).sign + " of fuel");
+			WG.antistatic.gui.prompt(name + "\n" + units.size() + " units\n" + resources.get(Resource.FUEL) + Heartstrings.get(Resource.FUEL, Heartstrings.rProperties).sign + " of fuel");
 		}
 		
 		//Move column on path
-		if (resources.get(Resource.FUEL) <= 0)
+		if (!hasFuel())
 			resetPath();
 		
 		Vector2 positionHolder = Utils.getVector(position);
@@ -88,7 +89,7 @@ public class Squad implements Piemenuable {
 					++pathSegment;
 					step -= position.dst(path[pathSegment]);
 					position = path[pathSegment].cpy();
-	
+					
 					if (pathSegment == path.length - 1){
 						//Arrived!
 						state = State.STAND;
@@ -128,6 +129,18 @@ public class Squad implements Piemenuable {
 		return fc;
 	}
 	
+	public boolean hasFuel(){
+		return resources.get(Resource.FUEL) > 0;
+	}
+	
+	public float getCapacity(){
+		float r = 0;
+		for (Unit u: units)
+			if (u.type == Unit.Type.TRANSPORTER)
+				r += u.getCapacity();
+		return r;
+	}
+	
 	private ListEntryCallback LEC_BUILD_MENU = new ListEntryCallback(){
 		@Override
 		public void action(int id) {
@@ -144,37 +157,77 @@ public class Squad implements Piemenuable {
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
 			String title;
-			if (id >= Structure.Type.values().length)
-				title = "Cancel";
-			else {
+			if (id < Structure.Type.values().length){
 				Structure.Type st = Structure.Type.values()[id];
 				title = Heartstrings.get(st, Heartstrings.structureProperties).title;
-			}
+			} else
+				title = "Cancel";
+			
+			WG.antistatic.gui.advancedButton(position, size, id, this, color, title, null, null);
+		}
+	};
+	private ListEntryCallback LEC_DISBAND_SELECTION_MENU = new ListEntryCallback(){
+		@Override
+		public void action(int id) {
+			if (id < Structure.Type.values().length)
+				join(interactableStructures.get(id).yard);
+			
+			WG.antistatic.uistate = WG.UIState.FREE;
+		}
+
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			String title;
+			if (id < Structure.Type.values().length)
+				title = interactableStructures.get(id).name;
+			else
+				title = "Cancel";
+			
+			WG.antistatic.gui.advancedButton(position, size, id, this, color, title, null, null);
+		}
+	};
+	private ListEntryCallback LEC_TRADE_SELECTION_MENU = new ListEntryCallback(){
+		@Override
+		public void action(int id) {
+			if (id < Structure.Type.values().length)
+				trade(interactableStructures.get(id).resources);
+			
+			WG.antistatic.uistate = WG.UIState.FREE;
+		}
+
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			String title;
+			if (id < Structure.Type.values().length)
+				title = interactableStructures.get(id).name;
+			else
+				title = "Cancel";
 			
 			WG.antistatic.gui.advancedButton(position, size, id, this, color, title, null, null);
 		}
 	};
 	
 	//Piemenu implementation
-	public final ArrayList<PiemenuEntry> PIEMENU = new ArrayList<PiemenuEntry>();
+	public final ArrayList<PiemenuEntry> piemenu = new ArrayList<PiemenuEntry>();
 	private void rebuildPiemenu(){
-		PIEMENU.clear();
-		PIEMENU.add(PiemenuEntry.PME_CANCEL);
+		piemenu.clear();
+		piemenu.add(PiemenuEntry.PME_CANCEL);
 		if (state == State.MOVING)
-			PIEMENU.add(PME_STOP);
-		else
-			PIEMENU.add(PME_MOVE);
+			piemenu.add(PME_STOP);
+		else if (hasFuel())
+			piemenu.add(PME_MOVE);
 		
 		if (state == State.STAND){
-			Structure nfs = Utils.findNearestStructure(owner, position);
+			//Structure nfs = Utils.findNearestStructure(owner, position, null);
+			Utils.findStructuresWithinRadius2(interactableStructures, owner, position, STRUCTURE_INTERACTION_DISTANCE2, null);
 			
 			if (isUnitTypePresent(Unit.Type.BUILDER))
-				PIEMENU.add(PME_BUILD);
+				piemenu.add(PME_BUILD);
 			
-			if (position.dst2(nfs.position) < STRUCTURE_INTERACTION_DISTANCE2){
+			if (interactableStructures.size() > 0){
 				if (isUnitTypePresent(Unit.Type.TRANSPORTER))
-					PIEMENU.add(PME_TRADE);
-				PIEMENU.add(PME_DISBAND);
+					piemenu.add(PME_TRADE);
+				piemenu.add(PME_DISBAND);
 			}
 		}
 	}
@@ -194,8 +247,12 @@ public class Squad implements Piemenuable {
 	public final PiemenuEntry PME_TRADE = new PiemenuEntry("Trade", new Callback(){
 		@Override
 		public void action(int source) {
-			WG.antistatic.gui.focusedStruct = Utils.findNearestStructure(owner, position);
-			WG.antistatic.openDialog(Dialog.TRADE);
+			assert(interactableStructures.size() > 0);
+			
+			if (interactableStructures.size() == 1)
+				trade(interactableStructures.get(0).resources);
+			else
+				WG.antistatic.setMenu(LEC_TRADE_SELECTION_MENU, interactableStructures.size() + 1);
 		}
 	});
 	public final PiemenuEntry PME_BUILD = new PiemenuEntry("Build", new Callback(){
@@ -208,12 +265,24 @@ public class Squad implements Piemenuable {
 	public final PiemenuEntry PME_DISBAND = new PiemenuEntry("Disband", new Callback(){
 		@Override
 		public void action(int source) {
-			Structure nfs = Utils.findNearestStructure(owner, position);
-			nfs.yard.addAll(units);
-			owner.squads.remove(me);
+			assert(interactableStructures.size() > 0);
+			
+			if (interactableStructures.size() == 1)
+				join(interactableStructures.get(0).yard);
+			else
+				WG.antistatic.setMenu(LEC_DISBAND_SELECTION_MENU, interactableStructures.size() + 1);
 		}
 	});
+	private void join(ArrayList<Unit> to){
+		to.addAll(units);
+		owner.squads.remove(me);
+	}
 	
+	private void trade(ResourceStorage rs){
+		//WG.antistatic.gui.focusedStruct = Utils.findNearestStructure(owner, position, null);
+		tradePartner = rs;
+		WG.antistatic.openDialog(Dialog.TRADE);
+	}
 	//Piemenuable interface
 	@Override
 	public Vector2 getWorldPosition() {
@@ -222,6 +291,6 @@ public class Squad implements Piemenuable {
 	
 	@Override
 	public ArrayList<PiemenuEntry> getEntries() {
-		return PIEMENU;
+		return piemenu;
 	}
 }

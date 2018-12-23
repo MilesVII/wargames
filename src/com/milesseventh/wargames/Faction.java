@@ -16,7 +16,6 @@ public class Faction {
 	public static ArrayList<Faction> factions = new ArrayList<Faction>();
 	
 	public static Faction debug;
-	public static Squad debugCol;
 	
 	public static Texture[] ICONS = {
 			new Texture(Gdx.files.internal("city.png")),
@@ -66,8 +65,6 @@ public class Faction {
 		scienceDataAvailable = 70000;
 		
 		debug = this;
-		debugCol = new Squad(this, _pos);
-		//squads.add(debugCol);
 
 		factions.add(this);
 	}
