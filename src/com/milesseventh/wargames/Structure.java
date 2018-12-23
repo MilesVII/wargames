@@ -93,7 +93,6 @@ public class Structure implements Piemenuable{
 			time = nt;
 		}
 	}
-	public ResourceStorage resources = new ResourceStorage("Structure storage");
 	
 	public enum Type{
 		CITY, MINER, MB, ML, RADAR, AMD 
@@ -105,6 +104,7 @@ public class Structure implements Piemenuable{
 	private float vitality, maxVitality;
 	public Vector2 position;
 	public Type type;
+	public ResourceStorage resources = new ResourceStorage("Structure storage");
 	
 	private Queue<CraftingOrder> manufactoryQueue = new Queue<CraftingOrder>();
 	private Queue<Unit> repairingQueue = new Queue<Unit>();

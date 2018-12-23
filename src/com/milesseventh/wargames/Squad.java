@@ -65,6 +65,9 @@ public class Squad implements Piemenuable {
 		}
 		
 		//Move column on path
+		if (resources.get(Resource.FUEL) <= 0)
+			resetPath();
+		
 		Vector2 positionHolder = Utils.getVector(position);
 		if (path != null && path.length > 1){
 			if (pathSegment == -1){

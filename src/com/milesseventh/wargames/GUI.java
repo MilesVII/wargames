@@ -584,7 +584,7 @@ public class GUI {
 			aligner.setSize(.6f, .12f);
 			aligner.next(0, -1);
 			
-			int price = Heartstrings.getCraftingCost(craftingDialogState, Resource.METAL, 1);
+			float price = Heartstrings.getCraftingCost(craftingDialogState, Resource.METAL, 1);
 			int amount = scrollbars[22].offset;
 			
 			caption(aligner.position, "Price: " + price + "M × " + amount + " = " + (price * amount) + "M", 
@@ -613,7 +613,6 @@ public class GUI {
 			
 			Unit u = yardDialogState.lastChecked;
 			if (u != null){
-				
 				aligner.setSize(.6f, .1f);
 				aligner.next(0, -1);
 				caption(aligner.position, u.type.name() + " " + u.name, 
@@ -646,8 +645,8 @@ public class GUI {
 								scrollbars[25 + i].render(GUI_COLORS_SCROLLBAR_COLORS);
 								
 								caption(aligner.position, 
-								        String.format(Heartstrings.tProperties[i].shortTitle + " %3.0f/%3.0f%%", 
-								                      scrollbars[25 + i].offset + Math.floor(yardDialogState.lastChecked.techLevel[i] * 100f), Math.floor(focusedStruct.ownerFaction.tech[i] * 100f)), 
+								        String.format(Heartstrings.tProperties[i].shortTitle + " %3d/%3d%%", 
+								                      scrollbars[25 + i].offset + (int)Math.floor(yardDialogState.lastChecked.techLevel[i] * 100f), (int)Math.floor(focusedStruct.ownerFaction.tech[i] * 100f)), 
 								        font, VALIGN_BOTTOM, null);
 								aligner.next(0, -1);
 							}

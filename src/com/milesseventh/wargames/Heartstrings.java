@@ -345,11 +345,22 @@ public class Heartstrings {
 				cost += stProperties[i].priceMarkupInMetal;
 		return cost;
 	}
-	public static int getCraftingCost(CraftingDialog cd, Resource r, int count){
+	public static float getCraftingCost(CraftingDialog cd, Resource r, int count){
 		return getCraftingCost(cd.selected, r, cd.selectedT, cd.selectedST, count);
 	}
-	public static int getCraftingCost(Craftable unit, Resource res, float[] t, ArrayList<SpecialTechnology> st, int count){
-		return Math.round(get(unit, craftableProperties).getSingleCraftingCost(res) + getTechMarkup(t, st)) * count;
+	public static float getCraftingCost(Craftable unit, Resource res, float[] t, ArrayList<SpecialTechnology> st, int count){
+		//Count only those technologies that used by unit
+		for (int i = 0; i < t.length; ++i){
+			boolean keepTech = false;
+			Technology[] at = get(unit, craftableProperties).availableTechs;
+			for (int j = 0; j < at.length; ++j)
+				if (at[j] == Technology.values()[i])
+					keepTech = true;
+			if (!keepTech)
+				t[i] = 0;
+		}
+		
+		return (get(unit, craftableProperties).getSingleCraftingCost(res) + getTechMarkup(t, st)) * count;
 	}
 	
 	public static float getWorkamount(Unit u, float[] t, ArrayList<SpecialTechnology> st){
@@ -376,16 +387,16 @@ public class Heartstrings {
 		return minOrder;
 	}
 
-	public static int getRepairCostInMetal(Unit u){
+	public static float getRepairCostInMetal(Unit u){
 		if (!u.isDamaged())
 			return 0;
 		
-		return Math.round((u.getMaxCondition() - u.condition) / u.getMaxCondition()) *      //Damage fraction
-		                  getCraftingCost(fromUnitType(u.type), Resource.METAL, u.techLevel, u.st, 1); //Cost of bulding of a new analog unit
+		return ((u.getMaxCondition() - u.condition) / u.getMaxCondition()) *      //Damage fraction
+		       getCraftingCost(fromUnitType(u.type), Resource.METAL, u.techLevel, u.st, 1); //Cost of bulding of a new analog unit
 	}
 
 	private static final ArrayList<SpecialTechnology> imperialistscums = new ArrayList<SpecialTechnology>();
-	public static int getUpgradeCostInMetal(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
+	public static float getUpgradeCostInMetal(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
 		imperialistscums.clear();
 		imperialistscums.addAll(u.st);
 		imperialistscums.addAll(stToAdd);
