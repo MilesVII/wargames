@@ -34,7 +34,7 @@ public class Squad implements Piemenuable {
 		nameSelector %= SQUAD_NAMES.length;
 		resources = new ResourceStorage("Squad " + name);
 		
-		resources.add(Resource.FUEL, 2000f);
+		//resources.add(Resource.FUEL, 2000f);
 		
 		position = nposition.cpy();
 		owner = nowner;
@@ -62,7 +62,7 @@ public class Squad implements Piemenuable {
 			if (Gdx.input.justTouched())// && piemenu.size() > 0) it won't break anyway, and piemenu with only one action would be more demonstrative than nothing
 				WG.antistatic.setFocusOnPiemenuable(this);
 			
-			WG.antistatic.gui.prompt(name + "\n" + units.size() + " units\n" + resources.get(Resource.FUEL) + Heartstrings.get(Resource.FUEL, Heartstrings.rProperties).sign + " of fuel");
+			WG.antistatic.gui.prompt(name + "\n" + units.size() + " units\n" + resources.get(Resource.FUEL) + Heartstrings.get(Resource.FUEL, Heartstrings.rProperties).sign + " of fuel\nPayload:" + getCapacity());
 		}
 		
 		//Move column on path
@@ -77,7 +77,7 @@ public class Squad implements Piemenuable {
 				float step = getSpeed() * dt;
 				
 				float fuelWasted = step * getFuelConsumption();
-				System.out.println(fuelWasted);
+				
 				if (resources.isEnough(Resource.FUEL, fuelWasted))
 					resources.tryRemove(Resource.FUEL, fuelWasted);
 				else {
@@ -136,8 +136,7 @@ public class Squad implements Piemenuable {
 	public float getCapacity(){
 		float r = 0;
 		for (Unit u: units)
-			if (u.type == Unit.Type.TRANSPORTER)
-				r += u.getCapacity();
+			r += u.getCapacity();
 		return r;
 	}
 	

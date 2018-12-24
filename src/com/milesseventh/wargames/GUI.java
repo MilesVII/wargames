@@ -211,6 +211,7 @@ public class GUI {
 		@Override
 		public void action(int source) {
 			yardDialogState.selectedUnitsForDeployment.clear();
+			tradeDialogState.reset();
 			WG.antistatic.uistate = WG.UIState.FREE;
 		}
 	};
@@ -352,11 +353,25 @@ public class GUI {
 	};
 	
 	//TRADE: Resource selector on the left
+	/**Sets initial offset for scrollbar-35, main scrollbar for resource transferring
+	 * Must be called after init
+	 * @return
+	 */
+	private void guiTradeSetSBInitialOffset(){
+		guiTradeSBUpdate();
+		scrollbars[35].offset = (int)Math.floor(focusedSquad.resources.get(tradeDialogState.selectedResource));
+	}
+	private void guiTradeSBUpdate(){
+		scrollbars[35].update((int)Math.floor(tradeDialogState.getMaxLoad(focusedSquad)) + 1);
+	}
 	private final ListEntryCallback GUI_LEC_TRADE_RESOURCES = new ListEntryCallback() {
 		@Override
 		public void action(int id) {
 			Resource resource = Resource.values()[id];
 			tradeDialogState.selectedResource = resource;
+			
+			if (scrollbars[35].initialized)
+				guiTradeSetSBInitialOffset();
 		}
 		
 		@Override
@@ -680,10 +695,6 @@ public class GUI {
 		case TRADE:
 			dialogTitle = "The economy, stupid";
 			
-			if (!scrollbars[35].initialized)
-				scrollbars[35].init(Utils.getVector(aligner.position), 
-				                    Utils.getVector(aligner.size), 
-				                    false, Scrollbar.GUI_SB_DEFAULT_THUMB);
 			
 			aligner.setSize(.3f, .9f);
 			list(aligner.position, aligner.size, Resource.values().length, GUI_LEC_TRADE_RESOURCES, GUI_COLORS_DEFAULT, 33);
@@ -703,8 +714,26 @@ public class GUI {
 			//caption(aligner.position, "Titol text", font, VALIGN_BOTTOM, null);
 			aligner.next(0, -1);
 			if (tradeDialogState.selectedResource != null){
-				scrollbars[35].update((int)Math.floor(tradeDialogState.getMaxLoadable(focusedSquad)));
+				if (!scrollbars[35].initialized){
+					scrollbars[35].init(Utils.getVector(aligner.position), 
+					                    Utils.getVector(aligner.size), 
+					                    false, Scrollbar.GUI_SB_DEFAULT_THUMB);
+					guiTradeSetSBInitialOffset();
+				}
+				guiTradeSBUpdate();
 				scrollbars[35].render(GUI_COLORS_SCROLLBAR_COLORS);
+
+				assert(
+				focusedSquad.resources.tryTransfer(tradeDialogState.selectedResource, 
+				                                   focusedSquad.resources.get(tradeDialogState.selectedResource), 
+				                                   focusedSquad.tradePartner)
+				);
+				assert(
+				focusedSquad.tradePartner.tryTransfer(tradeDialogState.selectedResource, 
+				                                      scrollbars[35].offset, 
+				                                      focusedSquad.resources)
+				);
+				
 				aligner.next(0, -1);
 				caption(aligner.position, "How many resources one side has", font, VALIGN_BOTTOM, null);
 //TODO: stopped here

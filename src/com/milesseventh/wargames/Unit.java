@@ -13,7 +13,8 @@ public class Unit {
 
 	public enum Type {FIGHTER, TRANSPORTER, BUILDER};
 	public enum State {PARKED, REPAIRING, UPGRADING, ACTIVE, FORTIFIED};
-	
+
+	public static final float MIN_CARGO = 20f;
 	public static final float MAX_CARGO = 100f;
 	
 	public String name;
@@ -54,8 +55,11 @@ public class Unit {
 		techLevel[t.ordinal()] = MathUtils.clamp(in, 0, 1);
 	}
 	
-	public int getCapacity(){
-		return Math.round(techLevel[Technology.CARGO.ordinal()] * MAX_CARGO);
+	public float getCapacity(){
+		if (type == Type.TRANSPORTER)
+			return Utils.remap(techLevel[Technology.CARGO.ordinal()], 0, 1, MIN_CARGO, MAX_CARGO);
+		else
+			return 0;
 	}
 	
 	public float getFuelConsumption(){
