@@ -378,7 +378,8 @@ public class GUI {
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
 			Resource resource = Resource.values()[id];
 			advancedButton(position, size, id, this, color, 
-			               resource.name(), null, 
+			               Heartstrings.get(resource, Heartstrings.rProperties).name, 
+			               Heartstrings.get(resource, Heartstrings.rProperties).description, 
 			               tradeDialogState.selectedResource == resource ? GUI.GUI_COLOR_SEVENTH : null);
 		}
 	};
@@ -695,9 +696,11 @@ public class GUI {
 		case TRADE:
 			dialogTitle = "The economy, stupid";
 			
+			focusedSquad.prepareForTrading();
 			
 			aligner.setSize(.3f, .9f);
-			list(aligner.position, aligner.size, Resource.values().length, GUI_LEC_TRADE_RESOURCES, GUI_COLORS_DEFAULT, 33);
+			list(aligner.position, aligner.size, Resource.values().length, 
+			     GUI_LEC_TRADE_RESOURCES, GUI_COLORS_DEFAULT, 33);
 			aligner.next(0, 1);
 			aligner.setSize(.3f, .1f);
 			caption(aligner.position, "Structure name", font, VALIGN_BOTTOM, null);
@@ -740,6 +743,8 @@ public class GUI {
 				                          "\nSpace left: " + (focusedSquad.getCapacity() - focusedSquad.resources.sum()) +
 				                          "\nOverall capacity: " + focusedSquad.getCapacity(), font, VALIGN_TOP, null);
 				aligner.next(0, -1);
+				
+				focusedSquad.doneTrading();
 				//caption(aligner.position, "And other", font, VALIGN_BOTTOM, null);
 			}
 			break;

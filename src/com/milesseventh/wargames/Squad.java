@@ -140,6 +140,25 @@ public class Squad implements Piemenuable {
 		return r;
 	}
 	
+	public void prepareForTrading(){
+		assert(resources.sum() == 0);
+		for (Unit u: units)
+			u.resources.fullFlushTo(resources);
+	}
+	
+	public void doneTrading(){
+		for (Unit u: units){
+			if (resources.sum() == 0)
+				return;
+			
+			if (u.getFreeSpace() > 0)
+				for (Resource r: Resource.values())
+					if (resources.get(r) > 0)
+						resources.tryTransfer(r, Math.min(u.getFreeSpace(), resources.get(r)), 
+						                      u.resources);
+		}
+	}
+	
 	private ListEntryCallback LEC_BUILD_MENU = new ListEntryCallback(){
 		@Override
 		public void action(int id) {

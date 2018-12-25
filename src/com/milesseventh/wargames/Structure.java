@@ -62,7 +62,7 @@ public class Structure implements Piemenuable{
 					resources.add(Resource.AMMO, 1);
 					break;
 				case MISSILE:
-					resources.add(Resource.MISSILE, 1);
+					missilesStorage.add(new Missile(tech, st));
 					break;
 				case SCIENCE:
 					++Faction.debug.scienceDataAvailable;
@@ -105,6 +105,7 @@ public class Structure implements Piemenuable{
 	public Vector2 position;
 	public Type type;
 	public ResourceStorage resources = new ResourceStorage("Structure storage");
+	public ArrayList<Missile> missilesStorage = new ArrayList<Missile>();
 	
 	private Queue<CraftingOrder> manufactoryQueue = new Queue<CraftingOrder>();
 	private Queue<Unit> repairingQueue = new Queue<Unit>();

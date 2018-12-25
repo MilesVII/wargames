@@ -14,10 +14,8 @@ public class TradeDialog {
 	}
 	
 	public float getMaxLoad(Squad s){
-		assert(selectedResource != Resource.MISSILE); //TODO
-		System.out.println(s.getCapacity() - (s.resources.sum() - s.resources.get(Resource.MISSILE) - s.resources.get(selectedResource)));
 		return Math.min(s.tradePartner.get(selectedResource) + s.resources.get(selectedResource), 
-		                s.getCapacity() - (s.resources.sum() - s.resources.get(Resource.MISSILE) - s.resources.get(selectedResource)));
+		                s.getCapacity() - (s.resources.sum() - s.resources.get(selectedResource)));
 	}
 	
 	public void reset(){

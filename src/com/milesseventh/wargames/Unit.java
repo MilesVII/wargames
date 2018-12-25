@@ -20,6 +20,8 @@ public class Unit {
 	public String name;
 	public float[] techLevel;
 	public ArrayList<SpecialTechnology> st = new ArrayList<SpecialTechnology>();
+	public ArrayList<Missile> missilesLoaded = new ArrayList<Missile>();
+	public ResourceStorage resources;
 	public Faction owner;
 	public Type type;
 	public State state;
@@ -48,6 +50,7 @@ public class Unit {
 			name = "MCV #" + r.nextInt(32);
 			break;
 		}
+		resources = new ResourceStorage(name);
 		state = State.PARKED;
 	}
 	
@@ -55,9 +58,20 @@ public class Unit {
 		techLevel[t.ordinal()] = MathUtils.clamp(in, 0, 1);
 	}
 	
+	public float getFreeSpace(){
+		return getCapacity() - resources.sum();
+	}
+	
 	public float getCapacity(){
 		if (type == Type.TRANSPORTER)
-			return Utils.remap(techLevel[Technology.CARGO.ordinal()], 0, 1, MIN_CARGO, MAX_CARGO);
+			return Utils.remap(techLevel[Technology.CARGO.ordinal()], 0, 1, MIN_CARGO, MAX_CARGO) - missilesLoaded.size() * Missile.WEIGHT;
+		else
+			return 0;
+	}
+	
+	public float getMissilesCapacity(){
+		if (type == Type.TRANSPORTER)
+			return (float)Math.floor((getCapacity() - resources.sum()) / Missile.WEIGHT);
 		else
 			return 0;
 	}

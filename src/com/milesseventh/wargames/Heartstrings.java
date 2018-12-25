@@ -315,12 +315,12 @@ public class Heartstrings {
 			                        new Resource[] {Resource.METAL, Resource.FUEL},
 			                        new float[] {.7f, .1f},
 			                        new Technology[] {
-			                        	Technology.FIREPOWER
+			                        	//Technology.FIREPOWER
 			                        },
 			                        new SpecialTechnology[] {},
 			                        2),
 			new CraftableProperties("Missile", 
-			                        "Nuclear missile, being launched by silos",
+			                        "Nuclear missile, launched by silos",
 			                        new Resource[] {Resource.METAL},
 			                        new float[] {700f},
 			                        new Technology[] {

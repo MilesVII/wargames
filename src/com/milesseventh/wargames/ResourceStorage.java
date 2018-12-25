@@ -2,7 +2,7 @@ package com.milesseventh.wargames;
 
 public class ResourceStorage {
 	public String name;
-	private float[] resources = {0, 0, 0, 0, 0, 0};
+	private float[] resources = {0, 0, 0, 0, 0};
 	
 	public ResourceStorage(String nname) {
 		name = nname;
@@ -41,6 +41,15 @@ public class ResourceStorage {
 			return true;
 		} else
 			return false;
+	}
+
+	public void flushTo(Resource r, ResourceStorage rs){
+		assert(tryTransfer(r, get(r), rs));
+	}
+	
+	public void fullFlushTo(ResourceStorage rs){
+		for (Resource r: Resource.values())
+			assert(tryTransfer(r, get(r), rs));
 	}
 	
 	public void set(Resource r, float size){
