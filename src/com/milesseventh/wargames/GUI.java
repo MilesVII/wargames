@@ -735,10 +735,12 @@ public class GUI {
 				);
 				
 				aligner.next(0, -1);
-				caption(aligner.position, "How many resources one side has", font, VALIGN_BOTTOM, null);
-//TODO: stopped here
+				caption(aligner.position, "Loaded: " + focusedSquad.resources.get(tradeDialogState.selectedResource) + Heartstrings.get(tradeDialogState.selectedResource, Heartstrings.rProperties).sign +
+				                          "\nLeft on base: " + focusedSquad.tradePartner.get(tradeDialogState.selectedResource) + Heartstrings.get(tradeDialogState.selectedResource, Heartstrings.rProperties).sign +
+				                          "\nSpace left: " + (focusedSquad.getCapacity() - focusedSquad.resources.sum()) +
+				                          "\nOverall capacity: " + focusedSquad.getCapacity(), font, VALIGN_TOP, null);
 				aligner.next(0, -1);
-				caption(aligner.position, "And other", font, VALIGN_BOTTOM, null);
+				//caption(aligner.position, "And other", font, VALIGN_BOTTOM, null);
 			}
 			break;
 		case NONE:
