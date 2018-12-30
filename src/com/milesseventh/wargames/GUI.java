@@ -64,7 +64,7 @@ public class GUI {
 		}
 	}
 	
-	class Scrollbar {
+	public class Scrollbar {
 		public Vector2 position, 
 		                   size, 
 		          thumbPosition = new Vector2(), 
@@ -397,7 +397,7 @@ public class GUI {
 		}
 	};
 
-	private final Callback GUI_ACT_DUMMY = new Callback(){
+	public static final Callback GUI_ACT_DUMMY = new Callback(){
 		@Override
 		public void action(int id) {}
 	};
@@ -744,9 +744,10 @@ public class GUI {
 				                          "\nOverall capacity: " + focusedSquad.getCapacity(), font, VALIGN_TOP, null);
 				aligner.next(0, -1);
 				
-				focusedSquad.doneTrading();
 				//caption(aligner.position, "And other", font, VALIGN_BOTTOM, null);
 			}
+			
+			focusedSquad.doneTrading();
 			break;
 		case NONE:
 			break;

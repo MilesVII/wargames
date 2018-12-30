@@ -75,7 +75,7 @@ public class Utils {
 	private static Squad findNearestSquadCore(Faction f, Vector2 from, Squad except){
 		Squad minSquad = null;
 		for (Squad to: f.squads)
-			if (minSquad == null || (to != except && from.dst2(to.position) < from.dst2(minSquad.position)))
+			if (to != except && (minSquad == null || from.dst2(to.position) < from.dst2(minSquad.position)))
 				minSquad = to;
 		return minSquad;
 	}
@@ -103,8 +103,8 @@ public class Utils {
 	private static Structure findNearestStructureCore(Faction f, Vector2 from, Structure except){
 		Structure minStructure = null;
 		for (Structure to: f.structs)
-			if (minStructure == null || 
-			    (to != except && from.dst2(to.position) < from.dst2(minStructure.position)))
+			if (to != except && 
+			    (minStructure == null || from.dst2(to.position) < from.dst2(minStructure.position)))
 				minStructure = to;
 		return minStructure;
 	}

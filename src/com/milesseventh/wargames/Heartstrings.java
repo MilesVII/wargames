@@ -61,11 +61,11 @@ public class Heartstrings {
 		new StructureProperties("Radar",            12f,  70f,   0),
 		new StructureProperties("AMD",              27f, 120f,   0)
 	};
-	//name, fuelConsumption, minMaxCondition, maxMaxCondition
+	//name, fuelConsumption, minMaxCondition, maxMaxCondition, minSpeed, maxSpeed
 	public static UnitProperties[] uProperties = {
-		new UnitProperties("Fighter",     2, 700, 1500),
-		new UnitProperties("Transporter", 1, 120, 750),
-		new UnitProperties("MCV",         7, 320, 520)
+		new UnitProperties("Fighter",     2, 700, 1500,  3,  7),
+		new UnitProperties("Transporter", 1, 120,  750,  5, 10),
+		new UnitProperties("MCV",         7, 320,  520,  2,  4)
 	};
 	//title, description, investigationWorkamount, workamountMarkup, investigationPrice, 
 	//priceMarkup, TechnologyRequirement[], SpecialTechnology[]

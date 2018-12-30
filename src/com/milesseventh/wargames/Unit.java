@@ -62,6 +62,12 @@ public class Unit {
 		return getCapacity() - resources.sum();
 	}
 	
+	public float getSpeed(){
+		return Utils.remap(Heartstrings.get(Technology.SPEED, techLevel), 0, 1,
+		                   Heartstrings.get(type, Heartstrings.uProperties).minSpeed,
+		                   Heartstrings.get(type, Heartstrings.uProperties).maxSpeed);
+	}
+	
 	public float getCapacity(){
 		if (type == Type.TRANSPORTER)
 			return Utils.remap(techLevel[Technology.CARGO.ordinal()], 0, 1, MIN_CARGO, MAX_CARGO) - missilesLoaded.size() * Missile.WEIGHT;
@@ -69,9 +75,9 @@ public class Unit {
 			return 0;
 	}
 	
-	public float getMissilesCapacity(){
+	public float getMissileCapacity(){
 		if (type == Type.TRANSPORTER)
-			return (float)Math.floor((getCapacity() - resources.sum()) / Missile.WEIGHT);
+			return (float)Math.floor(getFreeSpace() / Missile.WEIGHT);
 		else
 			return 0;
 	}

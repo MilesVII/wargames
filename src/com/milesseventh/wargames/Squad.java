@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.milesseventh.wargames.WG.Dialog;
 
@@ -39,6 +40,8 @@ public class Squad implements Piemenuable {
 		position = nposition.cpy();
 		owner = nowner;
 		rebuildPiemenu();
+		
+		refuelSB = WG.antistatic.gui.new Scrollbar();
 	}
 	
 	public void setPath(Vector2[] npath){
@@ -53,6 +56,8 @@ public class Squad implements Piemenuable {
 	}
 	
 	public void update(float dt){
+		concentratePartial(Resource.FUEL);
+		
 		//Interaction
 		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f &&
 		    WG.antistatic.uistate == WG.UIState.FREE){
@@ -109,10 +114,17 @@ public class Squad implements Piemenuable {
 			}
 		}
 		rebuildPiemenu();
+		
+		spread();
 	}
 	
 	private float getSpeed(){
-		return 7f; //TODO: Stub
+		assert(units.size() > 0);
+		float min = Float.POSITIVE_INFINITY;
+		for (Unit u: units)
+			if (u.getSpeed() < min)
+				min = u.getSpeed();
+		return min;
 	}
 	
 	public boolean isUnitTypePresent(Unit.Type type){
@@ -130,7 +142,24 @@ public class Squad implements Piemenuable {
 	}
 	
 	public boolean hasFuel(){
-		return resources.get(Resource.FUEL) > 0;
+		return resources.get(Resource.FUEL) > 0 || hasFuelNonTrading();
+	}
+	private boolean hasFuelNonTrading(){
+		for (Unit u: units)
+			if (u.resources.get(Resource.FUEL) > 0)
+				return true;
+		return false;
+	}
+	
+	public float getFreeSpace(boolean isTrading){
+		if (isTrading){
+			return getCapacity() - resources.sum();
+		} else {
+			float r = 0;
+			for (Unit u: units)
+				r += u.getFreeSpace();
+			return r;
+		}
 	}
 	
 	public float getCapacity(){
@@ -140,8 +169,37 @@ public class Squad implements Piemenuable {
 		return r;
 	}
 	
+	public float getMissileCapacity(){
+		float r = 0;
+		for (Unit u: units)
+			r += u.getMissileCapacity();
+		return r;
+	}
+	
+	public void loadMissiles(ArrayList<Missile> missiles){
+		assert(missiles.size() <= getMissileCapacity());
+		
+		for (int i = 0, j = 0; i < units.size() && j < missiles.size(); ++i){
+			Unit u = units.get(i);
+			
+			while(u.getMissileCapacity() - u.missilesLoaded.size() > 0)
+				u.missilesLoaded.add(missiles.get(j++));
+		}
+		
+		missiles.clear();
+	}
+	
+	public void unloadMissiles(ArrayList<Missile> receiver){
+		for (Unit u: units){
+			receiver.addAll(u.missilesLoaded);
+			u.missilesLoaded.clear();
+		}
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////
+	//Internal resource management
+	
 	public void prepareForTrading(){
-		assert(resources.sum() == 0);
 		for (Unit u: units)
 			u.resources.fullFlushTo(resources);
 	}
@@ -158,6 +216,16 @@ public class Squad implements Piemenuable {
 						                      u.resources);
 		}
 	}
+	
+	private void concentratePartial(Resource r){
+		for (Unit u: units)
+			u.resources.flushTo(r, resources);
+	}
+	
+	private void spread(){doneTrading();}
+	
+	////////////////////////////////////////////////////////////////////////////////
+	//Menus
 	
 	private ListEntryCallback LEC_BUILD_MENU = new ListEntryCallback(){
 		@Override
@@ -188,7 +256,8 @@ public class Squad implements Piemenuable {
 		@Override
 		public void action(int id) {
 			if (id < Structure.Type.values().length)
-				join(interactableStructures.get(id).yard);
+				disband(interactableStructures.get(id).yard,
+				        interactableStructures.get(0).resources);
 			
 			WG.antistatic.uistate = WG.UIState.FREE;
 		}
@@ -224,6 +293,66 @@ public class Squad implements Piemenuable {
 			WG.antistatic.gui.advancedButton(position, size, id, this, color, title, null, null);
 		}
 	};
+	private GUI.Scrollbar refuelSB;
+	private ResourceStorage temporaryFuelTank = new ResourceStorage("KissingStallions");
+	private ListEntryCallback LEC_REFUEL_MENU = new ListEntryCallback(){
+		@Override
+		public void action(int id) {
+			refuelSB.initialized = false;
+			WG.antistatic.uistate = WG.UIState.FREE;
+		}
+
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			Squad ns = Utils.findNearestSquad(owner, position, me);
+			switch (id){
+			case(0):
+				WG.antistatic.gui.advancedButton(position, size, id, GUI.GUI_ACT_DUMMY, 
+				                                 color, me.name + " - " + ns.name, null, null);
+				break;
+			case(1):
+				//Refueling (Fuel-sharing) process
+				//TODO: Probably the whole scrollbar should be operational, scaled into constrained zone. Rethink
+				me.prepareForTrading(); ns.prepareForTrading();
+				
+				boolean initThumb = false;
+				if (!refuelSB.initialized){
+					refuelSB.init(position, size, false, GUI.Scrollbar.GUI_SB_DEFAULT_THUMB);
+					initThumb = true;
+				}
+				
+				int states = (int)Math.floor(resources.get(Resource.FUEL) + ns.resources.get(Resource.FUEL)) + 1;
+				int  leftConstraint = states - 1 - (int)Math.floor(ns.getFreeSpace(true) + ns.resources.get(Resource.FUEL));
+				int rightConstraint = (int)Math.floor(me.getFreeSpace(true) + me.resources.get(Resource.FUEL));
+				
+				refuelSB.update(states);
+				if (initThumb)
+					refuelSB.offset = (int)Math.floor(me.resources.get(Resource.FUEL));
+				refuelSB.offset = MathUtils.clamp(refuelSB.offset, leftConstraint, rightConstraint);
+				
+				assert(temporaryFuelTank.sum() == 0);
+					me.resources.flushTo(Resource.FUEL, temporaryFuelTank);
+					ns.resources.flushTo(Resource.FUEL, temporaryFuelTank);
+					assert(temporaryFuelTank.tryTransfer(Resource.FUEL, refuelSB.offset, me.resources));
+					temporaryFuelTank.flushTo(Resource.FUEL, ns.resources);
+					//Case: Rounding error amount of fuel was flushed to non-transportable squad
+					//TODO: Make sure that "me" (left side squad) cannot be receiver from abovementioned case 
+					if (ns.resources.get(Resource.FUEL) > ns.getCapacity())
+						ns.resources.tryTransfer(Resource.FUEL, 
+						                         ns.resources.get(Resource.FUEL) - ns.getCapacity(), 
+						                         me.resources);
+				assert(temporaryFuelTank.sum() == 0);
+				
+				refuelSB.render(GUI.GUI_COLORS_SCROLLBAR_COLORS);
+				
+				me.doneTrading(); ns.doneTrading();
+				break;
+			case(2):
+				WG.antistatic.gui.advancedButton(position, size, id, this, color, "Done", null, null);
+				break;
+			}
+		}
+	};
 	
 	//Piemenu implementation
 	public final ArrayList<PiemenuEntry> piemenu = new ArrayList<PiemenuEntry>();
@@ -236,7 +365,6 @@ public class Squad implements Piemenuable {
 			piemenu.add(PME_MOVE);
 		
 		if (state == State.STAND){
-			//Structure nfs = Utils.findNearestStructure(owner, position, null);
 			Utils.findStructuresWithinRadius2(interactableStructures, owner, position, STRUCTURE_INTERACTION_DISTANCE2, null);
 			
 			if (isUnitTypePresent(Unit.Type.BUILDER))
@@ -246,6 +374,13 @@ public class Squad implements Piemenuable {
 				if (isUnitTypePresent(Unit.Type.TRANSPORTER))
 					piemenu.add(PME_TRADE);
 				piemenu.add(PME_DISBAND);
+			}
+			
+			Squad ns = Utils.findNearestSquad(owner, position, this);
+			if (ns != null &&
+			    position.dst2(ns.position) <= STRUCTURE_INTERACTION_DISTANCE2 && 
+			    (hasFuel() || ns.hasFuel()) && ns.state == State.STAND){
+				piemenu.add(PME_REFUEL);
 			}
 		}
 	}
@@ -286,21 +421,31 @@ public class Squad implements Piemenuable {
 			assert(interactableStructures.size() > 0);
 			
 			if (interactableStructures.size() == 1)
-				join(interactableStructures.get(0).yard);
+				disband(interactableStructures.get(0).yard,
+				        interactableStructures.get(0).resources);
 			else
 				WG.antistatic.setMenu(LEC_DISBAND_SELECTION_MENU, interactableStructures.size() + 1);
 		}
 	});
-	private void join(ArrayList<Unit> to){
+	public final PiemenuEntry PME_REFUEL = new PiemenuEntry("Refuel", new Callback(){
+		@Override
+		public void action(int source) {
+			WG.antistatic.setMenu(LEC_REFUEL_MENU, 3);
+		}
+	});
+	private void disband(ArrayList<Unit> to, ResourceStorage rs){
+		prepareForTrading();
+		resources.fullFlushTo(rs);
 		to.addAll(units);
 		owner.squads.remove(me);
+		
 	}
-	
 	private void trade(ResourceStorage rs){
 		//WG.antistatic.gui.focusedStruct = Utils.findNearestStructure(owner, position, null);
 		tradePartner = rs;
 		WG.antistatic.openDialog(Dialog.TRADE);
 	}
+	
 	//Piemenuable interface
 	@Override
 	public Vector2 getWorldPosition() {

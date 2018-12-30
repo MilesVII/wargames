@@ -57,11 +57,11 @@ public class Faction {
 		availableCraftables.add(Craftable.BUILDER);
 		capital = new Structure(_pos, Structure.Type.CITY, this);
 		structs.add(capital);
-		capital.resources.add(Resource.ORE, 10000);
-		capital.resources.add(Resource.METAL, 100000);
-		capital.resources.add(Resource.OIL, 200000);
-		capital.resources.add(Resource.FUEL, 20000);
-		capital.resources.add(Resource.AMMO, 10000);
+		capital.resources.add(Resource.ORE, 1000);
+		capital.resources.add(Resource.METAL, 1000);
+		capital.resources.add(Resource.OIL, 2000);
+		capital.resources.add(Resource.FUEL, 2000);
+		capital.resources.add(Resource.AMMO, 1000);
 		scienceDataAvailable = 70000;
 		
 		debug = this;

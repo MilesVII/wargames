@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 
 public class Missile {
-	public static final float WEIGHT = 2000;
+	public static final float WEIGHT = Utils.remap(.5f, 0, 1, Unit.MIN_CARGO, Unit.MAX_CARGO);
 	
 	private float[] tech;
 	private ArrayList<SpecialTechnology> st;
