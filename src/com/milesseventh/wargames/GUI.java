@@ -341,7 +341,7 @@ public class GUI {
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
 			SpecialTechnologyProperties stp = Heartstrings.get(yardDialogState.availableST[id], Heartstrings.stProperties);
-			if (focusedStruct.ownerFaction.isInvestigated(yardDialogState.availableST[id]))
+			if (focusedStruct.faction.isInvestigated(yardDialogState.availableST[id]))
 				if(!yardDialogState.lastChecked.st.contains(yardDialogState.availableST[id]))
 					advancedButton(position, size, id, this, color, 
 					               stp.title, stp.description, 
@@ -461,7 +461,7 @@ public class GUI {
 				nt[i - 25] = u.techLevel[i - 25];
 			else
 				nt[i - 25] = Utils.remap(scrollbars[i].offset, 0, guiYMgetTUpgradeSBStates(i - 25) - 1, 
-				                         u.techLevel[i - 25], focusedStruct.ownerFaction.tech[i - 25]);
+				                         u.techLevel[i - 25], focusedStruct.faction.tech[i - 25]);
 		return nt;
 	}
 	
@@ -470,7 +470,7 @@ public class GUI {
 	 * @return
 	 */
 	private int guiYMgetTUpgradeSBStates(int i){
-		return (int)Math.floor((focusedStruct.ownerFaction.tech[i] - yardDialogState.lastChecked.techLevel[i]) * 100f) + 1;
+		return (int)Math.floor((focusedStruct.faction.tech[i] - yardDialogState.lastChecked.techLevel[i]) * 100f) + 1;
 	}
 	
 	private final Callback GUI_ACT_UPGRADE = new Callback(){
@@ -506,7 +506,7 @@ public class GUI {
 			dialogTitle = "Statistics and data";
 			aligner.setSize(.4f, .9f);
 			aligner.next(0, 1);
-			caption(aligner.position, "Faction" + focusedStruct.ownerFaction.name, font, VALIGN_TOP, null);
+			caption(aligner.position, "Faction" + focusedStruct.faction.name, font, VALIGN_TOP, null);
 			aligner.next(1, 0);
 			aligner.setSize(.6f, .1f);
 			caption(aligner.position, "TYPE: " + focusedStruct.type.name(), font, VALIGN_TOP, null);
@@ -576,7 +576,7 @@ public class GUI {
 					                       false, Scrollbar.GUI_SB_DEFAULT_THUMB);
 				if (Utils.arrayContains(Heartstrings.get(craftingDialogState.selected, Heartstrings.craftableProperties).availableTechs, 
 				                        Heartstrings.Technology.values()[i])){
-					scrollbars[13 + i].update((int)Math.floor(focusedStruct.ownerFaction.tech[i] * 100f) + 1);
+					scrollbars[13 + i].update((int)Math.floor(focusedStruct.faction.tech[i] * 100f) + 1);
 					scrollbars[13 + i].render(GUI_COLORS_SCROLLBAR_COLORS);
 					craftingDialogState.selectedT[i] = scrollbars[13 + i].offset / 100f;
 					
@@ -662,7 +662,7 @@ public class GUI {
 								
 								caption(aligner.position, 
 								        String.format(Heartstrings.tProperties[i].shortTitle + " %3d/%3d%%", 
-								                      scrollbars[25 + i].offset + (int)Math.floor(yardDialogState.lastChecked.techLevel[i] * 100f), (int)Math.floor(focusedStruct.ownerFaction.tech[i] * 100f)), 
+								                      scrollbars[25 + i].offset + (int)Math.floor(yardDialogState.lastChecked.techLevel[i] * 100f), (int)Math.floor(focusedStruct.faction.tech[i] * 100f)), 
 								        font, VALIGN_BOTTOM, null);
 								aligner.next(0, -1);
 							}
@@ -696,6 +696,7 @@ public class GUI {
 		case TRADE:
 			dialogTitle = "The economy, stupid";
 			
+			focusedSquad.DEBUG_INFO = "Call from GUI.java: dialog():TRADE";
 			focusedSquad.prepareForTrading();
 			
 			aligner.setSize(.3f, .9f);
@@ -703,13 +704,13 @@ public class GUI {
 			     GUI_LEC_TRADE_RESOURCES, GUI_COLORS_DEFAULT, 33);
 			aligner.next(0, 1);
 			aligner.setSize(.3f, .1f);
-			caption(aligner.position, "Structure name", font, VALIGN_BOTTOM, null);
+			caption(aligner.position, focusedSquad.tradePartner.name, font, VALIGN_BOTTOM, null);
 			aligner.reset();
 			aligner.shift(.7f, .0f, 1, 0);
 			aligner.setSize(.3f, .9f);
 			list(aligner.position, aligner.size, TradeDialog.countTransporters(focusedSquad), GUI_LEC_TRADE_TRANSPORTERS, GUI_COLORS_DEFAULT, 34);
 			aligner.next(0, 1);
-			caption(aligner.position, "Squad name", font, VALIGN_BOTTOM, null);
+			caption(aligner.position, focusedSquad.name, font, VALIGN_BOTTOM, null);
 			aligner.reset();
 			
 			aligner.shift(.3f, .1f, 1, 9);

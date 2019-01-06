@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import com.milesseventh.wargames.Heartstrings;
 import com.milesseventh.wargames.Unit;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
-import com.milesseventh.wargames.Unit.State;
 
 public class YardDialog {
 	public ArrayList<Unit> selectedUnitsForDeployment = new ArrayList<Unit>();

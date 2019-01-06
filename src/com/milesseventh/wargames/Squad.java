@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.WG.Dialog;
 
 public class Squad implements Piemenuable {
@@ -16,7 +17,7 @@ public class Squad implements Piemenuable {
 	private static final String[] SQUAD_NAMES = {"Alfa", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Kilo", "Lima", "November", "Romeo", "Sierra", "Tango", "Uniform", "Victor", "Whiskey", "X-ray", "Yankee", "Zulu"};
 	private static int nameSelector = 0;
 	
-	public Faction owner;
+	public Faction faction;
 	public ArrayList<Unit> units = new ArrayList<Unit>();
 	public String name;
 	public ResourceStorage resources, tradePartner;
@@ -38,7 +39,7 @@ public class Squad implements Piemenuable {
 		//resources.add(Resource.FUEL, 2000f);
 		
 		position = nposition.cpy();
-		owner = nowner;
+		faction = nowner;
 		rebuildPiemenu();
 		
 		refuelSB = WG.antistatic.gui.new Scrollbar();
@@ -56,6 +57,7 @@ public class Squad implements Piemenuable {
 	}
 	
 	public void update(float dt){
+		DEBUG_INFO = "Call from Squad.java: update():concentratePartial()";
 		concentratePartial(Resource.FUEL);
 		
 		//Interaction
@@ -198,8 +200,15 @@ public class Squad implements Piemenuable {
 	
 	////////////////////////////////////////////////////////////////////////////////
 	//Internal resource management
-	
+	public String DEBUG_INFO = "";
 	public void prepareForTrading(){
+		//assert(resources.sum() == 0);
+		if (resources.sum() != 0){ //TODO: Replace with assert and remove DEBUG_INFO field when bug is catched
+			System.out.println("ASSERT: Squad.java: prepareForTrading()");
+			System.out.println(resources.sum());
+			System.out.println(DEBUG_INFO);
+			System.out.println("_______________________________________");
+		}
 		for (Unit u: units)
 			u.resources.fullFlushTo(resources);
 	}
@@ -231,25 +240,66 @@ public class Squad implements Piemenuable {
 		@Override
 		public void action(int id) {
 			if (id < Structure.Type.values().length){
-				Structure s = new Structure(position, Structure.Type.values()[id], owner);
+				Structure s = new Structure(position, Structure.Type.values()[id], faction);
 				Faction.debug.registerStructure(s);
 				s.yard.addAll(units);
-				owner.squads.remove(me);
+				faction.squads.remove(me);
 			}
 			
 			WG.antistatic.uistate = WG.UIState.FREE;
 		}
 
+		private boolean isEnoughMetalForBuilding(Structure.Type t){
+			return resources.isEnough(Resource.METAL, Heartstrings.get(t, Heartstrings.structureProperties).buildingPrice);
+		}
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
-			String title;
+			String title, description = null;
+			boolean buildingAllowed = true; 
 			if (id < Structure.Type.values().length){
 				Structure.Type st = Structure.Type.values()[id];
+
+				
+				prepareForTrading();
+				switch(st){
+				case CITY:
+					if (!isEnoughMetalForBuilding(Structure.Type.CITY))
+						buildingAllowed = false;
+					break;
+				case MINER:
+					if (!isEnoughMetalForBuilding(Structure.Type.MINER))
+						buildingAllowed = false;
+					break;
+				case MB:
+					if (!faction.isInvestigated(SpecialTechnology.ADVANCED_WARFARE) ||
+						!isEnoughMetalForBuilding(Structure.Type.MB))
+						buildingAllowed = false;
+					break;
+				case AMD:
+					if (!faction.isInvestigated(SpecialTechnology.AMD) ||
+						!isEnoughMetalForBuilding(Structure.Type.AMD))
+						buildingAllowed = false;
+					break;
+				case ML:
+					if (!faction.isInvestigated(SpecialTechnology.STRATEGIC_WARFARE) ||
+						!isEnoughMetalForBuilding(Structure.Type.ML))
+						buildingAllowed = false;
+					break;
+				case RADAR:
+					if (!faction.isInvestigated(SpecialTechnology.RADIO) ||
+						!isEnoughMetalForBuilding(Structure.Type.RADAR))
+						buildingAllowed = false;
+					break;
+				}
+				doneTrading();
+				
+				description = Heartstrings.get(st, Heartstrings.structureProperties).description;
 				title = Heartstrings.get(st, Heartstrings.structureProperties).title;
 			} else
 				title = "Cancel";
 			
-			WG.antistatic.gui.advancedButton(position, size, id, this, color, title, null, null);
+			WG.antistatic.gui.advancedButton(position, size, id, buildingAllowed ? this : GUI.GUI_ACT_DUMMY, 
+			                                 color, title, description, buildingAllowed ? null : Color.GRAY);
 		}
 	};
 	private ListEntryCallback LEC_DISBAND_SELECTION_MENU = new ListEntryCallback(){
@@ -304,7 +354,7 @@ public class Squad implements Piemenuable {
 
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
-			Squad ns = Utils.findNearestSquad(owner, position, me);
+			Squad ns = Utils.findNearestSquad(faction, position, me);
 			switch (id){
 			case(0):
 				WG.antistatic.gui.advancedButton(position, size, id, GUI.GUI_ACT_DUMMY, 
@@ -313,6 +363,8 @@ public class Squad implements Piemenuable {
 			case(1):
 				//Refueling (Fuel-sharing) process
 				//TODO: Probably the whole scrollbar should be operational, scaled into constrained zone. Rethink
+				me.DEBUG_INFO = "Call from Squad.java: entry() of LEC_REFUEL_MENU";
+				ns.DEBUG_INFO = "Call from Squad.java: entry() of LEC_REFUEL_MENU";
 				me.prepareForTrading(); ns.prepareForTrading();
 				
 				boolean initThumb = false;
@@ -346,6 +398,10 @@ public class Squad implements Piemenuable {
 				refuelSB.render(GUI.GUI_COLORS_SCROLLBAR_COLORS);
 				
 				me.doneTrading(); ns.doneTrading();
+				
+				//Caption over scrollbar
+				WG.antistatic.gui.advancedButton(position, size, id, GUI.GUI_ACT_DUMMY, GUI.GUI_COLORS_TRANSPARENT, 
+				                                 "" + refuelSB.offset + "/" + (states - 1 - refuelSB.offset), null, null);
 				break;
 			case(2):
 				WG.antistatic.gui.advancedButton(position, size, id, this, color, "Done", null, null);
@@ -365,7 +421,7 @@ public class Squad implements Piemenuable {
 			piemenu.add(PME_MOVE);
 		
 		if (state == State.STAND){
-			Utils.findStructuresWithinRadius2(interactableStructures, owner, position, STRUCTURE_INTERACTION_DISTANCE2, null);
+			Utils.findStructuresWithinRadius2(interactableStructures, faction, position, STRUCTURE_INTERACTION_DISTANCE2, null);
 			
 			if (isUnitTypePresent(Unit.Type.BUILDER))
 				piemenu.add(PME_BUILD);
@@ -376,7 +432,7 @@ public class Squad implements Piemenuable {
 				piemenu.add(PME_DISBAND);
 			}
 			
-			Squad ns = Utils.findNearestSquad(owner, position, this);
+			Squad ns = Utils.findNearestSquad(faction, position, this);
 			if (ns != null &&
 			    position.dst2(ns.position) <= STRUCTURE_INTERACTION_DISTANCE2 && 
 			    (hasFuel() || ns.hasFuel()) && ns.state == State.STAND){
@@ -437,11 +493,11 @@ public class Squad implements Piemenuable {
 		prepareForTrading();
 		resources.fullFlushTo(rs);
 		to.addAll(units);
-		owner.squads.remove(me);
+		faction.squads.remove(me);
 		
 	}
 	private void trade(ResourceStorage rs){
-		//WG.antistatic.gui.focusedStruct = Utils.findNearestStructure(owner, position, null);
+		//WG.antistatic.gui.focusedStruct = Utils.findNearestStructure(faction, position, null);
 		tradePartner = rs;
 		WG.antistatic.openDialog(Dialog.TRADE);
 	}

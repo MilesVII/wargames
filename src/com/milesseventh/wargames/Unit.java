@@ -33,7 +33,7 @@ public class Unit {
 	@SuppressWarnings("unchecked")
 	public Unit(Structure nmanufacturer, Type ntype, float[] ntech, ArrayList<SpecialTechnology> nst) {
 		manufacturer = nmanufacturer;
-		owner = manufacturer.ownerFaction;
+		owner = manufacturer.faction;
 		type = ntype;
 		techLevel = ntech.clone();
 		st = (ArrayList<SpecialTechnology>)nst.clone();

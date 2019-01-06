@@ -14,24 +14,19 @@ import com.milesseventh.wargames.Heartstrings.Technology;
 public class Structure implements Piemenuable{
 	//////////////////////////////////////////////////////////////////
 	//STRUCTURE TYPES:
-	//> City: WLUCIT;           Universal sructure. Medium defence
-	//> Miner: WL               Ore miner. Improved resource loader, no defence
-	//> Missile Launcher: WLM   Missile silo. Weak defence, has weak radar
-	//> Radar: none             Radar. Controls missile's flight, weak defence
-	//> AMD: WL                 Anti-Missile Defence. Weak defence, can shoot down incoming missiles.
-	//> Military Base: WLUC     Military forification. Can build own units, strong defence
+	//> City: WLUCT
+	//> Miner: WL
+	//> Missile Launcher: WLM
+	//> Radar: none
+	//> AMD: WL
+	//> Military Base: WLUC
 	//COMPONENTS OF STRUCTURE:
-	//> W = Warehouse (no own dialog)
-	//> L = Column loading
-	//> U = Units building (Cities and MB's only)
-	//> C = Column management (Cities only)
-	//> T = Lab (Capital city only)
-	//> I = Industrial management (Cities only)
+	//OK W = Warehouse (no own dialog) > Turned into Stats
+	//OK L = Column loading > Implemented as Trading
+	//OK U = Units building (Cities and MB's only)
+	//OK C = Column management (Cities only) > Implemented as Deployment
+	//OK T = Lab (Capital city only)
 	//> M = Missile launch
-	//CRAFTABLES
-	//Units: Fighters, Transporters, Builders: Metal
-	//Missiles,Ammo: Metal, fuel
-	//Science data: Metal, Ammo
 	
 	public class CraftingOrder {
 		Craftable craftable;
@@ -100,11 +95,11 @@ public class Structure implements Piemenuable{
 	
 	public String name;
 	private float range;//Radius of circle that will be added to faction's territory
-	public Faction ownerFaction;//ID of faction that owns this unit
+	public Faction faction;//ID of faction that owns this unit
 	private float vitality, maxVitality;
 	public Vector2 position;
 	public Type type;
-	public ResourceStorage resources = new ResourceStorage("Structure storage");
+	public ResourceStorage resources;
 	public ArrayList<Missile> missilesStorage = new ArrayList<Missile>();
 	
 	private Queue<CraftingOrder> manufactoryQueue = new Queue<CraftingOrder>();
@@ -114,46 +109,12 @@ public class Structure implements Piemenuable{
 	public ArrayList<Unit> yard = new ArrayList<Unit>();
 	private Random r = new Random();
 	
-	public final ArrayList<PiemenuEntry> PIEMENU = new ArrayList<PiemenuEntry>();
-	private void rebuildPiemenu(){
-		PIEMENU.clear();
-		PIEMENU.add(PiemenuEntry.PME_CANCEL);
-		PIEMENU.add(PME_STATS);
-		PIEMENU.add(PME_LAB);
-		PIEMENU.add(PME_CRAFT);
-		PIEMENU.add(PME_YARD);
-		
-	}
-	
-	public final PiemenuEntry PME_STATS = new PiemenuEntry("Stats", new Callback(){
-		@Override
-		public void action(int source) {
-			WG.antistatic.openDialog(WG.Dialog.STATS);
-		}
-	});
-	public final PiemenuEntry PME_LAB = new PiemenuEntry("R&D", new Callback(){
-		@Override
-		public void action(int source) {
-			WG.antistatic.openDialog(WG.Dialog.LABORATORY);
-		}
-	});
-	public final PiemenuEntry PME_CRAFT = new PiemenuEntry("Craft", new Callback(){
-		@Override
-		public void action(int source) {
-			WG.antistatic.openDialog(WG.Dialog.CRAFTING);
-		}
-	});
-	public final PiemenuEntry PME_YARD = new PiemenuEntry("Deploy", new Callback(){
-		@Override
-		public void action(int source) {
-			WG.antistatic.openDialog(WG.Dialog.YARD);
-		}
-	});
-	
 	public Structure(Vector2 npos, Type st, Faction owner) {
 		name = "City 17";
+		resources = new ResourceStorage(name);
+		
 		position = npos.cpy();
-		ownerFaction = owner;
+		faction = owner;
 		type = st;
 		//range = Heartstrings.get
 		vitality = maxVitality = 1;//Heartstrings.get
@@ -245,16 +206,17 @@ public class Structure implements Piemenuable{
 			
 			WG.antistatic.gui.prompt(name);
 		}
+		rebuildPiemenu();
 	}
 	
 	public Texture getIcon(){
-		if (ownerFaction.capital == this)
+		if (faction.capital == this)
 			return Faction.ICONS[Faction.ICONS.length - 1];
 		return Faction.ICONS[type.ordinal()];
 	}
 	
 	protected void onDestroy() {
-		ownerFaction.unregisterStructure(this);
+		faction.unregisterStructure(this);
 	}
 	
 	public float getRange(){
@@ -265,7 +227,7 @@ public class Structure implements Piemenuable{
 	public float getCraftSpeed(){
 		float cs = Heartstrings.get(type, Heartstrings.structureProperties).craftSpeed;
 		
-		return Utils.remap(ownerFaction.techLevel(Technology.ENGINEERING), 0, 1, 
+		return Utils.remap(faction.techLevel(Technology.ENGINEERING), 0, 1, 
 		                   cs * MIN_CRFTSP_K, cs * MAX_CRFTSP_K) * 10f;
 	}
 	
@@ -283,7 +245,7 @@ public class Structure implements Piemenuable{
 				return;
 			}
 		} while (!WG.antistatic.map.isWalkable(sposition.x, sposition.y));
-		Squad s = new Squad(ownerFaction, sposition);
+		Squad s = new Squad(faction, sposition);
 		
 		for (Unit u: (ArrayList<Unit>)units.clone()){
 			assert(yard.contains(u));
@@ -296,7 +258,7 @@ public class Structure implements Piemenuable{
 		}
 		
 		if (!s.units.isEmpty())
-			ownerFaction.squads.add(s);
+			faction.squads.add(s);
 	}
 	
 	public void hit(float _damage){
@@ -312,6 +274,47 @@ public class Structure implements Piemenuable{
 			vitality = maxVitality;
 		}
 	}
+	
+	////////////////////////////////////////////////////////////////////////////////
+	//Pie Menus
+	
+	public final ArrayList<PiemenuEntry> PIEMENU = new ArrayList<PiemenuEntry>();
+	private void rebuildPiemenu(){
+		PIEMENU.clear();
+		PIEMENU.add(PiemenuEntry.PME_CANCEL);
+		PIEMENU.add(PME_STATS);
+		if (type == Type.CITY && faction.capital == this)
+			PIEMENU.add(PME_LAB);
+		if (type == Type.CITY || type == Type.MB)
+			PIEMENU.add(PME_CRAFT);
+		if (!yard.isEmpty() && (type == Type.CITY || type == Type.MB))
+			PIEMENU.add(PME_YARD);
+	}
+	
+	public final PiemenuEntry PME_STATS = new PiemenuEntry("Stats", new Callback(){
+		@Override
+		public void action(int source) {
+			WG.antistatic.openDialog(WG.Dialog.STATS);
+		}
+	});
+	public final PiemenuEntry PME_LAB = new PiemenuEntry("R&D", new Callback(){
+		@Override
+		public void action(int source) {
+			WG.antistatic.openDialog(WG.Dialog.LABORATORY);
+		}
+	});
+	public final PiemenuEntry PME_CRAFT = new PiemenuEntry("Craft", new Callback(){
+		@Override
+		public void action(int source) {
+			WG.antistatic.openDialog(WG.Dialog.CRAFTING);
+		}
+	});
+	public final PiemenuEntry PME_YARD = new PiemenuEntry("Deploy", new Callback(){
+		@Override
+		public void action(int source) {
+			WG.antistatic.openDialog(WG.Dialog.YARD);
+		}
+	});
 	
 	//Piemenuable interface implementation
 	@Override

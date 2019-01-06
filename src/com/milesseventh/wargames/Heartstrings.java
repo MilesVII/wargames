@@ -20,17 +20,17 @@ public class Heartstrings {
 	}
 	public enum SpecialTechnology{
 		BASIC_WARFARE,            //Allows building of fighters, ammo crafting; Req: ENG(5%)
-		SIEGE_I, SIEGE_II,        //Allows squads to siege structures and conquer them; Req: BASIC_WARFARE, ARMOR(10%), ARMOR(40%), ACC(10%)
+		SIEGE, //SIEGE_I, SIEGE_II,        //Allows squads to siege structures and conquer them; Req: BASIC_WARFARE, ARMOR(10%), ARMOR(40%), ACC(10%)
 		FORTIFICATION,            //Allows squads to fortify position and defend a spot, acting like a portable MB; Req: BASIC_WARFARE, FP(10%), ARMOR(30%)
 		MOBILE_ATTACK,            //Allows squads to attack other squads; Req: BASIC_WARFARE, ACC(5%)
 		//COLUMN_INTERCEPTION,      //Allows squads to intercept other squads; Req: BASIC_WARFARE, ACC(20%)
 		ADVANCED_WARFARE,         //Allows building of MB; Req: BASIC_WARFARE, ENG(10%), FP(30%)
 		RADIO,                    //Allows building of radars; Req: ADVANCED_WARFARE, ENG(15%)
-		AMD_I, AMD_II,            //Allows building of AMD stations; Req_1: ADVANCED_WARFARE, ENG(25%), ACC(30%); Allows building of laser AMD stations; Req_2: AMD_I, ENG(45%), ACC(60%) 
+		AMD, //AMD_I, AMD_II,            //Allows building of AMD stations; Req_1: ADVANCED_WARFARE, ENG(25%), ACC(30%); Allows building of laser AMD stations; Req_2: AMD_I, ENG(45%), ACC(60%) 
 		ESPIONAGE,                //Allows faction to steal foreign special tecnologies by capturing enemy's radars; Req: RADIO, SIEGE, ENG(30%)
 		STRATEGIC_WARFARE,        //Allows building of missile silos and missile crafting; Req: ADVANCED_WARFARE, ENG(40%), ACC(25%), FP(50%), SPD(25%)
-		WARHEAD_FRAGMENTATION_I,  //Allows missiles' payload to fragmentate, increasing effective area and reducing chance to be shotdown by AMD; Req: SW, ENG(60%), FP(60%)
-		WARHEAD_FRAGMENTATION_II, //Req: WF_I, ACC(35%), SPD(40%)
+		WARHEAD_FRAGMENTATION,  //Allows missiles' payload to fragmentate, increasing effective area and reducing chance to be shotdown by AMD; Req: SW, ENG(60%), FP(60%)
+		//WARHEAD_FRAGMENTATION_II, //Req: WF_I, ACC(35%), SPD(40%)
 		FLARES,                   //Allows missiles to use decoy flares; Req: SW, RADIO, ENG(50%)
 	} 
 
@@ -52,20 +52,20 @@ public class Heartstrings {
 		new TechnologyProperties("Cargo load",  "CRG", 40f), //Improves transporters' capacity
 		new TechnologyProperties("Engineering", "ENG", 120f) //Improves effectiveness of cities and reduces building costs
 	};
-	//title, fightingRange, maxCondition, craftSpeed
+	//title, fightingRange, maxCondition, craftSpeed, buildingPrice (In Metal)
 	public static StructureProperties[] structureProperties = {
-		new StructureProperties("City",             22f, 420f, .8f),
-		new StructureProperties("Mining Outpost",     0,  70f,   0),
-		new StructureProperties("Military Outpost", 42f, 200f, .2f),
-		new StructureProperties("Missile Silo",     17f,  42f,   0),
-		new StructureProperties("Radar",            12f,  70f,   0),
-		new StructureProperties("AMD",              27f, 120f,   0)
+		new StructureProperties("City",             22f, 420f, .8f,  700f, "Universal sructure. Medium defence"),
+		new StructureProperties("Mining Outpost",     0,  70f,   0,  120f, "Ore miner. No defence"),
+		new StructureProperties("Military Outpost", 42f, 200f, .2f,  420f, "Military forification. Can build own units, has strong defence"),
+		new StructureProperties("Missile Silo",     17f,  42f,   0, 1700f, "Missile silo. Weak defence"),
+		new StructureProperties("Radar",            12f,  70f,   0,  300f, "Radar. Controls missile's flight, has weak defence"),
+		new StructureProperties("AMD",              27f, 120f,   0,  750f, "Anti-Missile Defence. Can shoot down incoming missiles. Has weak defence against troops")
 	};
 	//name, fuelConsumption, minMaxCondition, maxMaxCondition, minSpeed, maxSpeed
 	public static UnitProperties[] uProperties = {
-		new UnitProperties("Fighter",     2, 700, 1500,  3,  7),
-		new UnitProperties("Transporter", 1, 120,  750,  5, 10),
-		new UnitProperties("MCV",         7, 320,  520,  2,  4)
+		new UnitProperties("Fighter",      .3f, 700, 1500,  3,  7),
+		new UnitProperties("Transporter", .12f, 120,  750,  5, 10),
+		new UnitProperties("MCV",           2f, 320,  520,  2,  4)
 	};
 	//title, description, investigationWorkamount, workamountMarkup, investigationPrice, 
 	//priceMarkup, TechnologyRequirement[], SpecialTechnology[]
@@ -79,8 +79,8 @@ public class Heartstrings {
 			}, 
 			new SpecialTechnology[]{}),
 
-		//SIEGE_I
-		new SpecialTechnologyProperties("Siege I", 
+		//SIEGE //SIEGE_I
+		new SpecialTechnologyProperties("Siege", 
 			"Allows squads to siege structures and capture them;", 
 			120f, 20f, 120f, 20f,
 			new TechnologyRequirement[]{
@@ -91,7 +91,7 @@ public class Heartstrings {
 				SpecialTechnology.BASIC_WARFARE
 			}),
 		
-		//SIEGE_II
+		/*//SIEGE_II
 		new SpecialTechnologyProperties("Siege II", 
 			"Allows squads to siege structures and capture them;", 
 			130f, 25f, 320f, 25f,
@@ -100,7 +100,7 @@ public class Heartstrings {
 			}, 
 			new SpecialTechnology[]{
 				SpecialTechnology.SIEGE_I
-		}),
+		}),*/
 		
 		//FORTIFICATION
 		new SpecialTechnologyProperties("Fortification", 
@@ -164,7 +164,7 @@ public class Heartstrings {
 			}
 		),
 		
-		//AMD I
+		//AMD //AMD I
 		new SpecialTechnologyProperties("Anti-Missile Defence I", 
 			"Allows building of anti-missile defence systems;",
 			220f, 0f, 510f, 0f,
@@ -173,11 +173,11 @@ public class Heartstrings {
 				new TechnologyRequirement(Technology.ENGINEERING, .25f)
 			}, 
 			new SpecialTechnology[]{
-				SpecialTechnology.ADVANCED_WARFARE
+				SpecialTechnology.STRATEGIC_WARFARE
 			}
 		),
 		
-		//AMD II
+		/*//AMD II
 		new SpecialTechnologyProperties("Anti-Missile Defence II", 
 			"Allows building of laser AMD systems;",
 			270f, 0f, 790f, 0f,
@@ -187,9 +187,9 @@ public class Heartstrings {
 			}, 
 			new SpecialTechnology[]{
 				SpecialTechnology.RADIO,
-				SpecialTechnology.AMD_I
+				SpecialTechnology.AMD//I
 			}
-		),
+		),*/
 		
 		//ESPIONAGE
 		new SpecialTechnologyProperties("Industrial espionage", 
@@ -201,7 +201,7 @@ public class Heartstrings {
 			}, 
 			new SpecialTechnology[]{
 				SpecialTechnology.RADIO,
-				SpecialTechnology.SIEGE_II
+				SpecialTechnology.SIEGE//II
 			}
 		),
 		
@@ -220,7 +220,7 @@ public class Heartstrings {
 			}
 		),
 		
-		//WARHEAD_FRAGMENTATION_I
+		//WARHEAD_FRAGMENTATION //WARHEAD_FRAGMENTATION_I
 		new SpecialTechnologyProperties("Warhead fragmentation I", 
 			"Allows missiles' payload to fragmentate, increasing"
 			+ "effective area and reducing chance to be shotdown by AMD;",
@@ -234,7 +234,7 @@ public class Heartstrings {
 			}
 		),
 		
-		//WARHEAD_FRAGMENTATION_II
+		/*//WARHEAD_FRAGMENTATION_II
 		new SpecialTechnologyProperties("Warhead fragmentation II", 
 			"\"HIGH JACK THIS FAGS\";",
 			420f, 400f, 750f, 200f,
@@ -243,9 +243,9 @@ public class Heartstrings {
 				new TechnologyRequirement(Technology.SPEED, .4f)
 			}, 
 			new SpecialTechnology[]{
-				SpecialTechnology.WARHEAD_FRAGMENTATION_I
+				SpecialTechnology.WARHEAD_FRAGMENTATION//_I
 			}
-		),
+		),*/
 		
 		//FLARES
 		new SpecialTechnologyProperties("Decoy flares", 
@@ -305,8 +305,7 @@ public class Heartstrings {
 			                        	//SpecialTechnology.COLUMN_INTERCEPTION,
 			                        	SpecialTechnology.FORTIFICATION,
 			                        	SpecialTechnology.MOBILE_ATTACK,
-			                        	SpecialTechnology.SIEGE_I,
-			                        	SpecialTechnology.SIEGE_II,
+			                        	SpecialTechnology.SIEGE,
 			                        	SpecialTechnology.ESPIONAGE
 			                        },
 			                        70),
@@ -329,8 +328,8 @@ public class Heartstrings {
 			                        	Technology.FIREPOWER
 			                        },
 			                        new SpecialTechnology[] {//Missile
-			                        	SpecialTechnology.WARHEAD_FRAGMENTATION_I,
-			                        	SpecialTechnology.WARHEAD_FRAGMENTATION_II,
+			                        	SpecialTechnology.WARHEAD_FRAGMENTATION,//_I,
+			                        	//SpecialTechnology.WARHEAD_FRAGMENTATION_II,
 			                        	SpecialTechnology.FLARES
 			                        },
 			                        1070)
