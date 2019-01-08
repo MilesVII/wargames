@@ -1,6 +1,7 @@
 package com.milesseventh.wargames;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -29,7 +30,6 @@ public class Squad implements Piemenuable {
 	public float lostDirection = 0;
 	public State state = State.STAND;
 	
-	public static final float STRUCTURE_INTERACTION_DISTANCE2 = 120;
 	
 	public Squad(Faction nowner, Vector2 nposition) {
 		name = SQUAD_NAMES[nameSelector++];
@@ -46,9 +46,11 @@ public class Squad implements Piemenuable {
 	}
 	
 	public void setPath(Vector2[] npath){
-		path = npath.clone();
-		pathSegment = -1;
-				state = State.MOVING;
+		if (npath.length > 1){
+			path = npath.clone();
+			pathSegment = -1;
+			state = State.MOVING;
+		}
 	}
 	
 	public void resetPath(){
@@ -241,9 +243,11 @@ public class Squad implements Piemenuable {
 		public void action(int id) {
 			if (id < Structure.Type.values().length){
 				Structure s = new Structure(position, Structure.Type.values()[id], faction);
-				Faction.debug.registerStructure(s);
-				s.yard.addAll(units);
-				faction.squads.remove(me);
+				faction.registerStructure(s);
+				
+				Utils.displaceSomewhereWalkable(position, 
+				                                Heartstrings.STRUCTURE_INTERACTION_DISTANCE2 * .2f * .2f, 
+				                                WG.antistatic.map);
 			}
 			
 			WG.antistatic.uistate = WG.UIState.FREE;
@@ -299,7 +303,7 @@ public class Squad implements Piemenuable {
 				title = "Cancel";
 			
 			WG.antistatic.gui.advancedButton(position, size, id, buildingAllowed ? this : GUI.GUI_ACT_DUMMY, 
-			                                 color, title, description, buildingAllowed ? null : Color.GRAY);
+			                                 color, title, description, buildingAllowed ? null : Color.GRAY); //TODO: Prompts cannot be shown in menu
 		}
 	};
 	private ListEntryCallback LEC_DISBAND_SELECTION_MENU = new ListEntryCallback(){
@@ -354,7 +358,7 @@ public class Squad implements Piemenuable {
 
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
-			Squad ns = Utils.findNearestSquad(faction, position, me);
+			Squad ns = Utils.findNearestSquad(faction, me.position, me);
 			switch (id){
 			case(0):
 				WG.antistatic.gui.advancedButton(position, size, id, GUI.GUI_ACT_DUMMY, 
@@ -377,7 +381,7 @@ public class Squad implements Piemenuable {
 				int  leftConstraint = states - 1 - (int)Math.floor(ns.getFreeSpace(true) + ns.resources.get(Resource.FUEL));
 				int rightConstraint = (int)Math.floor(me.getFreeSpace(true) + me.resources.get(Resource.FUEL));
 				
-				refuelSB.update(states);
+				refuelSB.update(states);//update(rightConstraint - leftConstraint + 1)
 				if (initThumb)
 					refuelSB.offset = (int)Math.floor(me.resources.get(Resource.FUEL));
 				refuelSB.offset = MathUtils.clamp(refuelSB.offset, leftConstraint, rightConstraint);
@@ -421,9 +425,10 @@ public class Squad implements Piemenuable {
 			piemenu.add(PME_MOVE);
 		
 		if (state == State.STAND){
-			Utils.findStructuresWithinRadius2(interactableStructures, faction, position, STRUCTURE_INTERACTION_DISTANCE2, null);
+			Utils.findStructuresWithinRadius2(interactableStructures, faction, position, Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, null);
 			
-			if (isUnitTypePresent(Unit.Type.BUILDER))
+			if (isUnitTypePresent(Unit.Type.BUILDER) &&
+				Utils.isOkToBuild(position))
 				piemenu.add(PME_BUILD);
 			
 			if (interactableStructures.size() > 0){
@@ -434,7 +439,7 @@ public class Squad implements Piemenuable {
 			
 			Squad ns = Utils.findNearestSquad(faction, position, this);
 			if (ns != null &&
-			    position.dst2(ns.position) <= STRUCTURE_INTERACTION_DISTANCE2 && 
+			    position.dst2(ns.position) <= Heartstrings.STRUCTURE_INTERACTION_DISTANCE2 && 
 			    (hasFuel() || ns.hasFuel()) && ns.state == State.STAND){
 				piemenu.add(PME_REFUEL);
 			}

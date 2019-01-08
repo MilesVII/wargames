@@ -29,29 +29,28 @@ public class Structure implements Piemenuable{
 	//> M = Missile launch
 	
 	public class CraftingOrder {
-		Craftable craftable;
-		int amount, unitsDone = 0;
-		float[] tech;
-		ArrayList<SpecialTechnology> st;
-		float workamount, done, wholeWA;
-		Structure manufacturer;
+		private Craftable craftable;
+		private int amount, unitsDone = 0;
+		private float[] tech;
+		private ArrayList<SpecialTechnology> st;
+		private float singleCraftTime, timeHolder;
+		private Structure manufacturer;
 		
-		public CraftingOrder(Structure nmanufacturer, Craftable ncraftable, int namount, float[] nt, ArrayList<SpecialTechnology> nst, float nworkamount){
+		public CraftingOrder(Structure nmanufacturer, Craftable ncraftable, int namount, float[] nt, ArrayList<SpecialTechnology> nst, float nsingleCraftTime){
 			manufacturer = nmanufacturer;
 			craftable = ncraftable;
 			amount = namount;
 			tech = nt;
 			st = nst;
-			workamount = nworkamount;
-			done = 0f;
+			singleCraftTime = nsingleCraftTime;
 		}
 		
 		public boolean craft(float dt){
-			done += manufacturer.getCraftSpeed() * dt;
-			done = Math.min(workamount * (float)amount, done);
+			//done += manufacturer.getCraftSpeed() * dt;
+			//done = Math.min(workamount * (float)amount, done);
+			timeHolder += dt;
 			
-			int nunitsDone = (int)Math.ceil(done / workamount);
-			for (int i = 0; i < nunitsDone; ++i){
+			for (int i = 0; i < Math.floor(timeHolder / singleCraftTime); ++i){
 				switch(craftable){
 				case AMMO:
 					resources.add(Resource.AMMO, 1);
@@ -72,8 +71,10 @@ public class Structure implements Piemenuable{
 					yard.add(new Unit(manufacturer, Unit.Type.FIGHTER, tech, st));
 					break;
 				}
+				
+				timeHolder -= singleCraftTime;
+				++unitsDone;
 			}
-			unitsDone += nunitsDone;
 			
 			return unitsDone >= amount;
 		}
@@ -128,9 +129,9 @@ public class Structure implements Piemenuable{
 			if (!resources.tryRemove(ingridients[i], Heartstrings.getCraftingCost(c, ingridients[i], t, st, amount)))
 				System.err.println("Bankrupt occured while withdrawing crafting order price");
 		
-		float wa = Heartstrings.getWorkamount(c, t, st);
+		float sct = Heartstrings.getWorkamount(c, t, st) / getCraftSpeed();
 		
-		manufactoryQueue.addLast(new CraftingOrder(this, c, amount, t, st, wa));
+		manufactoryQueue.addLast(new CraftingOrder(this, c, amount, t, st, sct));
 	}
 	
 	public void repairUnits(float dt){
@@ -184,7 +185,7 @@ public class Structure implements Piemenuable{
 	public void update(float dt){
 		//Craft
 		if (manufactoryQueue.size > 0)
-			if(manufactoryQueue.first().craft(dt))
+			if (manufactoryQueue.first().craft(dt))
 				manufactoryQueue.removeFirst();
 		
 		//Repairing

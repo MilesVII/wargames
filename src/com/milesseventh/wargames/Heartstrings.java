@@ -34,6 +34,9 @@ public class Heartstrings {
 		FLARES,                   //Allows missiles to use decoy flares; Req: SW, RADIO, ENG(50%)
 	} 
 
+	public static final float STRUCTURE_BUILDING_MIN_DISTANCE2 = 120;
+	public static final float STRUCTURE_INTERACTION_DISTANCE2 = 120;
+	
 	//name, sign, description
 	public static ResourceProperties[] rProperties = {
 		new ResourceProperties("Iron Ore",    "T",   "Raw iron ore. Can be converted into Metal when stored in the City"),

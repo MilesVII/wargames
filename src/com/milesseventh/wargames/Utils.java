@@ -59,6 +59,35 @@ public class Utils {
 		return _place;
 	}
 	
+	public static boolean isOkToBuild(Vector2 position){
+		return (findNearestStructure(null, position, null).position.dst2(position) > Heartstrings.STRUCTURE_BUILDING_MIN_DISTANCE2 &&
+		        WG.antistatic.map.isWalkable(position.x, position.y));
+	}
+	
+	public static void displaceSomewhereWalkable(Vector2 position, float distance, HeightMap map){
+		Vector2 displace = Utils.getVector(distance, 0);
+		int randomOffset = (int)(System.nanoTime() % 360);
+		for (int i = randomOffset; i < randomOffset + 360; ++i){
+			Vector2 newPlace    = Utils.getVector(position).add(displace.rotate(i % 360));
+			Vector2 newPlaceMid = Utils.getVector(position).add(Utils.getVector(displace).scl(.5f));
+			
+			/*Somewhere in LibGDX
+			 -- Hey, I'm building class for Vectors, working on operators
+			 -- Cool!
+			 -- Waddaya think, should operations on vectors change their state?
+			 -- 'course yes! That's Java way, and Vectors are not primitive types right?
+			 -- Oh yeah, they are objects. Objects are cool, aren't they, huh?
+			 -- Yep, all those uncontrollable swarms of states, delightful!*/
+			
+			if (map.isWalkable(newPlace.x, newPlace.y) &&
+			    map.isWalkable(newPlaceMid.x, newPlaceMid.y)){
+				position.set(newPlace);
+				break;
+			}
+		}
+		System.out.println("Displace failed: Utils.java: displaceSomeWhereWalkable()"); //TODO: Debug info
+	}
+	
 	public static Squad findNearestSquad(Faction f, Vector2 from, Squad except){
 		if (f == null){
 			Squad nearest = null;
