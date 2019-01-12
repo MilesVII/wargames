@@ -35,7 +35,8 @@ public class Utils {
 	public static Color getGradColor(Color _from, Color _to, float _percent){
 		return cholder.set(MathUtils.lerp(_from.r, _to.r, _percent),
 		                   MathUtils.lerp(_from.g, _to.g, _percent),
-		                   MathUtils.lerp(_from.b, _to.b, _percent), 1);
+		                   MathUtils.lerp(_from.b, _to.b, _percent),
+		                   MathUtils.lerp(_from.a, _to.a, _percent));
 	}
 	public static Color getRoundGradColor(Color _from, Color _to, float _percent){
 		return getGradColor(_from, _to, Math.round(_percent));
@@ -82,7 +83,7 @@ public class Utils {
 			if (map.isWalkable(newPlace.x, newPlace.y) &&
 			    map.isWalkable(newPlaceMid.x, newPlaceMid.y)){
 				position.set(newPlace);
-				break;
+				return;
 			}
 		}
 		System.out.println("Displace failed: Utils.java: displaceSomeWhereWalkable()"); //TODO: Debug info

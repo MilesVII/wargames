@@ -3,9 +3,11 @@ package com.milesseventh.wargames;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -43,11 +45,11 @@ public class WG extends ApplicationAdapter {
 	//Variables
 	public static WG antistatic;
 	private Batch batch, GUIBatch;
-	public HeightMap map;
+	public HeightMap map, oilMap, oreMap;
 	public OrthographicCamera camera;
 	private ShapeRenderer sr, hsr; 
 	private Marching landOutline, unitsOutline;
-	private Texture _noiseT, _marchT;
+	private Texture heightTexture, oilTexture, oreTexture, marchT;
 	//private Pathfinder landWalker;
 	private BitmapFont font;
 	private boolean preTouched = false;
@@ -127,9 +129,11 @@ public class WG extends ApplicationAdapter {
 			Thread mapInit = new Thread(new Runnable(){
 				@Override
 				public void run() {
-					map = new HeightMap(new Vector2(WORLD_W, WORLD_H), HeightMap.DEFAULT_SCHEME);
+					map = new HeightMap(new Vector2(WORLD_W, WORLD_H), HeightMap.DEFAULT_MAIN_SCHEME, true);
 					System.out.println("Map generated in " + (System.currentTimeMillis() - dtholder) + "ms");
 					landOutline = new Marching(map, map.getSize(), MARCHING_STEP, Marching.Mode.PRERENDERED);
+					oilMap = new HeightMap(new Vector2(WORLD_W, WORLD_H), HeightMap.DEFAULT_OIL_SCHEME, false);
+					oreMap = new HeightMap(new Vector2(WORLD_W, WORLD_H), HeightMap.DEFAULT_ORE_SCHEME, false);
 					loadingProgress = -1;
 				}
 			});
@@ -165,20 +169,27 @@ public class WG extends ApplicationAdapter {
 			hsr.end();
 			return;
 		} else if (loadingProgress == -1){//Map generated
-			_noiseT = new Texture(map.getPixmap());
-			_marchT = new Texture(landOutline.getRendered());
+			heightTexture = new Texture(map.getPixmap());
+			oilTexture = new Texture(oilMap.getPixmap());
+			oreTexture = new Texture(oreMap.getPixmap());
+			marchT = new Texture(landOutline.getRendered());
 			new Faction(Color.BLUE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map));
 			loadingProgress = -2;
 		};
-		
 		
 		camera.update();
 		sr.setProjectionMatrix(camera.combined);
 		batch.setProjectionMatrix(camera.combined);
 		
+		Gdx.gl.glEnable(GL20.GL_BLEND);
+		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+		
+		batch.enableBlending();
 		batch.begin();
 		batch.setColor(Color.WHITE);
-		batch.draw(_noiseT, 0, 0);
+		batch.draw(heightTexture, 0, 0);
+		batch.draw(oilTexture, 0, 0);
+		batch.draw(oreTexture, 0, 0);
 		//batch.draw(_marchT, 0, 0);
 		batch.end();
 
@@ -194,8 +205,6 @@ public class WG extends ApplicationAdapter {
 			}
 		}
 		
-		Gdx.gl.glEnable(GL20.GL_BLEND);
-		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		update();
 		
 		//for (Faction runhorsey: sm.getFractions())
@@ -266,8 +275,10 @@ public class WG extends ApplicationAdapter {
 		sr.dispose();
 		batch.dispose();
 		map.getPixmap().dispose();
-		_marchT.dispose();
-		_noiseT.dispose();
+		marchT.dispose();
+		heightTexture.dispose();
+		oreTexture.dispose();
+		oilTexture.dispose();
 	}
 
 	public void openDialog(Dialog dialog){

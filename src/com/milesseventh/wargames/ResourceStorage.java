@@ -44,12 +44,15 @@ public class ResourceStorage {
 	}
 
 	public void flushTo(Resource r, ResourceStorage rs){
-		assert(tryTransfer(r, get(r), rs));
+		boolean x = tryTransfer(r, get(r), rs);
+		assert(x);
 	}
 	
 	public void fullFlushTo(ResourceStorage rs){
-		for (Resource r: Resource.values())
-			assert(tryTransfer(r, get(r), rs));
+		for (Resource r: Resource.values()){
+			boolean x = tryTransfer(r, get(r), rs);
+			assert(x);
+		}
 	}
 	
 	public void set(Resource r, float size){

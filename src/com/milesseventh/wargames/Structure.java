@@ -48,7 +48,7 @@ public class Structure implements Piemenuable{
 		public boolean craft(float dt){
 			//done += manufacturer.getCraftSpeed() * dt;
 			//done = Math.min(workamount * (float)amount, done);
-			timeHolder += dt;
+			timeHolder += dt;// * 4000; //TODO: Debug
 			
 			for (int i = 0; i < Math.floor(timeHolder / singleCraftTime); ++i){
 				switch(craftable){
@@ -156,7 +156,7 @@ public class Structure implements Piemenuable{
 	public void orderRepairing(Unit u){
 		assert(yard.contains(u));
 		assert(u.canBeRepaired(this));
-		assert(resources.tryRemove(Resource.METAL, Math.round(Heartstrings.getRepairCostInMetal(u))));
+		resources.tryRemove(Resource.METAL, Math.round(Heartstrings.getRepairCostInMetal(u)));
 		repairingQueue.addLast(u);
 		u.state = Unit.State.REPAIRING;
 	}
@@ -173,7 +173,7 @@ public class Structure implements Piemenuable{
 	
 	public void orderUprgade(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
 		assert(yard.contains(u));
-		assert(resources.tryRemove(Resource.METAL, Math.round(Heartstrings.getUpgradeCostInMetal(u, nt, stToAdd))));
+		resources.tryRemove(Resource.METAL, Math.round(Heartstrings.getUpgradeCostInMetal(u, nt, stToAdd)));
 		u.st.addAll(stToAdd);
 		u.upgradeTime = Heartstrings.getUpgradeWorkamount(u, nt, stToAdd) / getCraftSpeed();
 		u.techLevel = nt;
@@ -198,6 +198,10 @@ public class Structure implements Piemenuable{
 				upgradingQueue.removeFirst();
 			} else
 				upgradingQueue.first().upgradeTime -= dt;
+		
+		//Mining
+		if (type == Type.MINER)
+			mine(dt);
 		
 		//Interaction
 		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f){
@@ -232,6 +236,10 @@ public class Structure implements Piemenuable{
 		                   cs * MIN_CRFTSP_K, cs * MAX_CRFTSP_K) * 10f;
 	}
 	
+	public boolean hasYard(){
+		return type == Type.CITY || type == Type.MB;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public void deploySquad(ArrayList<Unit> units){
 		if (units.isEmpty() || yard.isEmpty())
@@ -262,6 +270,22 @@ public class Structure implements Piemenuable{
 			faction.squads.add(s);
 	}
 	
+	private void mine(float dt){
+		float t = faction.techLevel(Technology.ENGINEERING);
+		
+		float k = miningHeightToDensity(WG.antistatic.oilMap);
+		resources.add(Resource.OIL, Utils.remap(t, 0, 1, k, k * 3) * dt);
+		k = miningHeightToDensity(WG.antistatic.oreMap);
+		resources.add(Resource.ORE, Utils.remap(t, 0, 1, k, k * 3) * dt);
+	}
+	private float miningHeightToDensity(HeightMap map){
+		float x = map.getMeta(position.x, position.y);
+		if (x < .667f)
+			return .2f;
+		else
+			return Utils.remap(x, .667f, 1, .2f, 1);
+	}
+	
 	public void hit(float _damage){
 		vitality -= _damage;
 		if (vitality <= 0){
@@ -288,7 +312,7 @@ public class Structure implements Piemenuable{
 			PIEMENU.add(PME_LAB);
 		if (type == Type.CITY || type == Type.MB)
 			PIEMENU.add(PME_CRAFT);
-		if (!yard.isEmpty() && (type == Type.CITY || type == Type.MB))
+		if (!yard.isEmpty() && hasYard())
 			PIEMENU.add(PME_YARD);
 	}
 	

@@ -727,21 +727,15 @@ public class GUI {
 				guiTradeSBUpdate();
 				scrollbars[35].render(GUI_COLORS_SCROLLBAR_COLORS);
 
-				assert(
-				focusedSquad.resources.tryTransfer(tradeDialogState.selectedResource, 
-				                                   focusedSquad.resources.get(tradeDialogState.selectedResource), 
-				                                   focusedSquad.tradePartner)
-				);
-				assert(
+				focusedSquad.resources.flushTo(tradeDialogState.selectedResource, focusedSquad.tradePartner);
 				focusedSquad.tradePartner.tryTransfer(tradeDialogState.selectedResource, 
 				                                      scrollbars[35].offset, 
-				                                      focusedSquad.resources)
-				);
+				                                      focusedSquad.resources);
 				
 				aligner.next(0, -1);
 				caption(aligner.position, "Loaded: " + focusedSquad.resources.get(tradeDialogState.selectedResource) + Heartstrings.get(tradeDialogState.selectedResource, Heartstrings.rProperties).sign +
 				                          "\nLeft on base: " + focusedSquad.tradePartner.get(tradeDialogState.selectedResource) + Heartstrings.get(tradeDialogState.selectedResource, Heartstrings.rProperties).sign +
-				                          "\nSpace left: " + (focusedSquad.getCapacity() - focusedSquad.resources.sum()) +
+				                          "\nSpace left: " + (focusedSquad.getFreeSpace(true)) +
 				                          "\nOverall capacity: " + focusedSquad.getCapacity(), font, VALIGN_TOP, null);
 				aligner.next(0, -1);
 				

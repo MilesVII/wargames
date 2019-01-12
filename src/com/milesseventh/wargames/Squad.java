@@ -1,7 +1,6 @@
 package com.milesseventh.wargames;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -120,6 +119,9 @@ public class Squad implements Piemenuable {
 		rebuildPiemenu();
 		
 		spread();
+		if (resources.sum() > 0){
+			System.out.println("Spread not clear" + resources.sum());
+		}
 	}
 	
 	private float getSpeed(){
@@ -309,9 +311,10 @@ public class Squad implements Piemenuable {
 	private ListEntryCallback LEC_DISBAND_SELECTION_MENU = new ListEntryCallback(){
 		@Override
 		public void action(int id) {
-			if (id < Structure.Type.values().length)
+			if (id < interactableStructures.size() && 
+			    interactableStructures.get(id).hasYard())
 				disband(interactableStructures.get(id).yard,
-				        interactableStructures.get(0).resources);
+				        interactableStructures.get(id).resources);
 			
 			WG.antistatic.uistate = WG.UIState.FREE;
 		}
@@ -319,7 +322,7 @@ public class Squad implements Piemenuable {
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
 			String title;
-			if (id < Structure.Type.values().length)
+			if (id < interactableStructures.size())
 				title = interactableStructures.get(id).name;
 			else
 				title = "Cancel";
@@ -428,13 +431,18 @@ public class Squad implements Piemenuable {
 			Utils.findStructuresWithinRadius2(interactableStructures, faction, position, Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, null);
 			
 			if (isUnitTypePresent(Unit.Type.BUILDER) &&
-				Utils.isOkToBuild(position))
+			    Utils.isOkToBuild(position))
 				piemenu.add(PME_BUILD);
 			
 			if (interactableStructures.size() > 0){
 				if (isUnitTypePresent(Unit.Type.TRANSPORTER))
 					piemenu.add(PME_TRADE);
-				piemenu.add(PME_DISBAND);
+				
+				for (Structure s: interactableStructures)
+					if (s.hasYard()){
+						piemenu.add(PME_DISBAND);
+						break;
+					}
 			}
 			
 			Squad ns = Utils.findNearestSquad(faction, position, this);
