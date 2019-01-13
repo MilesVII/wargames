@@ -36,12 +36,13 @@ public class Structure implements Piemenuable{
 		private float singleCraftTime, timeHolder;
 		private Structure manufacturer;
 		
+		@SuppressWarnings("unchecked")
 		public CraftingOrder(Structure nmanufacturer, Craftable ncraftable, int namount, float[] nt, ArrayList<SpecialTechnology> nst, float nsingleCraftTime){
 			manufacturer = nmanufacturer;
 			craftable = ncraftable;
 			amount = namount;
-			tech = nt;
-			st = nst;
+			tech = nt.clone();
+			st = (ArrayList<SpecialTechnology>)nst.clone();
 			singleCraftTime = nsingleCraftTime;
 		}
 		
@@ -203,6 +204,10 @@ public class Structure implements Piemenuable{
 		if (type == Type.MINER)
 			mine(dt);
 		
+		//Resource Processing
+		if (type == Type.CITY)
+			processResources(dt);
+		
 		//Interaction
 		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f){
 			if (Gdx.input.justTouched()){
@@ -284,6 +289,30 @@ public class Structure implements Piemenuable{
 			return .2f;
 		else
 			return Utils.remap(x, .667f, 1, .2f, 1);
+	}
+
+	private static final float ORE_TO_METAL_PROCESS_RATIO_MIN = 3f,
+	                           ORE_TO_METAL_PROCESS_RATIO_MAX = 1.2f,
+	                           OIL_TO_FUEL_PROCESS_RATIO_MIN = 4f,
+	                           OIL_TO_FUEL_PROCESS_RATIO_MAX = 1.7f,
+	                           RESOURCE_PROCESSING_RATE_MIN = .7f,
+	                           RESOURCE_PROCESSING_RATE_MAX = 7f; //Per second
+	private void processResources(float dt){
+		float t = faction.techLevel(Technology.ENGINEERING);
+		float rate = Utils.remap(t, 0, 1, RESOURCE_PROCESSING_RATE_MIN, RESOURCE_PROCESSING_RATE_MAX);
+		float ratio = Utils.remap(t, 0, 1, ORE_TO_METAL_PROCESS_RATIO_MIN, ORE_TO_METAL_PROCESS_RATIO_MAX);
+		float r = resources.get(Resource.ORE);
+		float amount = Math.min(rate * dt, r);
+		boolean x = resources.tryRemove(Resource.ORE, amount);
+		assert(x);
+		resources.add(Resource.METAL, amount / ratio);
+		
+		ratio = Utils.remap(t, 0, 1, OIL_TO_FUEL_PROCESS_RATIO_MIN, OIL_TO_FUEL_PROCESS_RATIO_MAX);
+		r = resources.get(Resource.OIL);
+		amount = Math.min(rate * dt, r);
+		x = resources.tryRemove(Resource.OIL, amount);
+		assert(x);
+		resources.add(Resource.FUEL, amount / ratio);
 	}
 	
 	public void hit(float _damage){

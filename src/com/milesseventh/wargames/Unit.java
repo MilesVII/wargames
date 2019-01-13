@@ -14,8 +14,8 @@ public class Unit {
 	public enum Type {FIGHTER, TRANSPORTER, BUILDER};
 	public enum State {PARKED, REPAIRING, UPGRADING, ACTIVE, FORTIFIED};
 
-	public static final float MIN_CARGO = 20f;
-	public static final float MAX_CARGO = 100f;
+	public static final float MIN_CARGO = 120f;
+	public static final float MAX_CARGO = 700f;
 	
 	public String name;
 	public float[] techLevel;

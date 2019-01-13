@@ -32,7 +32,49 @@ public class Pathfinder {
 		new Vector2( 0, -1),
 		new Vector2( 1, -1)
 	};
-	
+	public static float findWalkableArea(Stridable map, float step, Vector2 from){
+		from = from.cpy();
+		
+		//Prepare direction offset vectors
+		Vector2[] directionOffsets = new Vector2[SPF_DIRECTIONS.length];
+		for (int i = 0; i < SPF_DIRECTIONS.length; ++i)
+			directionOffsets[i] = SPF_DIRECTIONS[i].cpy().scl(step);
+		
+		//Align to path grid
+		from.set(Math.round(from.x / step) * step, Math.round(from.y / step) * step);
+		
+		//Avoid fullscan and noscan
+		if (safetyCheck(from, map.getSize()) && 
+		    !map.isWalkable(from.x, from.y))
+			return 0;
+		
+		ArrayList<Node> shockwave = new ArrayList<Node>();
+		ArrayList<Node> dust = new ArrayList<Node>();
+		shockwave.add(new Node(from, 0, null));
+		
+		while(!shockwave.isEmpty()){
+			Node pivot = null; //Finding node with minimal value
+			for (Node hook: shockwave)
+				if (pivot == null || hook.value < pivot.value)
+					pivot = hook;
+
+			//Explode the pivot
+			for (Vector2 offset: directionOffsets){
+				Vector2 debris = pivot.cpy().add(offset);
+				if (map.isWalkable(debris.x, debris.y) && 
+				    safetyCheck(debris, map.getSize()) && 
+				    !isDust(shockwave, debris, step / 2f) &&
+				    !isDust(dust, debris, step / 2f))
+					shockwave.add(new Node(debris, pivot.value + offset.len2(), pivot));
+			}
+
+			//Remove pivot from shockwave and check for distance
+			shockwave.remove(pivot);
+			dust.add(pivot);
+		}
+		
+		return dust.size();
+	}
 	public static Node findPath(Stridable map, float step, Vector2 from, Vector2 to){
 		from = from.cpy();
 		  to =   to.cpy();

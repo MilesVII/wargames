@@ -32,6 +32,8 @@ public class WG extends ApplicationAdapter {
 	                        UI_W, UI_H;
 	//public static final int UI_H_DEF, UI_W_DEF = UI_H_DEF = 700;
 	public static final int MARCHING_STEP = 4;
+	public static final float PATHFINDER_DEFAULT_STEP = 6;
+	public static final float MINIMAL_WALKABLE_AREA = 1200; //Relative to pathfinder step
 	public static final float CAM_ZOOM_MIN = .2f,
 	                          CAM_ZOOM_STEP = .02f;
 	
@@ -195,7 +197,8 @@ public class WG extends ApplicationAdapter {
 
 		hsr.begin(ShapeType.Filled);
 		if (uistate == UIState.MOVINGORDER){
-			Vector2[] path = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, 6, ((Squad)focusedObject).position, Utils.WorldMousePosition));
+			Vector2[] path = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, PATHFINDER_DEFAULT_STEP, 
+			                                                                  ((Squad)focusedObject).position, Utils.WorldMousePosition));
 			if (path != null)
 				gui.path(path, 2, Color.BLACK);
 			if (Utils.confirmedTouchOccured){
@@ -228,8 +231,6 @@ public class WG extends ApplicationAdapter {
 		//Debug controls
 		
 		//Debug mechanics
-		//sm.getCurrent().doInvestigation();
-		
 		//...
 		Faction.debug.update(Gdx.graphics.getDeltaTime());
 		Faction.debug.doInvestigation(Gdx.graphics.getDeltaTime() * 1000f);

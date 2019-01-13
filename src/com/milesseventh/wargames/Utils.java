@@ -50,13 +50,12 @@ public class Utils {
 		return getRoundGradColor(colors[c], colors[c + 1], (percent % step) / step);
 	}
 	
-	private static final float DBG_MIN_CITY_H = .10f, DBG_MAX_CITY_H = .32f;
 	public static Vector2 debugFindAPlaceForStructure(HeightMap _map){
 		Vector2 _place;
 		Random _r = new Random();
 		do {
 			_place = new Vector2(_r.nextInt(_map.getWidth()), _r.nextInt(_map.getHeight()));
-		} while(_map.getMeta(_place.x, _place.y) > DBG_MAX_CITY_H || _map.getMeta(_place.x, _place.y) < DBG_MIN_CITY_H);
+		} while(_map.getMeta(_place.x, _place.y) > _map.getMetaThreshold() || Pathfinder.findWalkableArea(_map, WG.PATHFINDER_DEFAULT_STEP, _place) < WG.MINIMAL_WALKABLE_AREA);
 		return _place;
 	}
 	
