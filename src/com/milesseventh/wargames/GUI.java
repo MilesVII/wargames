@@ -306,26 +306,48 @@ public class GUI {
 	private final ListEntryCallback GUI_LEC_YARD_MANAGEMENT = new ListEntryCallback() {
 		@Override
 		public void action(int id) {
-			Unit u = focusedStruct.yard.get(id);
-			
-			if (u.state == Unit.State.PARKED)
-				yardDialogState.select(u);
-			
-			for (int i = 25; i <= 30; ++i)
-				scrollbars[i].initialized = false;
+			if (id < focusedStruct.yard.size()){ // For case when showing additional entry for building units
+				Unit u = focusedStruct.yard.get(id);
+				
+				if (u.state == Unit.State.PARKED)
+					yardDialogState.select(u);
+				
+				for (int i = 25; i <= 30; ++i)
+					scrollbars[i].initialized = false;
+			}
 		}
 		
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
-			Unit u = focusedStruct.yard.get(id);
-			if (u.state == Unit.State.REPAIRING || u.isDamaged())
-				progressbar(position, size, u.condition / u.getMaxCondition(), 
-				            u.state == Unit.State.REPAIRING ? GUI.GUI_COLORS_PROGRESS_REPAIRING_TRANSPARENT :
-				                                              GUI.GUI_COLORS_PROGRESS_DAMAGED_TRANSPARENT);
-			advancedButton(position, size, id, this, color, 
-			               (yardDialogState.lastChecked == u ? ">" : "") + u.name, null/*TODO: prompt*/, 
-			               yardDialogState.selectedUnitsForDeployment.contains(u) ? GUI.GUI_COLOR_SEVENTH : 
-			                                                                        u.state == Unit.State.UPGRADING ? Color.CYAN : null);
+			String caption, prompt = null;
+			Color tcolor = null;
+			if (id == focusedStruct.yard.size()){
+				assert(focusedStruct.isCraftingInProcess());
+				
+				caption = "Building units...";
+				prompt = focusedStruct.unitsCrafting() + " units to go";
+				tcolor = Color.CYAN;
+				progressbar(position, size, focusedStruct.unitCraftingProgress(), 
+				            GUI.GUI_COLORS_PROGRESS_REPAIRING_TRANSPARENT);
+				
+				//color = GUI.GUI_COLORS_TRANSPARENT;
+			} else {
+				Unit u = focusedStruct.yard.get(id);
+	
+				caption = (yardDialogState.lastChecked == u ? ">" : "") + u.name;
+				if (u.state == Unit.State.REPAIRING || u.isDamaged())
+					progressbar(position, size, u.condition / u.getMaxCondition(), 
+					            u.state == Unit.State.REPAIRING ? GUI.GUI_COLORS_PROGRESS_REPAIRING_TRANSPARENT :
+					                                              GUI.GUI_COLORS_PROGRESS_DAMAGED_TRANSPARENT);
+				if (yardDialogState.selectedUnitsForDeployment.contains(u))
+					tcolor = GUI.GUI_COLOR_SEVENTH;
+				if (u.state == Unit.State.UPGRADING){
+					assert(tcolor == null); // Means unit is not selected for deployment
+					tcolor = Color.CYAN;
+				}
+			}
+			
+			advancedButton(position, size, id, this, color, caption, prompt, tcolor);
 		}
 	};
 	
@@ -493,6 +515,7 @@ public class GUI {
 	private CraftingDialog craftingDialogState = new CraftingDialog();
 	private YardDialog yardDialogState = new YardDialog();
 	private TradeDialog tradeDialogState = new TradeDialog();
+	private StringBuilder stringBuilder = new StringBuilder();
 	public void dialog(WG.Dialog dialog){
 		//Drawing dialog backround and close button
 		sr.setColor(GUI_COLORS_DEFAULT[0]);
@@ -509,11 +532,20 @@ public class GUI {
 			caption(aligner.position, "Faction" + focusedStruct.faction.name, font, VALIGN_TOP, null);
 			aligner.next(1, 0);
 			aligner.setSize(.6f, .1f);
-			caption(aligner.position, "TYPE: " + focusedStruct.type.name(), font, VALIGN_TOP, null);
+			caption(aligner.position, "Structure type: " + Heartstrings.get(focusedStruct.type, Heartstrings.structureProperties).title, font, VALIGN_TOP, null);
+			
+			stringBuilder.setLength(0);
+			
 			for (Resource r: Resource.values()){
-				aligner.next(0, -1);
-				caption(aligner.position, r.name() + ": " + focusedStruct.resources.get(r), font, VALIGN_TOP, null);
+				stringBuilder.append(Heartstrings.get(r, Heartstrings.rProperties).name);
+				stringBuilder.append(": ");
+				stringBuilder.append(String.format("%.1f", focusedStruct.resources.get(r)));
+				stringBuilder.append(Heartstrings.get(r, Heartstrings.rProperties).sign);
+				stringBuilder.append('\n');
 			}
+			
+			aligner.next(0, -1);
+			caption(aligner.position, stringBuilder.toString(), font, VALIGN_TOP, null);
 			break;
 		case LABORATORY:
 			dialogTitle = "Laboratory";
@@ -611,6 +643,8 @@ public class GUI {
 			break;
 		case YARD:
 			dialogTitle = "Vehicle Yard";
+			boolean buildingUnits = focusedStruct.isCraftingInProcess();
+			
 			aligner.setSize(.4f, .1f);
 			advancedButton(aligner.position, aligner.size, -1, GUI_ACT_DEPLOY, 
 			               GUI_COLORS_DEFAULT, "Deploy", null, null);
@@ -619,7 +653,8 @@ public class GUI {
 		               GUI_COLORS_DEFAULT, "Deploy All", null, null);
 			aligner.next(0, 1);
 			aligner.setSize(.4f, .7f);
-			list(aligner.position, aligner.size, focusedStruct.yard.size(), GUI_LEC_YARD_MANAGEMENT, GUI_COLORS_DEFAULT, 24);
+			list(aligner.position, aligner.size, focusedStruct.yard.size() + (buildingUnits ? 1 : 0), 
+			     GUI_LEC_YARD_MANAGEMENT, GUI_COLORS_DEFAULT, 24);
 			aligner.next(0, 1);
 			aligner.setSize(.4f, .1f);
 			caption(aligner.position, "Yard", font, VALIGN_BOTTOM, null);

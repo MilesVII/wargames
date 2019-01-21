@@ -35,6 +35,8 @@ public class Structure implements Piemenuable{
 		private ArrayList<SpecialTechnology> st;
 		private float singleCraftTime, timeHolder;
 		private Structure manufacturer;
+		public float currentUnitProgress = 0;
+		public int unitsToGo = -1;
 		
 		@SuppressWarnings("unchecked")
 		public CraftingOrder(Structure nmanufacturer, Craftable ncraftable, int namount, float[] nt, ArrayList<SpecialTechnology> nst, float nsingleCraftTime){
@@ -47,9 +49,7 @@ public class Structure implements Piemenuable{
 		}
 		
 		public boolean craft(float dt){
-			//done += manufacturer.getCraftSpeed() * dt;
-			//done = Math.min(workamount * (float)amount, done);
-			timeHolder += dt;// * 4000; //TODO: Debug
+			timeHolder += dt;
 			
 			for (int i = 0; i < Math.floor(timeHolder / singleCraftTime); ++i){
 				switch(craftable){
@@ -76,6 +76,9 @@ public class Structure implements Piemenuable{
 				timeHolder -= singleCraftTime;
 				++unitsDone;
 			}
+			
+			currentUnitProgress = timeHolder / singleCraftTime;
+			unitsToGo = amount - unitsDone;
 			
 			return unitsDone >= amount;
 		}
@@ -314,6 +317,24 @@ public class Structure implements Piemenuable{
 		assert(x);
 		resources.add(Resource.FUEL, amount / ratio);
 	}
+
+	public boolean isCraftingInProcess(){
+		return manufactoryQueue.size > 0;
+	}
+	
+	public int unitsCrafting(){
+		assert(manufactoryQueue.size > 0);
+		
+		int r = manufactoryQueue.first().unitsToGo;
+		for (int i = 1; i < manufactoryQueue.size; i++)
+			r += manufactoryQueue.get(i).amount;
+		return r;
+	}
+	
+	public float unitCraftingProgress(){
+		assert(manufactoryQueue.size > 0);
+		return manufactoryQueue.first().currentUnitProgress;
+	}
 	
 	public void hit(float _damage){
 		vitality -= _damage;
@@ -341,7 +362,7 @@ public class Structure implements Piemenuable{
 			PIEMENU.add(PME_LAB);
 		if (type == Type.CITY || type == Type.MB)
 			PIEMENU.add(PME_CRAFT);
-		if (!yard.isEmpty() && hasYard())
+		if ((!yard.isEmpty() && hasYard()) || isCraftingInProcess())
 			PIEMENU.add(PME_YARD);
 	}
 	
