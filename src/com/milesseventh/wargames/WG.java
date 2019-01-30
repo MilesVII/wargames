@@ -223,7 +223,7 @@ public class WG extends ApplicationAdapter {
 		if (uistate == UIState.DIALOG && currentDialog != Dialog.NONE)
 			gui.dialog(currentDialog);
 		if (uistate == UIState.MENU && menuLEC != null)
-			gui.menu(menuLEC, GUI.GUI_COLORS_DEFAULT, menuLength);;
+			gui.menu(menuLEC, GUI.GUI_COLORS_DEFAULT, menuLength);
 		hsr.end();
 	}
 	

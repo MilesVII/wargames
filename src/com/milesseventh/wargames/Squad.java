@@ -388,10 +388,10 @@ public class Squad implements Piemenuable {
 				int  leftConstraint = states - 1 - (int)Math.floor(ns.getFreeSpace(true) + ns.resources.get(Resource.FUEL));
 				int rightConstraint = (int)Math.floor(me.getFreeSpace(true) + me.resources.get(Resource.FUEL));
 				
-				refuelSB.update(states);//update(rightConstraint - leftConstraint + 1)
+				refuelSB.update(states, leftConstraint, rightConstraint);//update(rightConstraint - leftConstraint + 1)
 				if (initThumb)
 					refuelSB.offset = (int)Math.floor(me.resources.get(Resource.FUEL));
-				refuelSB.offset = MathUtils.clamp(refuelSB.offset, leftConstraint, rightConstraint);
+				//refuelSB.offset = MathUtils.clamp(refuelSB.offset, leftConstraint, rightConstraint);
 				
 				assert(temporaryFuelTank.sum() == 0);
 					me.resources.flushTo(Resource.FUEL, temporaryFuelTank);

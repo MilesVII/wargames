@@ -85,6 +85,11 @@ public class GUI {
 			initialized = true;
 		}
 		
+		public void update(int states, int leftConstraint, int rightConstraint){
+			update(states);
+			offset = MathUtils.clamp(offset, leftConstraint, rightConstraint);
+		}
+		
 		/**
 		 * update method is getting amount of possible states as parameter
 		 * states = maxvalue + 1
@@ -532,7 +537,8 @@ public class GUI {
 			caption(aligner.position, "Faction" + focusedStruct.faction.name, font, VALIGN_TOP, null);
 			aligner.next(1, 0);
 			aligner.setSize(.6f, .1f);
-			caption(aligner.position, "Structure type: " + Heartstrings.get(focusedStruct.type, Heartstrings.structureProperties).title, font, VALIGN_TOP, null);
+			String focusedStructTitle = Heartstrings.get(focusedStruct.type, Heartstrings.structureProperties).title;
+			caption(aligner.position, "Structure type: " + focusedStructTitle, font, VALIGN_TOP, null);
 			
 			stringBuilder.setLength(0);
 			
@@ -558,39 +564,45 @@ public class GUI {
 			for (int i = 0; i < Heartstrings.Technology.values().length; ++i){
 				if (!scrollbars[1 + i].initialized){
 					scrollbars[1 + i].offset = Faction.debug.techPriorities[i];
-					scrollbars[1 + i].init(Utils.getVector(aligner.position), 
-					                       Utils.getVector(aligner.size), 
-					                       false, .5f);
+					scrollbars[1 + i].init(aligner.position, aligner.size, false, .5f);
 				}
 				scrollbars[1 + i].update(Faction.MAXPRIOR);
 				scrollbars[1 + i].render(GUI_COLORS_SCROLLBAR_COLORS);
-				progressbar(aligner.position, aligner.size, 
-				            Faction.debug.getRelativeInvestigationPriority(Technology.values()[i]) * Faction.debug.investition,
+				
+				float investigationPriority = Faction.debug.getRelativeInvestigationPriority(Technology.values()[i]) * Faction.debug.investition;
+				progressbar(aligner.position, aligner.size, investigationPriority,
 				            GUI_COLORS_SEVENTH_PROGRESS_TRANSPARENT);
-				caption(Utils.getVector(aligner.position).add(3f, captionCenteringOffset), 
-				        Heartstrings.tProperties[i].title, font, VALIGN_BOTTOM, null);
+				
+				Vector2 captionPosition = Utils.getVector(aligner.position).add(3f, captionCenteringOffset);
+				String captionText = Heartstrings.tProperties[i].title;
+				caption(captionPosition, captionText, font, VALIGN_BOTTOM, null);
+				
 				Faction.debug.techPriorities[i] = scrollbars[1 + i].offset;
 				
 				aligner.next(1, 0);
+				
 				float centeringOffset = aligner.size.y / 2f;
-				circledProgressbar(Utils.getVector(aligner.position).add(centeringOffset * 1.5f, centeringOffset), centeringOffset * 1.22f,
-				                   Faction.debug.techLevel(Technology.values()[i]), GUI_COLOR_SEVENTH);
+				Vector2 cPBPosition = Utils.getVector(aligner.position).add(centeringOffset * 1.5f, centeringOffset);
+				float cPBValue = Faction.debug.techLevel(Technology.values()[i]);
+				circledProgressbar(cPBPosition, centeringOffset * 1.22f, cPBValue, GUI_COLOR_SEVENTH);
+				
 				aligner.next(-1, -1);
 			}
 			if (!scrollbars[23].initialized){
 				scrollbars[23].offset = Math.round(Faction.debug.investition * Scrollbar.GUI_SB_DEFAULT_STATES);
-				scrollbars[23].init(Utils.getVector(aligner.position), 
-				                    Utils.getVector(aligner.size), 
-				                    false, .5f);
+				scrollbars[23].init(aligner.position, aligner.size, false, .5f);
 			}
-			scrollbars[23].update(Scrollbar.GUI_SB_DEFAULT_STATES);
+			scrollbars[23].update(Scrollbar.GUI_SB_DEFAULT_STATES); //TODO: Probably must be +1 here
 			scrollbars[23].render(GUI_COLORS_SCROLLBAR_COLORS);
-			caption(Utils.getVector(aligner.position).add(3f, captionCenteringOffset), 
-			        "Investition", font, VALIGN_BOTTOM, null);
-			Faction.debug.investition = scrollbars[23].offset / ((float)Scrollbar.GUI_SB_DEFAULT_MAXVAL);
+			
+			Vector2 investitionCaptionCenteredPosition = Utils.getVector(aligner.position).add(3f, captionCenteringOffset);
+			float selectedInvestition = scrollbars[23].offset / ((float)Scrollbar.GUI_SB_DEFAULT_MAXVAL);
+			caption(investitionCaptionCenteredPosition, "Investition", font, VALIGN_BOTTOM, null);
+			Faction.debug.investition = selectedInvestition;
 			
 			aligner.next(0, -1);
-			caption(aligner.position, String.format("Science data available: %.2f", Faction.debug.scienceDataAvailable), font, VALIGN_BOTTOM, null);
+			String scienceDataAmount = String.format("Science data available: %.2f", Faction.debug.scienceDataAvailable);
+			caption(aligner.position, scienceDataAmount, font, VALIGN_BOTTOM, null);
 			break;
 		case CRAFTING:
 			dialogTitle = "Assembly Factory";
@@ -649,15 +661,20 @@ public class GUI {
 			advancedButton(aligner.position, aligner.size, -1, GUI_ACT_DEPLOY, 
 			               GUI_COLORS_DEFAULT, "Deploy", null, null);
 			aligner.next(0, 1);
+			
 			advancedButton(aligner.position, aligner.size, -1, GUI_ACT_DEPLOY_ALL, 
-		               GUI_COLORS_DEFAULT, "Deploy All", null, null);
+			               GUI_COLORS_DEFAULT, "Deploy All", null, null);
 			aligner.next(0, 1);
+			
 			aligner.setSize(.4f, .7f);
-			list(aligner.position, aligner.size, focusedStruct.yard.size() + (buildingUnits ? 1 : 0), 
+			int entriesFromDeploymentList = focusedStruct.yard.size() + (buildingUnits ? 1 : 0);
+			list(aligner.position, aligner.size, entriesFromDeploymentList, 
 			     GUI_LEC_YARD_MANAGEMENT, GUI_COLORS_DEFAULT, 24);
 			aligner.next(0, 1);
+			
 			aligner.setSize(.4f, .1f);
 			caption(aligner.position, "Yard", font, VALIGN_BOTTOM, null);
+			
 			aligner.reset();
 			aligner.setSize(.4f, 1);
 			aligner.next(1, 1);
@@ -666,39 +683,41 @@ public class GUI {
 			if (u != null){
 				aligner.setSize(.6f, .1f);
 				aligner.next(0, -1);
-				caption(aligner.position, u.type.name() + " " + u.name, 
-				        font, VALIGN_BOTTOM, null);
+				String captionText = u.type.name() + " " + u.name;
+				caption(aligner.position, captionText, font, VALIGN_BOTTOM, null);
 				aligner.next(0, -1);
+				
 				if (u.isDamaged()){
-					caption(aligner.position, 
-					        "Condition: " + (u.state == Unit.State.REPAIRING ? "Repairing" : "Damaged"), 
-					        font, VALIGN_BOTTOM, null);
+					captionText = "Condition: " + (u.state == Unit.State.REPAIRING ? "Repairing" : "Damaged");
+					caption(aligner.position, captionText, font, VALIGN_BOTTOM, null);
 					aligner.next(0, -1);
-					advancedButton(aligner.position, aligner.size, -1, GUI_ACT_REPAIR, 
-					               GUI_COLORS_DEFAULT, u.state == Unit.State.REPAIRING ? "Cancel Repair" : "Repair", null, 
-					               yardDialogState.lastChecked.canBeRepaired(focusedStruct) ? null : Color.DARK_GRAY);
 					
+					captionText = u.state == Unit.State.REPAIRING ? "Cancel Repair" : "Repair";
+					Color textColor = yardDialogState.lastChecked.canBeRepaired(focusedStruct) ? null : Color.DARK_GRAY;
+					advancedButton(aligner.position, aligner.size, -1, GUI_ACT_REPAIR, 
+					               GUI_COLORS_DEFAULT, captionText, null, textColor);
 				} else {
 					if (u.state == Unit.State.PARKED) {
-						caption(aligner.position, "Upgrade: ", 
-						        font, VALIGN_BOTTOM, null);
+						caption(aligner.position, "Upgrade: ", font, VALIGN_BOTTOM, null);
 						aligner.next(0, -1);
+						
 						aligner.setSize(.3f, .1f);
+						Craftable unitTypeAsCraftable = Heartstrings.fromUnitType(yardDialogState.lastChecked.type);
+						Technology[] techs = Heartstrings.get(unitTypeAsCraftable, Heartstrings.craftableProperties).availableTechs;
 						for (int i = 0; i < Heartstrings.Technology.values().length; ++i){
 							if (!scrollbars[25 + i].initialized)
-								scrollbars[25 + i].init(Utils.getVector(aligner.position), 
-								                        Utils.getVector(aligner.size), 
+								scrollbars[25 + i].init(aligner.position, aligner.size, 
 								                        false, Scrollbar.GUI_SB_DEFAULT_THUMB);
-							if (Utils.arrayContains(Heartstrings.get(Heartstrings.fromUnitType(yardDialogState.lastChecked.type), 
-							                                         Heartstrings.craftableProperties).availableTechs, 
-							                        Heartstrings.Technology.values()[i])){
+							
+							Technology currentTech = Heartstrings.Technology.values()[i];
+							if (Utils.arrayContains(techs, currentTech)){
 								scrollbars[25 + i].update(guiYMgetTUpgradeSBStates(i));
 								scrollbars[25 + i].render(GUI_COLORS_SCROLLBAR_COLORS);
 								
-								caption(aligner.position, 
-								        String.format(Heartstrings.tProperties[i].shortTitle + " %3d/%3d%%", 
-								                      scrollbars[25 + i].offset + (int)Math.floor(yardDialogState.lastChecked.techLevel[i] * 100f), (int)Math.floor(focusedStruct.faction.tech[i] * 100f)), 
-								        font, VALIGN_BOTTOM, null);
+								int currentTechPercentage = scrollbars[25 + i].offset + (int)Math.floor(yardDialogState.lastChecked.techLevel[i] * 100f);
+								int investigatedPercentage = (int)Math.floor(focusedStruct.faction.tech[i] * 100f);
+								captionText = String.format(Heartstrings.tProperties[i].shortTitle + " %3d/%3d%%", currentTechPercentage, investigatedPercentage);
+								caption(aligner.position, captionText, font, VALIGN_BOTTOM, null);
 								aligner.next(0, -1);
 							}
 						}
@@ -706,26 +725,28 @@ public class GUI {
 						aligner.setSize(.7f, .1f);
 						aligner.next(1, 1);
 						aligner.setSize(.3f, .7f);
+						
 						list(aligner.position, aligner.size, yardDialogState.availableST.length, GUI_LEC_YM_ST, GUI_COLORS_DEFAULT, 31);
+						
 						aligner.setSize(.3f, .1f);
 						aligner.next(-1, -1);
 						aligner.setSize(.6f, .1f);
+						
+						Color textColor = yardDialogState.lastChecked.canBeRepaired(focusedStruct) ? null : Color.DARK_GRAY;
 						advancedButton(aligner.position, aligner.size, -1, GUI_ACT_UPGRADE, 
-						               GUI_COLORS_DEFAULT, "Upgrade", null, 
-						               yardDialogState.lastChecked.canBeRepaired(focusedStruct) ? null : Color.DARK_GRAY);
+						               GUI_COLORS_DEFAULT, "Upgrade", null, textColor);
 						aligner.next(0, 1);
-						caption(aligner.position, "Upgrade cost: " + Heartstrings.getUpgradeCostInMetal(u, guiYMHarvestUpgradeNTData(), yardDialogState.stToAdd) + "M",
-						        font, VALIGN_BOTTOM, null);
+						
+						float upgradeCost = Heartstrings.getUpgradeCostInMetal(u, guiYMHarvestUpgradeNTData(), yardDialogState.stToAdd);
+						captionText = "Upgrade cost: " + upgradeCost + "M";
+						caption(aligner.position, captionText, font, VALIGN_BOTTOM, null);
 					} else if (u.state == Unit.State.UPGRADING){
-						caption(aligner.position, "Upgrading...", 
-						        font, VALIGN_BOTTOM, null);
+						caption(aligner.position, "Upgrading...", font, VALIGN_BOTTOM, null);
 					} else {
-						caption(aligner.position, "EVERYTHING IS PLAIN WRONG", 
-						        font, VALIGN_BOTTOM, null);
+						caption(aligner.position, "EVERYTHING IS PLAIN WRONG", font, VALIGN_BOTTOM, null);
 					}
 				}
 			}
-			
 			
 			break;
 		case TRADE:
@@ -735,15 +756,20 @@ public class GUI {
 			focusedSquad.prepareForTrading();
 			
 			aligner.setSize(.3f, .9f);
-			list(aligner.position, aligner.size, Resource.values().length, 
-			     GUI_LEC_TRADE_RESOURCES, GUI_COLORS_DEFAULT, 33);
+			int listSize = Resource.values().length;
+			list(aligner.position, aligner.size, listSize, GUI_LEC_TRADE_RESOURCES, GUI_COLORS_DEFAULT, 33);
 			aligner.next(0, 1);
+			
 			aligner.setSize(.3f, .1f);
 			caption(aligner.position, focusedSquad.tradePartner.name, font, VALIGN_BOTTOM, null);
+			
 			aligner.reset();
 			aligner.shift(.7f, .0f, 1, 0);
 			aligner.setSize(.3f, .9f);
-			list(aligner.position, aligner.size, TradeDialog.countTransporters(focusedSquad), GUI_LEC_TRADE_TRANSPORTERS, GUI_COLORS_DEFAULT, 34);
+			
+			listSize = TradeDialog.countTransporters(focusedSquad);
+			list(aligner.position, aligner.size, listSize, GUI_LEC_TRADE_TRANSPORTERS, GUI_COLORS_DEFAULT, 34);
+			
 			aligner.next(0, 1);
 			caption(aligner.position, focusedSquad.name, font, VALIGN_BOTTOM, null);
 			aligner.reset();
@@ -754,24 +780,25 @@ public class GUI {
 			aligner.next(0, -1);
 			if (tradeDialogState.selectedResource != null){
 				if (!scrollbars[35].initialized){
-					scrollbars[35].init(Utils.getVector(aligner.position), 
-					                    Utils.getVector(aligner.size), 
-					                    false, Scrollbar.GUI_SB_DEFAULT_THUMB);
+					scrollbars[35].init(aligner.position, aligner.size, false, Scrollbar.GUI_SB_DEFAULT_THUMB);
 					guiTradeSetSBInitialOffset();
 				}
 				guiTradeSBUpdate();
 				scrollbars[35].render(GUI_COLORS_SCROLLBAR_COLORS);
 
 				focusedSquad.resources.flushTo(tradeDialogState.selectedResource, focusedSquad.tradePartner);
-				focusedSquad.tradePartner.tryTransfer(tradeDialogState.selectedResource, 
-				                                      scrollbars[35].offset, 
-				                                      focusedSquad.resources);
+				focusedSquad.tradePartner.tryTransfer(tradeDialogState.selectedResource, scrollbars[35].offset, focusedSquad.resources);
 				
 				aligner.next(0, -1);
-				caption(aligner.position, "Loaded: " + focusedSquad.resources.get(tradeDialogState.selectedResource) + Heartstrings.get(tradeDialogState.selectedResource, Heartstrings.rProperties).sign +
-				                          "\nLeft on base: " + focusedSquad.tradePartner.get(tradeDialogState.selectedResource) + Heartstrings.get(tradeDialogState.selectedResource, Heartstrings.rProperties).sign +
+				
+				String selectedSign = Heartstrings.get(tradeDialogState.selectedResource, Heartstrings.rProperties).sign;
+				String loaded = focusedSquad.resources.get(tradeDialogState.selectedResource) + selectedSign;
+				String leftOnBase = focusedSquad.tradePartner.get(tradeDialogState.selectedResource) + selectedSign;
+				caption(aligner.position, "Loaded: " + loaded +
+				                          "\nLeft on base: " + leftOnBase +
 				                          "\nSpace left: " + (focusedSquad.getFreeSpace(true)) +
-				                          "\nOverall capacity: " + focusedSquad.getCapacity(), font, VALIGN_TOP, null);
+				                          "\nOverall capacity: " + focusedSquad.getCapacity(), 
+				                          font, VALIGN_TOP, null);
 				aligner.next(0, -1);
 				
 				//caption(aligner.position, "And other", font, VALIGN_BOTTOM, null);
