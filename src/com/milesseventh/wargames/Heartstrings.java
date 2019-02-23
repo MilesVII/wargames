@@ -37,6 +37,10 @@ public class Heartstrings {
 	public static final float STRUCTURE_BUILDING_MIN_DISTANCE2 = 120;
 	public static final float STRUCTURE_INTERACTION_DISTANCE2 = 120;
 	
+	public static final int MISSILE_ACTIVE_STORAGE_CAPACITY = 3;
+	public static final float MISSILE_MOUNTING_SPEED_MIN = .02f;
+	public static final float MISSILE_MOUNTING_SPEED_MAX = .1f;
+	
 	//name, sign, description
 	public static ResourceProperties[] rProperties = {
 		new ResourceProperties("Iron Ore",    "T",   "Raw iron ore. Can be converted into Metal when stored in the City"),

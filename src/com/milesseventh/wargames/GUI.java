@@ -199,7 +199,7 @@ public class GUI {
 	};
 	
 	private static GlyphLayout glay = new GlyphLayout();
-	//Engaged 0; 1-6; 11; 12; 13-18; 22; 23; 24; 25-30; 31, 32, 33, 34, 35
+	//Engaged 0; 1-6; 11; 12; 13-18; 22; 23; 24; 25-30; 31, 32, 33, 34, 35, 36
 	//Reserved 7-10; 19-21;
 	private Scrollbar[] scrollbars = new Scrollbar[64];
 	
@@ -421,6 +421,45 @@ public class GUI {
 			Unit u =  TradeDialog.getTransporterByID(focusedSquad, id);
 			advancedButton(position, size, id, this, color, 
 			               u.name, null, null);
+		}
+	};
+	
+	private final ListEntryCallback GUI_LEC_MISSILE_EXCHANGE = new ListEntryCallback() {
+		@Override
+		public void action(int id) {
+			boolean missileAtStruct = id < focusedStruct.missilesStorage.size();
+			Missile m;
+			if (missileAtStruct)
+				m = focusedStruct.missilesStorage.get(id);
+			else
+				m = focusedSquad.getMissileAt(id - focusedStruct.missilesStorage.size());
+			assert(m != null);
+			
+			if (m.isUnmounted()){
+				if (missileAtStruct){
+					if (focusedSquad.getMissilesAmount() < focusedSquad.getMissileCapacity()){
+						focusedStruct.missilesStorage.remove(m);
+						focusedSquad.loadMissile(m);
+					}
+				} else {
+					focusedSquad.unloadMissile(m);
+					focusedStruct.missilesStorage.add(m);
+				}
+			}
+		}
+		
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			boolean missileAtStruct = id < focusedStruct.missilesStorage.size();
+			Missile m;
+			if (missileAtStruct)
+				m = focusedStruct.missilesStorage.get(id);
+			else
+				m = focusedSquad.getMissileAt(id - focusedStruct.missilesStorage.size());
+			assert(m != null);
+			
+			advancedButton(position, size, id, this, color, 
+			               m.name, null, missileAtStruct ? null : GUI_COLOR_SEVENTH);
 		}
 	};
 
@@ -776,7 +815,6 @@ public class GUI {
 			
 			aligner.shift(.3f, .1f, 1, 9);
 			aligner.setSize(.4f, .1f);
-			//caption(aligner.position, "Titol text", font, VALIGN_BOTTOM, null);
 			aligner.next(0, -1);
 			if (tradeDialogState.selectedResource != null){
 				if (!scrollbars[35].initialized){
@@ -805,6 +843,25 @@ public class GUI {
 			}
 			
 			focusedSquad.doneTrading();
+			
+			break;
+		case MISSILE_EXCHANGE:
+			dialogTitle = "Missile Exchange";
+			aligner.shift(.25f, 0, 1, 0);
+			aligner.setSize(.5f, .9f);
+			list(aligner.position, aligner.size, focusedStruct.missilesStorage.size() + focusedSquad.getMissilesAmount(), GUI_LEC_MISSILE_EXCHANGE, GUI_COLORS_DEFAULT, 36);
+			aligner.next(0, 1);
+			caption(aligner.position, "Missiles in storage:", font, VALIGN_BOTTOM, null);
+			
+			if (focusedSquad.getMissileCapacity() == focusedSquad.getMissilesAmount()){
+				aligner.reset();
+				aligner.shift(.75f, .8f, 1, 1);
+				caption(aligner.position, "Squad missile \ncapacity is full", font, VALIGN_BOTTOM, null);
+			}
+			break;
+		case MISSILE_PREPARING:
+			dialogTitle = "Missile Preparing";
+			
 			break;
 		case NONE:
 			break;

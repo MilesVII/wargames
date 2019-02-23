@@ -49,7 +49,7 @@ public class Structure implements Piemenuable{
 		}
 		
 		public boolean craft(float dt){
-			timeHolder += dt;
+			timeHolder += dt * 5f;
 			
 			for (int i = 0; i < Math.floor(timeHolder / singleCraftTime); ++i){
 				switch(craftable){
@@ -105,7 +105,9 @@ public class Structure implements Piemenuable{
 	public Vector2 position;
 	public Type type;
 	public ResourceStorage resources;
+
 	public ArrayList<Missile> missilesStorage = new ArrayList<Missile>();
+	public Missile[] missilesReady = new Missile[Heartstrings.MISSILE_ACTIVE_STORAGE_CAPACITY];
 	
 	private Queue<CraftingOrder> manufactoryQueue = new Queue<CraftingOrder>();
 	private Queue<Unit> repairingQueue = new Queue<Unit>();
@@ -211,6 +213,21 @@ public class Structure implements Piemenuable{
 		if (type == Type.CITY)
 			processResources(dt);
 		
+		//Missile mounting
+		for (int i = 0; i < missilesReady.length; ++i){
+			Missile m = missilesReady[i];
+			
+			if (m == null)
+				continue;
+			//if (!m.isReady() && !m.isUnmounted())
+			m.executeOrder(getMissileMountingSpeed() * dt);
+			
+			if (m.isUnmounted()){
+				missilesStorage.add(m);
+				missilesReady[i] = null;
+			}
+		}
+		
 		//Interaction
 		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f){
 			if (Gdx.input.justTouched()){
@@ -242,6 +259,32 @@ public class Structure implements Piemenuable{
 		
 		return Utils.remap(faction.techLevel(Technology.ENGINEERING), 0, 1, 
 		                   cs * MIN_CRFTSP_K, cs * MAX_CRFTSP_K) * 10f;
+	}
+	
+	public void orderMissileMounting(Missile m){
+		assert(missilesStorage.contains(m));
+		assert(hasEmptySlotsForMissiles());
+		
+		int i;
+		for (i = 0; missilesReady[i] != null; ++i){}
+		
+		missilesReady[i] = m;
+		missilesStorage.remove(m);
+		
+		m.orderedState = Missile.State.READY;
+	}
+	
+	public float getMissileMountingSpeed(){
+		return Utils.remap(faction.techLevel(Technology.ENGINEERING), 0, 1, 
+		                   Heartstrings.MISSILE_MOUNTING_SPEED_MIN, 
+		                   Heartstrings.MISSILE_MOUNTING_SPEED_MAX);
+	}
+	
+	public boolean hasEmptySlotsForMissiles(){
+		for (int i = 0; i < missilesReady.length; ++i)
+			if (missilesReady[i] == null)
+				return true;
+		return false;
 	}
 	
 	public boolean hasYard(){
@@ -364,6 +407,10 @@ public class Structure implements Piemenuable{
 			PIEMENU.add(PME_CRAFT);
 		if ((!yard.isEmpty() && hasYard()) || isCraftingInProcess())
 			PIEMENU.add(PME_YARD);
+		Squad ns = Utils.findNearestSquad(faction, position, null);
+		if (ns != null && ns.position.dst2(position) < Heartstrings.STRUCTURE_INTERACTION_DISTANCE2){
+			PIEMENU.add(PME_MISSILETRADE);
+		}
 	}
 	
 	public final PiemenuEntry PME_STATS = new PiemenuEntry("Stats", new Callback(){
@@ -388,6 +435,15 @@ public class Structure implements Piemenuable{
 		@Override
 		public void action(int source) {
 			WG.antistatic.openDialog(WG.Dialog.YARD);
+		}
+	});
+	public final PiemenuEntry PME_MISSILETRADE = new PiemenuEntry("Missile Exchange", new Callback(){
+		@Override
+		public void action(int source) {
+			Squad ns = Utils.findNearestSquad(faction, position, null);
+			assert(ns != null);
+			WG.antistatic.gui.focusedSquad = ns;
+			WG.antistatic.openDialog(WG.Dialog.MISSILE_EXCHANGE);
 		}
 	});
 	

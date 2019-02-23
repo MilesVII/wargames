@@ -75,9 +75,9 @@ public class Unit {
 			return 0;
 	}
 	
-	public float getMissileCapacity(){
+	public int getMissileCapacity(){
 		if (type == Type.TRANSPORTER)
-			return (float)Math.floor(getFreeSpace() / Missile.WEIGHT);
+			return (int)Math.floor(getFreeSpace() / Missile.WEIGHT);//TODO: FOX THE MISSILE CAPACITY CHECK ASAP+ missilesLoaded.size();
 		else
 			return 0;
 	}

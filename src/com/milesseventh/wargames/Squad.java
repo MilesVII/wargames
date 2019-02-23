@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.WG.Dialog;
@@ -182,7 +181,50 @@ public class Squad implements Piemenuable {
 		return r;
 	}
 	
-	public void loadMissiles(ArrayList<Missile> missiles){
+	public int getMissilesAmount(){
+		int r = 0;
+		for (Unit u: units)
+			r += u.missilesLoaded.size();
+		return r;
+	}
+	
+	public Missile getMissileAt(int i){
+		int j = 0;
+		for (Unit u: units)
+			for (Missile m: u.missilesLoaded)
+				if (i == j++)
+					return m;
+		return null;
+	}
+	
+	
+	public void loadMissile(Missile m){
+		assert(getMissileCapacity() >= 1);
+		
+		for (Unit u: units){
+			if (u.missilesLoaded.size() < u.getMissileCapacity()){
+				u.missilesLoaded.add(m);
+				return;
+			}
+		}
+		assert(false);
+	}
+	
+	
+	public void unloadMissile(int m){
+		unloadMissile(getMissileAt(m));
+	}
+	public void unloadMissile(Missile tm){
+		for (Unit u: units)
+			for (Missile m: u.missilesLoaded)
+				if (m.equals(tm)){
+					u.missilesLoaded.remove(m);
+					return;
+				}
+		assert(false);
+	}
+
+	/*public void loadMissiles(ArrayList<Missile> missiles){
 		assert(missiles.size() <= getMissileCapacity());
 		
 		for (int i = 0, j = 0; i < units.size() && j < missiles.size(); ++i){
@@ -193,7 +235,7 @@ public class Squad implements Piemenuable {
 		}
 		
 		missiles.clear();
-	}
+	}*/
 	
 	public void unloadMissiles(ArrayList<Missile> receiver){
 		for (Unit u: units){
@@ -265,7 +307,7 @@ public class Squad implements Piemenuable {
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
 			String title, description = null;
-			boolean buildingAllowed = true; 
+			boolean buildingAllowed = true, shown = true; 
 			if (id < Structure.Type.values().length){
 				Structure.Type st = Structure.Type.values()[id];
 
@@ -275,30 +317,44 @@ public class Squad implements Piemenuable {
 				case CITY:
 					if (!isEnoughMetalForBuilding(Structure.Type.CITY))
 						buildingAllowed = false;
+					
 					break;
 				case MINER:
 					if (!isEnoughMetalForBuilding(Structure.Type.MINER))
 						buildingAllowed = false;
+					
 					break;
 				case MB:
-					if (!faction.isInvestigated(SpecialTechnology.ADVANCED_WARFARE) ||
-						!isEnoughMetalForBuilding(Structure.Type.MB))
+					if (!faction.isInvestigated(SpecialTechnology.ADVANCED_WARFARE)){
 						buildingAllowed = false;
+						shown = false;
+					} else 
+						buildingAllowed = isEnoughMetalForBuilding(Structure.Type.MB);
+					
 					break;
 				case AMD:
-					if (!faction.isInvestigated(SpecialTechnology.AMD) ||
-						!isEnoughMetalForBuilding(Structure.Type.AMD))
+					if (!faction.isInvestigated(SpecialTechnology.AMD)){
 						buildingAllowed = false;
+						shown = false;
+					} else
+						buildingAllowed  = isEnoughMetalForBuilding(Structure.Type.AMD);
+					
 					break;
 				case ML:
-					if (!faction.isInvestigated(SpecialTechnology.STRATEGIC_WARFARE) ||
-						!isEnoughMetalForBuilding(Structure.Type.ML))
+					if (!faction.isInvestigated(SpecialTechnology.STRATEGIC_WARFARE)){
 						buildingAllowed = false;
+						shown = false;
+					} else 
+						buildingAllowed = isEnoughMetalForBuilding(Structure.Type.ML);
+					
 					break;
 				case RADAR:
-					if (!faction.isInvestigated(SpecialTechnology.RADIO) ||
-						!isEnoughMetalForBuilding(Structure.Type.RADAR))
+					if (!faction.isInvestigated(SpecialTechnology.RADIO)){
 						buildingAllowed = false;
+						shown = false;
+					} else
+						buildingAllowed = isEnoughMetalForBuilding(Structure.Type.RADAR);
+					
 					break;
 				}
 				doneTrading();
@@ -308,8 +364,9 @@ public class Squad implements Piemenuable {
 			} else
 				title = "Cancel";
 			
-			WG.antistatic.gui.advancedButton(position, size, id, buildingAllowed ? this : GUI.GUI_ACT_DUMMY, 
-			                                 color, title, description, buildingAllowed ? null : Color.GRAY); //TODO: Prompts cannot be shown in menu
+			if (shown)
+				WG.antistatic.gui.advancedButton(position, size, id, buildingAllowed ? this : GUI.GUI_ACT_DUMMY, 
+				                                 color, title, description, buildingAllowed ? null : Color.GRAY); //TODO: Prompts cannot be shown in menu
 		}
 	};
 	private ListEntryCallback LEC_DISBAND_SELECTION_MENU = new ListEntryCallback(){
