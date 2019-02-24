@@ -134,6 +134,16 @@ public class Squad implements Piemenuable {
 		if (resources.sum() > 0){
 			System.out.println("Spread not clear" + resources.sum());
 		}
+		
+		for (Unit u: units){
+			System.out.println(u.name);
+			System.out.println(u.resources.sum() + "/" + u.getCapacity());
+			for (Missile m: u.missilesLoaded)
+				System.out.println(">>====>");
+
+			System.out.println();
+		}
+		System.out.println("___________________________");
 	}
 	
 	private float getSpeed(){
@@ -289,17 +299,36 @@ public class Squad implements Piemenuable {
 	
 	public void doneTrading(){
 		trading = false;
+		
+		//Try to distribute resources so maximum amount of missiles can fit
 		for (Unit u: units){
 			if (resources.sum() == 0)
 				return;
 			
-			if (u.getFreeSpace() > 0)
+			if (u.getFreeSpace() > 0){
+				for (Resource r: Resource.values())
+					if (resources.get(r) > 0){
+						float space = u.getFreeSpace();
+						while (space >= Missile.WEIGHT)
+							space -= Missile.WEIGHT;
+						resources.tryTransfer(r, Math.min(space, resources.get(r)), 
+						                      u.resources);
+					}
+			}
+		}
+		
+		//Keep distributing resources if first pass did not succeed
+		for (Unit u: units){
+			if (resources.sum() == 0)
+				return;
+			
+			if (u.getFreeSpace() > 0){
 				for (Resource r: Resource.values())
 					if (resources.get(r) > 0)
 						resources.tryTransfer(r, Math.min(u.getFreeSpace(), resources.get(r)), 
 						                      u.resources);
+				}
 		}
-		
 	}
 	
 	private void spread(){doneTrading();}
