@@ -437,7 +437,7 @@ public class GUI {
 			
 			if (m.isUnmounted()){
 				if (missileAtStruct){
-					if (focusedSquad.getMissilesAmount() < focusedSquad.getMissileCapacity()){
+					if (focusedSquad.getMissilesFreeSpace() > 0){
 						focusedStruct.missilesStorage.remove(m);
 						focusedSquad.loadMissile(m);
 					}
@@ -853,7 +853,7 @@ public class GUI {
 			aligner.next(0, 1);
 			caption(aligner.position, "Missiles in storage:", font, VALIGN_BOTTOM, null);
 			
-			if (focusedSquad.getMissileCapacity() == focusedSquad.getMissilesAmount()){
+			if (focusedSquad.getMissilesFreeSpace() == 0){
 				aligner.reset();
 				aligner.shift(.75f, .8f, 1, 1);
 				caption(aligner.position, "Squad missile \ncapacity is full", font, VALIGN_BOTTOM, null);

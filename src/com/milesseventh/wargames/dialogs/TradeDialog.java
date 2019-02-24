@@ -15,7 +15,7 @@ public class TradeDialog {
 	
 	public float getMaxLoad(Squad s){
 		return Math.min(s.tradePartner.get(selectedResource) + s.resources.get(selectedResource), 
-		                s.getCapacity() - (s.resources.sum() - s.resources.get(selectedResource)));
+		                s.getFreeSpace(true) + s.resources.get(selectedResource));
 	}
 	
 	public void reset(){
@@ -30,18 +30,8 @@ public class TradeDialog {
 		return i;
 	}
 	
-	private static Comparator<Unit> sortByCapacity = new Comparator<Unit>(){
-		@Override
-		public int compare(Unit u0, Unit u1) {
-			float cargo0 = u0.type == Unit.Type.TRANSPORTER ? u0.getCapacity() : Float.POSITIVE_INFINITY;
-			float cargo1 = u1.type == Unit.Type.TRANSPORTER ? u1.getCapacity() : Float.POSITIVE_INFINITY;
-			
-			return (int)Math.signum(cargo0 - cargo1);
-		}
-	};
-	
 	public static Unit getTransporterByID(Squad s, int id){
-		s.units.sort(sortByCapacity);
+		s.units.sort(Squad.sortByCapacity);
 		return s.units.get(id);
 	}
 }

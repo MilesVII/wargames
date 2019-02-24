@@ -58,10 +58,6 @@ public class Unit {
 		techLevel[t.ordinal()] = MathUtils.clamp(in, 0, 1);
 	}
 	
-	public float getFreeSpace(){
-		return getCapacity() - resources.sum();
-	}
-	
 	public float getSpeed(){
 		return Utils.remap(Heartstrings.get(Technology.SPEED, techLevel), 0, 1,
 		                   Heartstrings.get(type, Heartstrings.uProperties).minSpeed,
@@ -70,12 +66,16 @@ public class Unit {
 	
 	public float getCapacity(){
 		if (type == Type.TRANSPORTER)
-			return Utils.remap(techLevel[Technology.CARGO.ordinal()], 0, 1, MIN_CARGO, MAX_CARGO) - missilesLoaded.size() * Missile.WEIGHT;
+			return Utils.remap(techLevel[Technology.CARGO.ordinal()], 0, 1, MIN_CARGO, MAX_CARGO);
 		else
 			return 0;
 	}
 	
-	public int getMissileCapacity(){
+	public float getFreeSpace(){
+		return getCapacity() - resources.sum() - missilesLoaded.size() * Missile.WEIGHT;
+	}
+	
+	public int getMissilesFreeSpace(){
 		if (type == Type.TRANSPORTER)
 			return (int)Math.floor(getFreeSpace() / Missile.WEIGHT);//TODO: FOX THE MISSILE CAPACITY CHECK ASAP+ missilesLoaded.size();
 		else

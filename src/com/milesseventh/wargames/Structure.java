@@ -49,7 +49,7 @@ public class Structure implements Piemenuable{
 		}
 		
 		public boolean craft(float dt){
-			timeHolder += dt * 5f;
+			timeHolder += dt * 70f;
 			
 			for (int i = 0; i < Math.floor(timeHolder / singleCraftTime); ++i){
 				switch(craftable){

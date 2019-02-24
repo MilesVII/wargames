@@ -1,6 +1,7 @@
 package com.milesseventh.wargames;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -12,6 +13,16 @@ public class Squad implements Piemenuable {
 	public enum State {
 		STAND, MOVING
 	}
+
+	public static Comparator<Unit> sortByCapacity = new Comparator<Unit>(){
+		@Override
+		public int compare(Unit u0, Unit u1) {
+			float cargo0 = u0.type == Unit.Type.TRANSPORTER ? u0.getCapacity() : Float.POSITIVE_INFINITY;
+			float cargo1 = u1.type == Unit.Type.TRANSPORTER ? u1.getCapacity() : Float.POSITIVE_INFINITY;
+			
+			return (int)Math.signum(cargo0 - cargo1);
+		}
+	};
 	
 	private static final String[] SQUAD_NAMES = {"Alfa", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Kilo", "Lima", "November", "Romeo", "Sierra", "Tango", "Uniform", "Victor", "Whiskey", "X-ray", "Yankee", "Zulu"};
 	private static int nameSelector = 0;
@@ -20,6 +31,7 @@ public class Squad implements Piemenuable {
 	public ArrayList<Unit> units = new ArrayList<Unit>();
 	public String name;
 	public ResourceStorage resources, tradePartner;
+	public boolean trading = false;
 	private ArrayList<Structure> interactableStructures = new ArrayList<Structure>();
 	
 	private Vector2[] path = null;
@@ -58,7 +70,8 @@ public class Squad implements Piemenuable {
 	
 	public void update(float dt){
 		DEBUG_INFO = "Call from Squad.java: update():concentratePartial()";
-		concentratePartial(Resource.FUEL);
+		//concentratePartial(Resource.FUEL);
+		prepareForTrading();
 		
 		//Interaction
 		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f &&
@@ -158,7 +171,7 @@ public class Squad implements Piemenuable {
 	
 	public float getFreeSpace(boolean isTrading){
 		if (isTrading){
-			return getCapacity() - resources.sum();
+			return getCapacity() - resources.sum() - getMissilesAmount() * Missile.WEIGHT;
 		} else {
 			float r = 0;
 			for (Unit u: units)
@@ -174,10 +187,18 @@ public class Squad implements Piemenuable {
 		return r;
 	}
 	
-	public float getMissileCapacity(){
-		float r = 0;
+	public int getMissilesFreeSpace(){
+		boolean ttrading = trading;
+		if (ttrading)
+			doneTrading();
+		
+		int r = 0;
 		for (Unit u: units)
-			r += u.getMissileCapacity();
+			r += u.getMissilesFreeSpace();
+		
+		if (ttrading)
+			prepareForTrading();
+		
 		return r;
 	}
 	
@@ -199,11 +220,13 @@ public class Squad implements Piemenuable {
 	
 	
 	public void loadMissile(Missile m){
-		assert(getMissileCapacity() >= 1);
+		assert(getMissilesFreeSpace() > 0);
 		
-		for (Unit u: units){
-			if (u.missilesLoaded.size() < u.getMissileCapacity()){
-				u.missilesLoaded.add(m);
+		units.sort(sortByCapacity);
+		
+		for (int i = units.size() - 1; i >= 0; --i){
+			if (units.get(i).getMissilesFreeSpace() > 0){
+				units.get(i).missilesLoaded.add(m);
 				return;
 			}
 		}
@@ -248,18 +271,24 @@ public class Squad implements Piemenuable {
 	//Internal resource management
 	public String DEBUG_INFO = "";
 	public void prepareForTrading(){
+		assert(!trading);
+		
 		//assert(resources.sum() == 0);
-		if (resources.sum() != 0){ //TODO: Replace with assert and remove DEBUG_INFO field when bug is catched
+		if (trading){ //TODO: Replace with assert and remove DEBUG_INFO field when bug is catched
 			System.out.println("ASSERT: Squad.java: prepareForTrading()");
 			System.out.println(resources.sum());
 			System.out.println(DEBUG_INFO);
 			System.out.println("_______________________________________");
 		}
+		
 		for (Unit u: units)
 			u.resources.fullFlushTo(resources);
+		
+		trading = true;
 	}
 	
 	public void doneTrading(){
+		trading = false;
 		for (Unit u: units){
 			if (resources.sum() == 0)
 				return;
@@ -270,11 +299,7 @@ public class Squad implements Piemenuable {
 						resources.tryTransfer(r, Math.min(u.getFreeSpace(), resources.get(r)), 
 						                      u.resources);
 		}
-	}
-	
-	private void concentratePartial(Resource r){
-		for (Unit u: units)
-			u.resources.flushTo(r, resources);
+		
 	}
 	
 	private void spread(){doneTrading();}
