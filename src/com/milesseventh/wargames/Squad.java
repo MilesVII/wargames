@@ -134,16 +134,6 @@ public class Squad implements Piemenuable {
 		if (resources.sum() > 0){
 			System.out.println("Spread not clear" + resources.sum());
 		}
-		
-		for (Unit u: units){
-			System.out.println(u.name);
-			System.out.println(u.resources.sum() + "/" + u.getCapacity());
-			for (Missile m: u.missilesLoaded)
-				System.out.println(">>====>");
-
-			System.out.println();
-		}
-		System.out.println("___________________________");
 	}
 	
 	private float getSpeed(){
@@ -257,19 +247,6 @@ public class Squad implements Piemenuable {
 		assert(false);
 	}
 
-	/*public void loadMissiles(ArrayList<Missile> missiles){
-		assert(missiles.size() <= getMissileCapacity());
-		
-		for (int i = 0, j = 0; i < units.size() && j < missiles.size(); ++i){
-			Unit u = units.get(i);
-			
-			while(u.getMissileCapacity() - u.missilesLoaded.size() > 0)
-				u.missilesLoaded.add(missiles.get(j++));
-		}
-		
-		missiles.clear();
-	}*/
-	
 	public void unloadMissiles(ArrayList<Missile> receiver){
 		for (Unit u: units){
 			receiver.addAll(u.missilesLoaded);

@@ -1,7 +1,5 @@
 package com.milesseventh.wargames.dialogs;
 
-import java.util.Comparator;
-
 import com.milesseventh.wargames.Resource;
 import com.milesseventh.wargames.Squad;
 import com.milesseventh.wargames.Unit;

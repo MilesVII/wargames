@@ -74,15 +74,38 @@ public class GUI {
 		public static final float GUI_SB_DEFAULT_THUMB = .42f;
 		public int offset;
 		public boolean initialized = false;
+		public boolean precisionControl = false;
 		private float relativeThumbSize, trackingOffset;
 		private boolean isVertical, tracking;
+		private Vector2 decrPosition, incrPosition;
+		private Vector2 precisionSize;
 		
-		public void init(Vector2 _position, Vector2 _size, boolean _isVertical, float _relativeThumbSize){
-			position = _position.cpy();
-			size = _size.cpy();
-			isVertical = _isVertical;
-			relativeThumbSize = _relativeThumbSize;
+		public void init(Vector2 nposition, Vector2 nsize, boolean nisVertical, float nrelativeThumbSize){
+			isVertical = nisVertical;
+			relativeThumbSize = nrelativeThumbSize;
+			size = nsize.cpy();
+			position = nposition.cpy();
+			if (precisionControl){
+				float side = isVertical ? nsize.x : nsize.y;
+				precisionSize = new Vector2(side, side);
+				decrPosition = nposition.cpy();
+				incrPosition = nposition.cpy();
+				
+				if (isVertical){
+					size.y -= side * 2;
+					position.y += side;
+					incrPosition.y += size.y + side;
+				} else {
+					size.x -= side * 2;
+					position.x += side;
+					incrPosition.x += size.x + side;
+				}
+			}
 			initialized = true;
+		}
+		
+		public void enablePrecisionControls(){
+			precisionControl = true;
 		}
 		
 		public void update(int states, int leftConstraint, int rightConstraint){
@@ -95,10 +118,16 @@ public class GUI {
 		 * states = maxvalue + 1
 		 */
 		public void update(int states){
+			if (precisionControl)
+				precisionControls();
+			
 			if (states > 0)
 				--states;
+			
 			if (offset > states)
 				offset = states;
+			else if (offset < 0 )
+				offset = 0;
 			
 			if (isVertical){
 				thumbSize.x = size.x;
@@ -145,6 +174,22 @@ public class GUI {
 			sr.rect(position.x, position.y, size.x, size.y);
 			sr.setColor(colors[UIMouseHovered(thumbPosition, thumbSize) ? 2 : 1]);
 			sr.rect(thumbPosition.x, thumbPosition.y, thumbSize.x, thumbSize.y);
+		}
+		
+		private Callback precisionControls = new Callback(){
+			@Override
+			public void action(int id) {
+				if (id == 0){
+					--offset;
+				} else {
+					++offset;
+				}
+			}
+		};
+		
+		private void precisionControls(){
+			advancedButton(decrPosition, precisionSize, 0, precisionControls, GUI_COLORS_DEFAULT, " -", null, null);
+			advancedButton(incrPosition, precisionSize, 1, precisionControls, GUI_COLORS_DEFAULT, " +", null, null);
 		}
 	}
 	
@@ -672,8 +717,10 @@ public class GUI {
 				}
 			}
 			aligner.next(0, -1);
-			if (!scrollbars[22].initialized)
+			if (!scrollbars[22].initialized){
+				scrollbars[22].enablePrecisionControls();
 				scrollbars[22].init(aligner.position, aligner.size, false, Scrollbar.GUI_SB_DEFAULT_THUMB);
+			}
 			scrollbars[22].update(Heartstrings.getMaxCraftingOrder(craftingDialogState.selected, focusedStruct, 
 			                                                       craftingDialogState.selectedT, craftingDialogState.selectedST) + 1);
 			scrollbars[22].render(GUI_COLORS_SCROLLBAR_COLORS);
