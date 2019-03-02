@@ -115,6 +115,13 @@ public class Utils {
 			if (to != except && from.dst2(to.position) <= radius2)
 				results.add(to);
 	}
+	
+	public static void findSquadsWithinRadius2(ArrayList<Squad> results, Faction f, Vector2 from, float radius2, Squad except){
+		results.clear();
+		for (Squad to: f.squads)
+			if (to != except && from.dst2(to.position) <= radius2)
+				results.add(to);
+	}
 
 	public static Structure findNearestStructure(Faction f, Vector2 from, Structure except){
 		if (f == null){

@@ -297,6 +297,7 @@ public class Structure implements Piemenuable{
 			return;
 		
 		Vector2 sposition;
+		Squad ns;
 		int j = 0;
 		do {
 			sposition = Utils.getVector(position).add(Utils.getVector(WG.STRUCTURE_DEPLOYMENT_SPREAD_MIN, 0).rotate(r.nextInt(360)));
@@ -304,7 +305,8 @@ public class Structure implements Piemenuable{
 				System.out.println("E: Nowhere to deploy");
 				return;
 			}
-		} while (!WG.antistatic.map.isWalkable(sposition.x, sposition.y));
+			ns = Utils.findNearestSquad(faction, sposition, null);
+		} while (!WG.antistatic.map.isWalkable(sposition.x, sposition.y) || (ns != null && ns.position.dst2(sposition) < Heartstrings.STRUCTURE_INTERACTION_DISTANCE2 * .4f));
 		Squad s = new Squad(faction, sposition);
 		
 		for (Unit u: (ArrayList<Unit>)units.clone()){
@@ -408,7 +410,8 @@ public class Structure implements Piemenuable{
 		if ((!yard.isEmpty() && hasYard()) || isCraftingInProcess())
 			PIEMENU.add(PME_YARD);
 		Squad ns = Utils.findNearestSquad(faction, position, null);
-		if (ns != null && ns.position.dst2(position) < Heartstrings.STRUCTURE_INTERACTION_DISTANCE2){
+		if (ns != null && ns.position.dst2(position) < Heartstrings.STRUCTURE_INTERACTION_DISTANCE2 &&
+		    ns.state == Squad.State.STAND){
 			PIEMENU.add(PME_MISSILETRADE);
 		}
 	}

@@ -56,6 +56,8 @@ public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 					noiseValue /= 2.27f;
 					if (isMain)
 						noiseValue += wall(x, y, noiseValue);
+					else
+						noiseValue = (float)Math.pow(noiseValue, 1.3f);
 					noiseValue = MathUtils.clamp(noiseValue, 0, 1);
 					noiseValue = (float)Math.pow(fade(noiseValue), 1.1f);
 					noiseValue = MathUtils.clamp(noiseValue, 0, 1);

@@ -188,8 +188,10 @@ public class WG extends ApplicationAdapter {
 		batch.begin();
 		batch.setColor(Color.WHITE);
 		batch.draw(heightTexture, 0, 0);
-		batch.draw(oilTexture, 0, 0);
-		batch.draw(oreTexture, 0, 0);
+		if (Gdx.input.isKeyPressed(Input.Keys.R)){
+			batch.draw(oilTexture, 0, 0);
+			batch.draw(oreTexture, 0, 0);
+		}
 		//batch.draw(_marchT, 0, 0);
 		batch.end();
 

@@ -17,6 +17,7 @@ import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
 import com.milesseventh.wargames.dialogs.CraftingDialog;
+import com.milesseventh.wargames.dialogs.MissileExchangeDialog;
 import com.milesseventh.wargames.dialogs.TradeDialog;
 import com.milesseventh.wargames.dialogs.YardDialog;
 import com.milesseventh.wargames.properties.SpecialTechnologyProperties;
@@ -244,7 +245,7 @@ public class GUI {
 	};
 	
 	private static GlyphLayout glay = new GlyphLayout();
-	//Engaged 0; 1-6; 11; 12; 13-18; 22; 23; 24; 25-30; 31, 32, 33, 34, 35, 36
+	//Engaged 0; 1-6; 11; 12; 13-18; 22; 23; 24; 25-30; 31, 32, 33, 34, 35, 36, 37
 	//Reserved 7-10; 19-21;
 	private Scrollbar[] scrollbars = new Scrollbar[64];
 	
@@ -470,6 +471,7 @@ public class GUI {
 	};
 	
 	private final ListEntryCallback GUI_LEC_MISSILE_EXCHANGE = new ListEntryCallback() {
+
 		@Override
 		public void action(int id) {
 			boolean missileAtStruct = id < focusedStruct.missilesStorage.size();
@@ -505,6 +507,21 @@ public class GUI {
 			
 			advancedButton(position, size, id, this, color, 
 			               m.name, null, missileAtStruct ? null : GUI_COLOR_SEVENTH);
+		}
+	};
+	
+	private final ListEntryCallback GUI_LEC_MISSILE_EXCHANGE_SQUAD_SELECTOR = new ListEntryCallback() {
+		@Override
+		public void action(int id) {
+			focusedSquad = mexchangeDialogState.nearby.get(id);
+		}
+		
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			Squad ns = mexchangeDialogState.nearby.get(id);
+			String stats = " (" + ns.getMissilesAmount() + "/" + (ns.getMissilesFreeSpace() + ns.getMissilesAmount()) + ")";
+			advancedButton(position, size, id, this, color, 
+			               ns.name + stats, null, focusedSquad == ns ? GUI_COLOR_SEVENTH : null);
 		}
 	};
 
@@ -604,6 +621,7 @@ public class GUI {
 	private CraftingDialog craftingDialogState = new CraftingDialog();
 	private YardDialog yardDialogState = new YardDialog();
 	private TradeDialog tradeDialogState = new TradeDialog();
+	private MissileExchangeDialog mexchangeDialogState = new MissileExchangeDialog();
 	private StringBuilder stringBuilder = new StringBuilder();
 	public void dialog(WG.Dialog dialog){
 		//Drawing dialog backround and close button
@@ -710,7 +728,7 @@ public class GUI {
 					
 					aligner.next(1, 0);
 					caption(aligner.position, 
-					        String.format(Heartstrings.tProperties[i].shortTitle + " %6.2f%%", 
+					        String.format(Heartstrings.tProperties[i].shortTitle + " %3.0f%%", 
 					                      craftingDialogState.selectedT[i] * 100f), 
 					        font, VALIGN_BOTTOM, null);
 					aligner.next(-1, -1);
@@ -878,7 +896,7 @@ public class GUI {
 				
 				String selectedSign = Heartstrings.get(tradeDialogState.selectedResource, Heartstrings.rProperties).sign;
 				String loaded = focusedSquad.resources.get(tradeDialogState.selectedResource) + selectedSign;
-				String leftOnBase = focusedSquad.tradePartner.get(tradeDialogState.selectedResource) + selectedSign;
+				String leftOnBase = String.format("%.1f", focusedSquad.tradePartner.get(tradeDialogState.selectedResource)) + selectedSign;
 				caption(aligner.position, "Loaded: " + loaded +
 				                          "\nLeft on base: " + leftOnBase +
 				                          "\nSpace left: " + (focusedSquad.getFreeSpace(true)) +
@@ -894,16 +912,26 @@ public class GUI {
 			break;
 		case MISSILE_EXCHANGE:
 			dialogTitle = "Missile Exchange";
-			aligner.shift(.25f, 0, 1, 0);
-			aligner.setSize(.5f, .9f);
+			
+			aligner.shift(.2f, .1f, 1, 1);
+			aligner.setSize(.4f, .8f);
 			list(aligner.position, aligner.size, focusedStruct.missilesStorage.size() + focusedSquad.getMissilesAmount(), GUI_LEC_MISSILE_EXCHANGE, GUI_COLORS_DEFAULT, 36);
 			aligner.next(0, 1);
 			caption(aligner.position, "Missiles in storage:", font, VALIGN_BOTTOM, null);
+			aligner.reset();
+			
+			aligner.shift(.6f, .1f, 1, 1);
+			aligner.setSize(.4f, .8f);
+			Utils.findSquadsWithinRadius2(mexchangeDialogState.nearby, focusedStruct.faction, focusedStruct.position, Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, null);
+			ArrayList<Squad> ns = mexchangeDialogState.filterNearby();
+			list(aligner.position, aligner.size, ns.size(), GUI_LEC_MISSILE_EXCHANGE_SQUAD_SELECTOR, GUI_COLORS_DEFAULT, 37);
+			aligner.next(0, 1);
+			caption(aligner.position, "Squads nearby:", font, VALIGN_BOTTOM, null);
 			
 			if (focusedSquad.getMissilesFreeSpace() == 0){
 				aligner.reset();
-				aligner.shift(.75f, .8f, 1, 1);
-				caption(aligner.position, "Squad missile \ncapacity is full", font, VALIGN_BOTTOM, null);
+				aligner.shift(.4f, 0, 1, 0);
+				caption(aligner.position, "Squad missile capacity is full", font, VALIGN_BOTTOM, null);
 			}
 			break;
 		case MISSILE_PREPARING:
