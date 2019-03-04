@@ -19,7 +19,7 @@ import com.badlogic.gdx.math.Vector2;
 
 public class WG extends ApplicationAdapter {
 	public enum Dialog {
-		NONE, STATS, LABORATORY, CRAFTING, YARD, TRADE, MISSILE_EXCHANGE, MISSILE_PREPARING
+		NONE, STATS, LABORATORY, CRAFTING, YARD, TRADE, MISSILE_EXCHANGE, MISSILE_DEPLOY
 	}
 	public enum UIState {
 		FREE, DIALOG, PIEMENU, MENU, MOVINGORDER
@@ -76,7 +76,7 @@ public class WG extends ApplicationAdapter {
 		FreeTypeFontGenerator ftfg = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Prototype.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = 22;
-		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.,-<>!?/%\"'&×=+";
+		parameter.characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:0123456789.,-<>!?/%\"'&×=+[]";
 		
 		font = ftfg.generateFont(parameter);
 		font.setColor(Color.WHITE);

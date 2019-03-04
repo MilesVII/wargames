@@ -412,8 +412,10 @@ public class Structure implements Piemenuable{
 		Squad ns = Utils.findNearestSquad(faction, position, null);
 		if (ns != null && ns.position.dst2(position) < Heartstrings.STRUCTURE_INTERACTION_DISTANCE2 &&
 		    ns.state == Squad.State.STAND){
-			PIEMENU.add(PME_MISSILETRADE);
+			PIEMENU.add(PME_MISSILE_TRADE);
 		}
+		if (type == Type.ML)
+			PIEMENU.add(PME_MISSILE_DEPLOY);
 	}
 	
 	public final PiemenuEntry PME_STATS = new PiemenuEntry("Stats", new Callback(){
@@ -440,13 +442,19 @@ public class Structure implements Piemenuable{
 			WG.antistatic.openDialog(WG.Dialog.YARD);
 		}
 	});
-	public final PiemenuEntry PME_MISSILETRADE = new PiemenuEntry("Missile Exchange", new Callback(){
+	public final PiemenuEntry PME_MISSILE_TRADE = new PiemenuEntry("Missile Exchange", new Callback(){
 		@Override
 		public void action(int source) {
 			Squad ns = Utils.findNearestSquad(faction, position, null);
 			assert(ns != null);
 			WG.antistatic.gui.focusedSquad = ns;
 			WG.antistatic.openDialog(WG.Dialog.MISSILE_EXCHANGE);
+		}
+	});
+	public final PiemenuEntry PME_MISSILE_DEPLOY = new PiemenuEntry("Missile Deploying", new Callback(){
+		@Override
+		public void action(int source) {
+			WG.antistatic.openDialog(WG.Dialog.MISSILE_DEPLOY);
 		}
 	});
 	

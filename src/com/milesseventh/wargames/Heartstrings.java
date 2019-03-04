@@ -339,7 +339,7 @@ public class Heartstrings {
 			                        	//SpecialTechnology.WARHEAD_FRAGMENTATION_II,
 			                        	SpecialTechnology.FLARES
 			                        },
-			                        1070)
+			                        70)
 	};
 	
 	//share of initial craftable's price with a regard of it's techs

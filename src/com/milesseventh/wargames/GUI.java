@@ -524,7 +524,45 @@ public class GUI {
 			               ns.name + stats, null, focusedSquad == ns ? GUI_COLOR_SEVENTH : null);
 		}
 	};
-
+	
+	private final ListEntryCallback GUI_LEC_MISSILE_DEPLOYMENT_STORAGE = new ListEntryCallback() {
+		@Override
+		public void action(int id) {
+			Missile m = focusedStruct.missilesStorage.get(id);
+			if (focusedStruct.hasEmptySlotsForMissiles())
+				focusedStruct.orderMissileMounting(m);
+		}
+		
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			Missile m = focusedStruct.missilesStorage.get(id);
+			
+			advancedButton(position, size, id, this, color, 
+			               m.name, null, null);
+		}
+	};
+	
+	private final ListEntryCallback GUI_LEC_MISSILE_DEPLOYMENT_MAIN = new ListEntryCallback() {
+		@Override
+		public void action(int id) {
+			Missile m = focusedStruct.missilesReady[id];
+			if (m != null && m.isReady()){
+				m.orderedState = Missile.State.UNMOUNTED;
+			}
+		}
+		
+		@Override
+		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			Missile m = focusedStruct.missilesReady[id];
+			if (m != null)
+				progressbar(position, size, m.getReadiness(), 
+				            GUI_COLORS_SEVENTH_PROGRESS_TRANSPARENT);
+			advancedButton(position, size, id, this, color, 
+			               m == null ? "[Silo is empty]" : m.name + (m.isReady() ? " [Ready]" : ""), null, 
+			               m != null && m.isReady() ? GUI_COLOR_SEVENTH : null);
+		}
+	};
+	
 	public static final Callback GUI_ACT_DUMMY = new Callback(){
 		@Override
 		public void action(int id) {}
@@ -922,7 +960,10 @@ public class GUI {
 			
 			aligner.shift(.6f, .1f, 1, 1);
 			aligner.setSize(.4f, .8f);
-			Utils.findSquadsWithinRadius2(mexchangeDialogState.nearby, focusedStruct.faction, focusedStruct.position, Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, null);
+			Utils.findSquadsWithinRadius2(mexchangeDialogState.nearby, 
+			                              focusedStruct.faction, 
+			                              focusedStruct.position, 
+			                              Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, null);
 			ArrayList<Squad> ns = mexchangeDialogState.filterNearby();
 			list(aligner.position, aligner.size, ns.size(), GUI_LEC_MISSILE_EXCHANGE_SQUAD_SELECTOR, GUI_COLORS_DEFAULT, 37);
 			aligner.next(0, 1);
@@ -934,8 +975,19 @@ public class GUI {
 				caption(aligner.position, "Squad missile capacity is full", font, VALIGN_BOTTOM, null);
 			}
 			break;
-		case MISSILE_PREPARING:
-			dialogTitle = "Missile Preparing";
+		case MISSILE_DEPLOY:
+			dialogTitle = "Missile Deploying";
+			
+			aligner.setSize(.4f, .9f);
+			list(aligner.position, aligner.size, focusedStruct.missilesStorage.size(), GUI_LEC_MISSILE_DEPLOYMENT_STORAGE, GUI_COLORS_DEFAULT, 38);
+			aligner.next(0, 1);
+			caption(aligner.position, "Stored missiles:", font, VALIGN_BOTTOM, null);
+			aligner.next(1, -1);
+			aligner.setSize(.6f, .9f);
+			list(aligner.position, aligner.size, Heartstrings.MISSILE_ACTIVE_STORAGE_CAPACITY, GUI_LEC_MISSILE_DEPLOYMENT_MAIN, GUI_COLORS_DEFAULT, 39);
+			aligner.next(0, 1);
+			caption(aligner.position, "Active missiles:", font, VALIGN_BOTTOM, null);
+			aligner.reset();
 			
 			break;
 		case NONE:
