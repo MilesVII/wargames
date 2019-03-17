@@ -36,6 +36,7 @@ public class Heartstrings {
 
 	public static final float STRUCTURE_BUILDING_MIN_DISTANCE2 = 120;
 	public static final float STRUCTURE_INTERACTION_DISTANCE2 = 120;
+	public static final float STRUCTURE_INTERACTION_COLLISION_DISTANCE2 = STRUCTURE_INTERACTION_DISTANCE2 * .12f;
 	
 	public static final int MISSILE_ACTIVE_STORAGE_CAPACITY = 3;
 	public static final float MISSILE_MOUNTING_SPEED_MIN = .02f;
@@ -339,7 +340,7 @@ public class Heartstrings {
 			                        	//SpecialTechnology.WARHEAD_FRAGMENTATION_II,
 			                        	SpecialTechnology.FLARES
 			                        },
-			                        70)
+			                        770)
 	};
 	
 	//share of initial craftable's price with a regard of it's techs

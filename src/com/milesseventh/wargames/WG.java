@@ -202,7 +202,9 @@ public class WG extends ApplicationAdapter {
 			if (path != null)
 				gui.path(path, 2, Color.BLACK);
 			if (Utils.confirmedTouchOccured){
-				if (path != null)
+				Structure s = Utils.findNearestStructure(Faction.debug, Utils.WorldMousePosition, null);
+				boolean structureCollision = (s != null && s.position.dst2(Utils.WorldMousePosition) <= Heartstrings.STRUCTURE_INTERACTION_COLLISION_DISTANCE2);
+				if (path != null && !structureCollision)
 					((Squad)focusedObject).setPath(path);
 				uistate = UIState.FREE;
 			}

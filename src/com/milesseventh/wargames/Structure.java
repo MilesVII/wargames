@@ -411,7 +411,8 @@ public class Structure implements Piemenuable{
 			PIEMENU.add(PME_YARD);
 		Squad ns = Utils.findNearestSquad(faction, position, null);
 		if (ns != null && ns.position.dst2(position) < Heartstrings.STRUCTURE_INTERACTION_DISTANCE2 &&
-		    ns.state == Squad.State.STAND){
+		    ns.state == Squad.State.STAND &&
+		    (type == Type.CITY || type == Type.MB || type == Type.ML)){
 			PIEMENU.add(PME_MISSILE_TRADE);
 		}
 		if (type == Type.ML)

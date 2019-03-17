@@ -317,10 +317,13 @@ public class Squad implements Piemenuable {
 		@Override
 		public void action(int id) {
 			if (id < Structure.Type.values().length){
+				assert(!trading);
+				prepareForTrading();
 				boolean x = resources.tryRemove(Resource.METAL, 
 				                                Heartstrings.get(Structure.Type.values()[id], 
 				                                                 Heartstrings.structureProperties).buildingPrice);
 				assert(x);
+				doneTrading();
 				Structure s = new Structure(position, Structure.Type.values()[id], faction);
 				faction.registerStructure(s);
 				
