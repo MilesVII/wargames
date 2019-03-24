@@ -9,7 +9,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.WG.Dialog;
 
-public class Squad implements Piemenuable {
+public class Squad implements Piemenuable, Combatant {
 	public enum State {
 		STAND, MOVING
 	}
@@ -33,6 +33,9 @@ public class Squad implements Piemenuable {
 	public ResourceStorage resources, tradePartner;
 	public boolean trading = false;
 	private ArrayList<Structure> interactableStructures = new ArrayList<Structure>();
+	private ArrayList<Combatant> targets = new ArrayList<Combatant>();
+	private ArrayList<Squad> TSqTargets = new ArrayList<Squad>();         // Temporary target lists for two enemy types
+	private ArrayList<Structure> TStTargets = new ArrayList<Structure>(); 
 	
 	private Vector2[] path = null;
 	private int pathSegment = -1;
@@ -128,12 +131,121 @@ public class Squad implements Piemenuable {
 				lostDirection = Utils.getVector(position).sub(positionHolder).angle();
 			}
 		}
+		
+		//Fight
+		if (isUnitTypePresent(Unit.Type.FIGHTER) && resources.get(Resource.AMMO) > 0){
+			float maxAttackRange2 = getMaxAttackRange2();
+			
+			targets.clear();
+			
+			for (Faction f: Faction.factions){
+				if (f == faction)
+					continue;
+				
+				Utils.findStructuresWithinRadius2(TStTargets, true, f, position, maxAttackRange2, null);
+				Utils.findSquadsWithinRadius2(TSqTargets, true, f, position, maxAttackRange2, this);
+				
+				targets.addAll(TSqTargets);
+				targets.addAll(TStTargets);
+				
+			}
+			if (targets.size() > 0){
+				for (Unit u: units){
+					if (u.type == Unit.Type.FIGHTER){
+						/* Well, listen
+						 * Here I iterate over every unit in squad
+						 * Then checking, how many of detected /targets/ their gun can reach
+						 * Then removing unit's regular amount of ammo for attack
+						 * And splitting it's power on every target reachable*/
+						
+						int targetsWithinRange = 0;
+						for (Combatant target: targets)
+							if (target.getPosition().dst2(position) <= u.getAttackRange2())
+								++targetsWithinRange;
+						
+						float bullets = dt; // TODO: Amount of ammo wasted on attack
+						bullets = Math.min(bullets, resources.get(Resource.AMMO));
+						boolean a = resources.tryRemove(Resource.AMMO, bullets);
+						assert(a);
+						
+						for (Combatant target: targets)
+							if (target.getPosition().dst2(position) <= u.getAttackRange2())
+								target.receiveFire(u.getFirepower() * bullets / targetsWithinRange);
+					}
+				}
+			}
+		}
 		rebuildPiemenu();
 		
 		spread();
-		if (resources.sum() > 0){
+		assert(resources.sum() == 0);
+		/*if (resources.sum() > 0){
 			System.out.println("Spread not clear" + resources.sum());
+		}*/
+	}
+	
+	@Override
+	public void receiveFire(float power) {
+		if (units.size() == 0)
+			return;
+		
+		//Count sum of chances for types to get hit when squad is attacked
+		float chancesSum = 0;
+		for (Unit.Type t: Unit.Type.values())
+			if (isUnitTypePresent(t))
+				chancesSum += Heartstrings.get(t, Heartstrings.uProperties).getReceiveFireChance();
+		
+		//Select type of unit that will be damaged
+		float r = Utils.random.nextFloat();
+		float i = 0;
+		Unit.Type victimType = null;
+		for (Unit.Type t: Unit.Type.values())
+			if (isUnitTypePresent(t)){
+				i += Heartstrings.get(t, Heartstrings.uProperties).getReceiveFireChance() / chancesSum;
+				if (r < i){
+					victimType = t;
+					break;
+				}
+			}
+		
+		//Find the exact unit that will be damaged by random id
+		assert(victimType != null);
+		int victimId = Utils.random.nextInt(countUnitsOfType(victimType));
+		i = 0;
+		Unit finalVictim = null;
+		float debrisDamage = -1;
+		for (Unit u: units){
+			if (u.type == victimType && i++ == victimId){
+				debrisDamage = u.receiveDamage(power);
+				break;
+			}
 		}
+		
+		//Process debris damage, if unit was destroyed
+		assert(finalVictim != null);
+		if (debrisDamage > 0){
+			destroyUnit(finalVictim);
+			receiveFire(debrisDamage);
+		}
+	}
+	
+	public void destroyUnit(Unit u){
+		assert(units.contains(u));
+		assert(u.condition <= 0);
+		assert(trading);
+		
+		doneTrading();
+		units.remove(u);
+		// TODO: Leave package with share of resources
+		prepareForTrading();
+		
+		if (units.size() == 0)
+			faction.unregisterSquad(this);
+	}
+	
+	@Override
+	public Vector2 getPosition(){
+		return position;
 	}
 	
 	private float getSpeed(){
@@ -145,11 +257,30 @@ public class Squad implements Piemenuable {
 		return min;
 	}
 	
+	private float getMaxAttackRange2(){
+		float maxFightingRadius = 0;
+		for (Unit u: units){
+			float ar2 = u.getAttackRange2();
+			if (u.type == Unit.Type.FIGHTER && maxFightingRadius < ar2)
+				maxFightingRadius = ar2;
+		}
+		
+		return maxFightingRadius;
+	}
+	
 	public boolean isUnitTypePresent(Unit.Type type){
 		for (Unit u: units)
 			if (u.type == type)
 				return true;
 		return false;
+	}
+	
+	public int countUnitsOfType(Unit.Type type){
+		int r = 0;
+		for (Unit u: units)
+			if (u.type == type)
+				++r;
+		return r;
 	}
 	
 	public float getFuelConsumption(){
@@ -218,7 +349,6 @@ public class Squad implements Piemenuable {
 		return null;
 	}
 	
-	
 	public void loadMissile(Missile m){
 		assert(getMissilesFreeSpace() > 0);
 		
@@ -232,7 +362,6 @@ public class Squad implements Piemenuable {
 		}
 		assert(false);
 	}
-	
 	
 	public void unloadMissile(int m){
 		unloadMissile(getMissileAt(m));
@@ -523,7 +652,7 @@ public class Squad implements Piemenuable {
 			piemenu.add(PME_MOVE);
 		
 		if (state == State.STAND){
-			Utils.findStructuresWithinRadius2(interactableStructures, faction, position, Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, null);
+			Utils.findStructuresWithinRadius2(interactableStructures, true, faction, position, Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, null);
 			
 			if (isUnitTypePresent(Unit.Type.BUILDER) &&
 			    Utils.isOkToBuild(position))

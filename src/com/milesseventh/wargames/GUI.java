@@ -960,7 +960,7 @@ public class GUI {
 			
 			aligner.shift(.6f, .1f, 1, 1);
 			aligner.setSize(.4f, .8f);
-			Utils.findSquadsWithinRadius2(mexchangeDialogState.nearby, 
+			Utils.findSquadsWithinRadius2(mexchangeDialogState.nearby, true,
 			                              focusedStruct.faction, 
 			                              focusedStruct.position, 
 			                              Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, null);

@@ -11,7 +11,7 @@ import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
 
-public class Structure implements Piemenuable{
+public class Structure implements Piemenuable, Combatant{
 	//////////////////////////////////////////////////////////////////
 	//STRUCTURE TYPES:
 	//> City: WLUCT
@@ -112,6 +112,8 @@ public class Structure implements Piemenuable{
 	private Queue<CraftingOrder> manufactoryQueue = new Queue<CraftingOrder>();
 	private Queue<Unit> repairingQueue = new Queue<Unit>();
 	private Queue<Unit> upgradingQueue = new Queue<Unit>();
+	
+	private ArrayList<Squad> nearbyEnemies = new ArrayList<Squad>();
 	
 	public ArrayList<Unit> yard = new ArrayList<Unit>();
 	private Random r = new Random();
@@ -228,6 +230,11 @@ public class Structure implements Piemenuable{
 			}
 		}
 		
+		//Fighting
+		if (resources.get(Resource.AMMO) > 0){
+			warfareScan(dt);
+		}
+		
 		//Interaction
 		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f){
 			if (Gdx.input.justTouched()){
@@ -237,6 +244,29 @@ public class Structure implements Piemenuable{
 			WG.antistatic.gui.prompt(name);
 		}
 		rebuildPiemenu();
+	}
+	
+	private void warfareScan(float dt){
+		nearbyEnemies.clear();
+		for (Faction f: Faction.factions){
+			if (f == faction)
+				continue;
+			
+			float fightRange2 = Heartstrings.get(type, Heartstrings.structureProperties).fightingRange;
+			fightRange2 *= fightRange2;
+			Utils.findSquadsWithinRadius2(nearbyEnemies, false, f, position, fightRange2, null);
+			
+		}
+		
+		if (nearbyEnemies.size() > 0){
+			for (Combatant fucker: nearbyEnemies){
+				float bullets = dt / nearbyEnemies.size(); // TODO: Amount of ammo wasted on attack
+				bullets = Math.min(bullets, resources.get(Resource.AMMO));
+				boolean a = resources.tryRemove(Resource.AMMO, bullets);
+				assert(a);
+				fucker.receiveFire(bullets * Heartstrings.DEBUG_STRUCTURE_DAMAGE);
+			}
+		}
 	}
 	
 	public Texture getIcon(){
@@ -380,12 +410,18 @@ public class Structure implements Piemenuable{
 		assert(manufactoryQueue.size > 0);
 		return manufactoryQueue.first().currentUnitProgress;
 	}
-	
-	public void hit(float _damage){
-		vitality -= _damage;
+
+	@Override
+	public void receiveFire(float power) {
+		vitality -= power;
 		if (vitality <= 0){
 			onDestroy();
 		}
+	}
+
+	@Override
+	public Vector2 getPosition(){
+		return position;
 	}
 	
 	public void repair(float _repair){

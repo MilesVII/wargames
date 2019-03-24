@@ -173,7 +173,7 @@ public class WG extends ApplicationAdapter {
 			oilTexture = new Texture(oilMap.getPixmap());
 			oreTexture = new Texture(oreMap.getPixmap());
 			marchT = new Texture(landOutline.getRendered());
-			new Faction(Color.BLUE, "Seventh, inc", Utils.debugFindAPlaceForStructure(map));
+			new Faction(GUI.GUI_COLOR_SEVENTH, "Seventh, inc", Utils.debugFindAPlaceForStructure(map));
 			loadingProgress = -2;
 		};
 		
@@ -212,14 +212,15 @@ public class WG extends ApplicationAdapter {
 		
 		update();
 		
-		//for (Faction runhorsey: sm.getFractions())
-			for (Structure neverlookback: Faction.debug.structs){
+		for (Faction runhorsey: Faction.factions){
+			for (Structure neverlookback: runhorsey.structs){
 				hsr.setColor(Faction.debug.factionColor);
-				gui.drawWorldIconOnHUD(neverlookback.getIcon(), neverlookback.position, 0, ICON_SIDE, GUI.GUI_COLOR_SEVENTH);
+				gui.drawWorldIconOnHUD(neverlookback.getIcon(), neverlookback.position, 0, ICON_SIDE, runhorsey.factionColor);
 			}
-			for (Squad marchordie: Faction.debug.squads){
-				gui.drawWorldIconOnHUD(Faction.SQUAD_ICON, marchordie.position, marchordie.lostDirection, ICON_SIDE, GUI.GUI_COLOR_SEVENTH);
+			for (Squad marchordie: runhorsey.squads){
+				gui.drawWorldIconOnHUD(Faction.SQUAD_ICON, marchordie.position, marchordie.lostDirection, ICON_SIDE, runhorsey.factionColor);
 			}
+		}
 		if (uistate == UIState.PIEMENU && focusedObject != null)
 			gui.piemenu(getUIFromWorldV(focusedObject.getWorldPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, focusedObject.getEntries());
 		if (uistate == UIState.DIALOG && currentDialog != Dialog.NONE)
@@ -231,7 +232,11 @@ public class WG extends ApplicationAdapter {
 	
 	private void update(){
 		//Debug controls
-		
+		if (Gdx.input.isKeyJustPressed(Input.Buttons.RIGHT) && Faction.factions.size() == 1){
+			if (map.isWalkable(Utils.WorldMousePosition.x, Utils.WorldMousePosition.y)){
+				new Faction(Color.MAGENTA, "Starfuckers, inc", Utils.WorldMousePosition);
+			}
+		}
 		//Debug mechanics
 		//...
 		Faction.debug.update(Gdx.graphics.getDeltaTime());

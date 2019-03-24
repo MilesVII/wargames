@@ -14,6 +14,7 @@ public class Utils {
 	public static boolean isTouchJustReleased = false, confirmedTouchOccured = false;
 	public static float confirmationTapDistance = 7;//px
 	public static final int NULL_ID = -1;
+	public static final Random random = new Random();
 	
 	public static float projectX(float _len, float _dir){
 		return (float)(_len * Math.cos(Math.toRadians(_dir)));
@@ -109,15 +110,17 @@ public class Utils {
 		return minSquad;
 	}
 	
-	public static void findStructuresWithinRadius2(ArrayList<Structure> results, Faction f, Vector2 from, float radius2, Structure except){
-		results.clear();
+	public static void findStructuresWithinRadius2(ArrayList<Structure> results, boolean clearList, Faction f, Vector2 from, float radius2, Structure except){
+		if (clearList)
+			results.clear();
 		for (Structure to: f.structs)
 			if (to != except && from.dst2(to.position) <= radius2)
 				results.add(to);
 	}
 	
-	public static void findSquadsWithinRadius2(ArrayList<Squad> results, Faction f, Vector2 from, float radius2, Squad except){
-		results.clear();
+	public static void findSquadsWithinRadius2(ArrayList<Squad> results, boolean clearList, Faction f, Vector2 from, float radius2, Squad except){
+		if (clearList)
+			results.clear();
 		for (Squad to: f.squads)
 			if (to != except && from.dst2(to.position) <= radius2)
 				results.add(to);

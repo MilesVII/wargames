@@ -181,9 +181,12 @@ public class Faction {
 		}
 		return tempCraftTitles;
 	}
-	
-	public void unregisterStructure(Structure _victim){
-		structs.remove(_victim);
+
+	public void unregisterStructure(Structure victim){
+		structs.remove(victim);
+	}
+	public void unregisterSquad(Squad victim){
+		squads.remove(victim);
 	}
 	
 	public void registerStructure(Structure _victim){

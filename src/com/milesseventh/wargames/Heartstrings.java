@@ -22,7 +22,7 @@ public class Heartstrings {
 		BASIC_WARFARE,            //Allows building of fighters, ammo crafting; Req: ENG(5%)
 		SIEGE, //SIEGE_I, SIEGE_II,        //Allows squads to siege structures and conquer them; Req: BASIC_WARFARE, ARMOR(10%), ARMOR(40%), ACC(10%)
 		FORTIFICATION,            //Allows squads to fortify position and defend a spot, acting like a portable MB; Req: BASIC_WARFARE, FP(10%), ARMOR(30%)
-		MOBILE_ATTACK,            //Allows squads to attack other squads; Req: BASIC_WARFARE, ACC(5%)
+		MOBILE_ATTACK,            //Allows squads to attack on the go; Req: BASIC_WARFARE, ACC(5%)
 		//COLUMN_INTERCEPTION,      //Allows squads to intercept other squads; Req: BASIC_WARFARE, ACC(20%)
 		ADVANCED_WARFARE,         //Allows building of MB; Req: BASIC_WARFARE, ENG(10%), FP(30%)
 		RADIO,                    //Allows building of radars; Req: ADVANCED_WARFARE, ENG(15%)
@@ -41,6 +41,12 @@ public class Heartstrings {
 	public static final int MISSILE_ACTIVE_STORAGE_CAPACITY = 3;
 	public static final float MISSILE_MOUNTING_SPEED_MIN = .02f;
 	public static final float MISSILE_MOUNTING_SPEED_MAX = .1f;
+
+	public static final float DEBUG_STRUCTURE_DAMAGE = 15f;
+	public static final float SQUAD_ATTACK_RANGE_MIN = 15f;
+	public static final float SQUAD_ATTACK_RANGE_MAX = 25f;
+	public static final float UNIT_FIREPOWER_MIN = 7f;
+	public static final float UNIT_FIREPOWER_MAX = 27f;
 	
 	//name, sign, description
 	public static ResourceProperties[] rProperties = {
@@ -64,16 +70,16 @@ public class Heartstrings {
 	public static StructureProperties[] structureProperties = {
 		new StructureProperties("City",             22f, 420f, .8f,  700f, "Universal sructure. Medium defence"),
 		new StructureProperties("Mining Outpost",     0,  70f,   0,  120f, "Ore miner. No defence"),
-		new StructureProperties("Military Outpost", 42f, 200f, .2f,  420f, "Military forification. Can build own units, has strong defence"),
-		new StructureProperties("Missile Silo",     17f,  42f,   0, 1700f, "Missile silo. Weak defence"),
+		new StructureProperties("Military Outpost", 32f, 200f, .2f,  420f, "Military forification. Can build own units, has strong defence"),
+		new StructureProperties("Missile Silo",     12f,  42f,   0, 1700f, "Missile silo. Weak defence"),
 		new StructureProperties("Radar",            12f,  70f,   0,  300f, "Radar. Controls missile's flight, has weak defence"),
-		new StructureProperties("AMD",              27f, 120f,   0,  750f, "Anti-Missile Defence. Can shoot down incoming missiles. Has weak defence against troops")
+		new StructureProperties("AMD",              17f, 120f,   0,  750f, "Anti-Missile Defence. Can shoot down incoming missiles. Has weak defence against troops")
 	};
-	//name, fuelConsumption, minMaxCondition, maxMaxCondition, minSpeed, maxSpeed
+	//name, fuelConsumption, minMaxCondition, maxMaxCondition, minSpeed, maxSpeed, receiveFireChance
 	public static UnitProperties[] uProperties = {
-		new UnitProperties("Fighter",      .3f, 700, 1500,  3,  7),
-		new UnitProperties("Transporter", .12f, 120,  750,  5, 10),
-		new UnitProperties("MCV",           2f, 320,  520,  2,  4)
+		new UnitProperties("Fighter",      .3f, 700, 1500,  3,  7, 70),
+		new UnitProperties("Transporter", .12f, 120,  750,  5, 10, 25),
+		new UnitProperties("MCV",           2f, 320,  520,  2,  4,  5)
 	};
 	//title, description, investigationWorkamount, workamountMarkup, investigationPrice, 
 	//priceMarkup, TechnologyRequirement[], SpecialTechnology[]
@@ -229,7 +235,7 @@ public class Heartstrings {
 		),
 		
 		//WARHEAD_FRAGMENTATION //WARHEAD_FRAGMENTATION_I
-		new SpecialTechnologyProperties("Warhead fragmentation I", 
+		new SpecialTechnologyProperties("Warhead fragmentation", 
 			"Allows missiles' payload to fragmentate, increasing"
 			+ "effective area and reducing chance to be shotdown by AMD;",
 			400f, 300f, 810f, 120f,

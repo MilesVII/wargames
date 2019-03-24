@@ -22,7 +22,7 @@ public class Unit {
 	public ArrayList<SpecialTechnology> st = new ArrayList<SpecialTechnology>();
 	public ArrayList<Missile> missilesLoaded = new ArrayList<Missile>();
 	public ResourceStorage resources;
-	public Faction owner;
+	public Faction faction;
 	public Type type;
 	public State state;
 	public Structure manufacturer;
@@ -33,7 +33,7 @@ public class Unit {
 	@SuppressWarnings("unchecked")
 	public Unit(Structure nmanufacturer, Type ntype, float[] ntech, ArrayList<SpecialTechnology> nst) {
 		manufacturer = nmanufacturer;
-		owner = manufacturer.faction;
+		faction = manufacturer.faction;
 		type = ntype;
 		techLevel = ntech.clone();
 		st = (ArrayList<SpecialTechnology>)nst.clone();
@@ -92,11 +92,27 @@ public class Unit {
 		                      techLevel[Technology.ARMOR.ordinal()]);
 	}
 	
+	public float getAttackRange2(){
+		float r = MathUtils.lerp(Heartstrings.SQUAD_ATTACK_RANGE_MIN, Heartstrings.SQUAD_ATTACK_RANGE_MAX, techLevel[Technology.ACCURACY.ordinal()]);
+		return r * r;
+	}
+	
+	public float getFirepower(){
+		float r = MathUtils.lerp(Heartstrings.SQUAD_ATTACK_RANGE_MIN, Heartstrings.SQUAD_ATTACK_RANGE_MAX, techLevel[Technology.FIREPOWER.ordinal()]);
+		return r * r;
+	}
+	
 	public boolean isDamaged(){
 		return condition < getMaxCondition() * .99f;
 	}
 	
 	public boolean canBeRepaired(Structure operator){
 		return operator.resources.get(Resource.METAL) >= Heartstrings.getRepairCostInMetal(this);
+	}
+	
+	public float receiveDamage(float power){
+		float debrisDamage = condition - power;
+		condition -= power;
+		return debrisDamage / 1.5f;
 	}
 }
