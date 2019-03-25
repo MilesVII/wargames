@@ -7,7 +7,7 @@ public class UnitProperties {
 	public float fuelConsumption, minMaxCondition, maxMaxCondition, minSpeed, maxSpeed;
 	private int receiveFireChance;
 	
-	public UnitProperties(String nname, float nfuelConsumption, float nminMaxCondition, float nmaxMaxCondition,float nminSpeed, float nmaxSpeed, int receiveFireChance) {
+	public UnitProperties(String nname, float nfuelConsumption, float nminMaxCondition, float nmaxMaxCondition,float nminSpeed, float nmaxSpeed, int nreceiveFireChance) {
 		name = nname;
 		fuelConsumption = nfuelConsumption;
 		minMaxCondition = nminMaxCondition;

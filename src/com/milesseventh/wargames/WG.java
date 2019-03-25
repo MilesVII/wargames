@@ -232,15 +232,17 @@ public class WG extends ApplicationAdapter {
 	
 	private void update(){
 		//Debug controls
-		if (Gdx.input.isKeyJustPressed(Input.Buttons.RIGHT) && Faction.factions.size() == 1){
+		if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT) && Faction.factions.size() == 1){
 			if (map.isWalkable(Utils.WorldMousePosition.x, Utils.WorldMousePosition.y)){
 				new Faction(Color.MAGENTA, "Starfuckers, inc", Utils.WorldMousePosition);
 			}
 		}
 		//Debug mechanics
 		//...
-		Faction.debug.update(Gdx.graphics.getDeltaTime());
-		Faction.debug.doInvestigation(Gdx.graphics.getDeltaTime() * 1000f);
+		for (Faction f: Faction.factions){
+			f.update(Gdx.graphics.getDeltaTime());
+			f.doInvestigation(Gdx.graphics.getDeltaTime() * 1000f);
+		}
 		
 		//Camera controls
 		if (!Gdx.input.isTouched())

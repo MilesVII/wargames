@@ -133,7 +133,8 @@ public class Squad implements Piemenuable, Combatant {
 		}
 		
 		//Fight
-		if (isUnitTypePresent(Unit.Type.FIGHTER) && resources.get(Resource.AMMO) > 0){
+		if (isUnitTypePresent(Unit.Type.FIGHTER) && resources.get(Resource.AMMO) > 0 &&
+		    (state == State.STAND || faction.isInvestigated(SpecialTechnology.MOBILE_ATTACK))){
 			float maxAttackRange2 = getMaxAttackRange2();
 			
 			targets.clear();
@@ -216,6 +217,7 @@ public class Squad implements Piemenuable, Combatant {
 		float debrisDamage = -1;
 		for (Unit u: units){
 			if (u.type == victimType && i++ == victimId){
+				finalVictim = u;
 				debrisDamage = u.receiveDamage(power);
 				break;
 			}

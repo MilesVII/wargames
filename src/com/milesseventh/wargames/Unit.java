@@ -111,8 +111,8 @@ public class Unit {
 	}
 	
 	public float receiveDamage(float power){
-		float debrisDamage = condition - power;
+		float debrisDamage = power - condition;
 		condition -= power;
-		return debrisDamage / 1.5f;
+		return debrisDamage * .7f;
 	}
 }
