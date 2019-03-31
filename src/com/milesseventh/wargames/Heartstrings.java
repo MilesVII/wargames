@@ -42,11 +42,11 @@ public class Heartstrings {
 	public static final float MISSILE_MOUNTING_SPEED_MIN = .02f;
 	public static final float MISSILE_MOUNTING_SPEED_MAX = .1f;
 
-	public static final float DEBUG_STRUCTURE_DAMAGE = 15f;
+	public static final float DEBUG_STRUCTURE_DAMAGE = 32f;
 	public static final float SQUAD_ATTACK_RANGE_MIN = 15f;
 	public static final float SQUAD_ATTACK_RANGE_MAX = 25f;
 	public static final float UNIT_FIREPOWER_MIN = 7f;
-	public static final float UNIT_FIREPOWER_MAX = 27f;
+	public static final float UNIT_FIREPOWER_MAX = 14f;
 	
 	//name, sign, description
 	public static ResourceProperties[] rProperties = {
@@ -68,18 +68,18 @@ public class Heartstrings {
 	};
 	//title, fightingRange, maxCondition, craftSpeed, buildingPrice (In Metal)
 	public static StructureProperties[] structureProperties = {
-		new StructureProperties("City",             22f, 420f, .8f,  700f, "Universal sructure. Medium defence"),
-		new StructureProperties("Mining Outpost",     0,  70f,   0,  120f, "Ore miner. No defence"),
-		new StructureProperties("Military Outpost", 32f, 200f, .2f,  420f, "Military forification. Can build own units, has strong defence"),
-		new StructureProperties("Missile Silo",     12f,  42f,   0, 1700f, "Missile silo. Weak defence"),
-		new StructureProperties("Radar",            12f,  70f,   0,  300f, "Radar. Controls missile's flight, has weak defence"),
-		new StructureProperties("AMD",              17f, 120f,   0,  750f, "Anti-Missile Defence. Can shoot down incoming missiles. Has weak defence against troops")
+		new StructureProperties("City",             22f, 1260f, .8f,  700f, "Universal sructure. Medium defence"),
+		new StructureProperties("Mining Outpost",     0,  210f,   0,  120f, "Ore miner. No defence"),
+		new StructureProperties("Military Outpost", 32f,  600f, .2f,  420f, "Military forification. Can build own units, has strong defence"),
+		new StructureProperties("Missile Silo",     12f,  128f,   0, 1700f, "Missile silo. Weak defence"),
+		new StructureProperties("Radar",            12f,  210f,   0,  300f, "Radar. Controls missile's flight, has weak defence"),
+		new StructureProperties("AMD",              17f,  360f,   0,  750f, "Anti-Missile Defence. Can shoot down incoming missiles. Has weak defence against troops")
 	};
 	//name, fuelConsumption, minMaxCondition, maxMaxCondition, minSpeed, maxSpeed, receiveFireChance
 	public static UnitProperties[] uProperties = {
-		new UnitProperties("Fighter",      .3f, 700, 1500,  3,  7, 70),
-		new UnitProperties("Transporter", .12f, 120,  750,  5, 10, 25),
-		new UnitProperties("MCV",           2f, 320,  520,  2,  4,  5)
+		new UnitProperties("Fighter",      .3f, 350, 750,  3,  7, 70),
+		new UnitProperties("Transporter", .12f,  60, 375,  5, 10, 25),
+		new UnitProperties("MCV",           2f, 160, 260,  2,  4,  5)
 	};
 	//title, description, investigationWorkamount, workamountMarkup, investigationPrice, 
 	//priceMarkup, TechnologyRequirement[], SpecialTechnology[]

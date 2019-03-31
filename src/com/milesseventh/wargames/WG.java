@@ -196,6 +196,7 @@ public class WG extends ApplicationAdapter {
 		batch.end();
 
 		hsr.begin(ShapeType.Filled);
+		sr.begin(ShapeType.Line);
 		if (uistate == UIState.MOVINGORDER){
 			Vector2[] path = Pathfinder.convertNodeToPath(Pathfinder.findPath(map, PATHFINDER_DEFAULT_STEP, 
 			                                                                  ((Squad)focusedObject).position, Utils.WorldMousePosition));
@@ -216,9 +217,15 @@ public class WG extends ApplicationAdapter {
 			for (Structure neverlookback: runhorsey.structs){
 				hsr.setColor(Faction.debug.factionColor);
 				gui.drawWorldIconOnHUD(neverlookback.getIcon(), neverlookback.position, 0, ICON_SIDE, runhorsey.factionColor);
+				gui.circledProgressbar(neverlookback.position, PIE_MENU_RADIUS * 1.5f, neverlookback.condition / neverlookback.getMaxCondition(), runhorsey.factionColor);
+				sr.setColor(Color.DARK_GRAY);
+				sr.circle(neverlookback.position.x, neverlookback.position.y, Heartstrings.get(neverlookback.type, Heartstrings.structureProperties).fightingRange);
 			}
 			for (Squad marchordie: runhorsey.squads){
 				gui.drawWorldIconOnHUD(Faction.SQUAD_ICON, marchordie.position, marchordie.lostDirection, ICON_SIDE, runhorsey.factionColor);
+				gui.circledProgressbar(marchordie.position, PIE_MENU_RADIUS * 1.5f, marchordie.getCondition() / marchordie.getMaxCondition(), runhorsey.factionColor);
+				sr.setColor(Color.ORANGE);
+				sr.circle(marchordie.position.x, marchordie.position.y, marchordie.getMaxAttackRange());
 			}
 		}
 		if (uistate == UIState.PIEMENU && focusedObject != null)
@@ -227,6 +234,7 @@ public class WG extends ApplicationAdapter {
 			gui.dialog(currentDialog);
 		if (uistate == UIState.MENU && menuLEC != null)
 			gui.menu(menuLEC, GUI.GUI_COLORS_DEFAULT, menuLength);
+		sr.end();
 		hsr.end();
 	}
 	

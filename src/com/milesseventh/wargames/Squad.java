@@ -234,12 +234,14 @@ public class Squad implements Piemenuable, Combatant {
 	public void destroyUnit(Unit u){
 		assert(units.contains(u));
 		assert(u.condition <= 0);
-		assert(trading);
+		boolean wasTrading = trading;
 		
-		doneTrading();
+		if (wasTrading)
+			doneTrading();
 		units.remove(u);
 		// TODO: Leave package with share of resources
-		prepareForTrading();
+		if (wasTrading)
+			prepareForTrading();
 		
 		if (units.size() == 0)
 			faction.unregisterSquad(this);
@@ -257,6 +259,24 @@ public class Squad implements Piemenuable, Combatant {
 			if (u.getSpeed() < min)
 				min = u.getSpeed();
 		return min;
+	}
+
+	public float getMaxCondition(){
+		float r = 0;
+		for (Unit u: units)
+			r += u.getMaxCondition();
+		return r;
+	}
+	
+	public float getCondition(){
+		float r = 0;
+		for (Unit u: units)
+			r += u.condition;
+		return r;
+	}
+	
+	public float getMaxAttackRange(){
+		return (float)Math.sqrt(getMaxAttackRange2());
 	}
 	
 	private float getMaxAttackRange2(){

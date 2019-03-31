@@ -98,7 +98,7 @@ public class Unit {
 	}
 	
 	public float getFirepower(){
-		float r = MathUtils.lerp(Heartstrings.SQUAD_ATTACK_RANGE_MIN, Heartstrings.SQUAD_ATTACK_RANGE_MAX, techLevel[Technology.FIREPOWER.ordinal()]);
+		float r = MathUtils.lerp(Heartstrings.UNIT_FIREPOWER_MIN, Heartstrings.UNIT_FIREPOWER_MAX, techLevel[Technology.FIREPOWER.ordinal()]);
 		return r * r;
 	}
 	

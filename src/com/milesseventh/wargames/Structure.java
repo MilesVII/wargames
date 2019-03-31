@@ -5,6 +5,7 @@ import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
@@ -75,6 +76,9 @@ public class Structure implements Piemenuable, Combatant{
 				
 				timeHolder -= singleCraftTime;
 				++unitsDone;
+				assert(unitsDone <= amount);
+				if (unitsDone == amount)
+					break;
 			}
 			
 			currentUnitProgress = timeHolder / singleCraftTime;
@@ -99,12 +103,11 @@ public class Structure implements Piemenuable, Combatant{
 	}
 	
 	public String name;
-	private float range;//Radius of circle that will be added to faction's territory
-	public Faction faction;//ID of faction that owns this unit
-	private float vitality, maxVitality;
+	public Faction faction;
 	public Vector2 position;
 	public Type type;
 	public ResourceStorage resources;
+	public float condition;
 
 	public ArrayList<Missile> missilesStorage = new ArrayList<Missile>();
 	public Missile[] missilesReady = new Missile[Heartstrings.MISSILE_ACTIVE_STORAGE_CAPACITY];
@@ -125,8 +128,7 @@ public class Structure implements Piemenuable, Combatant{
 		position = npos.cpy();
 		faction = owner;
 		type = st;
-		//range = Heartstrings.get
-		vitality = maxVitality = 1;//Heartstrings.get
+		condition = getMaxCondition();
 		
 		rebuildPiemenu();
 	}
@@ -279,10 +281,6 @@ public class Structure implements Piemenuable, Combatant{
 		faction.unregisterStructure(this);
 	}
 	
-	public float getRange(){
-		return range;
-	}
-	
 	private static final float MIN_CRFTSP_K = .8f, MAX_CRFTSP_K = 1.7f;
 	public float getCraftSpeed(){
 		float cs = Heartstrings.get(type, Heartstrings.structureProperties).craftSpeed;
@@ -413,8 +411,8 @@ public class Structure implements Piemenuable, Combatant{
 
 	@Override
 	public void receiveFire(float power) {
-		vitality -= power;
-		if (vitality <= 0){
+		condition -= power;
+		if (condition <= 0){
 			onDestroy();
 		}
 	}
@@ -424,11 +422,13 @@ public class Structure implements Piemenuable, Combatant{
 		return position;
 	}
 	
-	public void repair(float _repair){
-		vitality += _repair;
-		if (vitality > maxVitality){
-			vitality = maxVitality;
-		}
+	public void repair(float repair){
+		condition += repair;
+		condition = MathUtils.clamp(condition, 0, getMaxCondition());
+	}
+	
+	public float getMaxCondition(){
+		return Heartstrings.get(type, Heartstrings.structureProperties).maxCondition;
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////
