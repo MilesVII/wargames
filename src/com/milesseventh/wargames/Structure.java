@@ -409,6 +409,12 @@ public class Structure implements Piemenuable, Combatant{
 		return manufactoryQueue.first().currentUnitProgress;
 	}
 
+	public void annexated(Faction f){
+		faction.unregisterStructure(this);
+		faction = f;
+		faction.registerStructure(this);
+	}
+	
 	@Override
 	public void receiveFire(float power) {
 		condition -= power;

@@ -17,8 +17,16 @@ public class CraftingDialog {
 	public float selectedT[] = new float[Technology.values().length];
 	
 	public CraftingDialog(){
-		//faction = Faction.debug;//TODO
-		select(Craftable.TRANSPORTER);
+		//select(Craftable.TRANSPORTER);
+	}
+	
+	private boolean coldStart = true;
+	public void init(Faction f){
+		faction = f;
+		if (coldStart){
+			select(Craftable.TRANSPORTER);
+			coldStart = false;
+		}
 	}
 	
 	public void select(Craftable c){
@@ -41,7 +49,7 @@ public class CraftingDialog {
 	}
 	
 	private void generateAvailableSTBySelected(){
-		faction = Faction.debug;//TODO
+		assert(faction != null);
 		int len = 0, j = 0;
 		for (int i = 0; i < Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs.length; i++)
 			if (faction.isInvestigated(Heartstrings.get(selected, Heartstrings.craftableProperties).availableSTs[i]))

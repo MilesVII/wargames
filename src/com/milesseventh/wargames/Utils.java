@@ -12,7 +12,7 @@ public class Utils {
 	public static Vector2 WorldMousePosition = new Vector2(), UIMousePosition = new Vector2();//Updated via WG.java, update();
 	public static Vector2 UIEnteringTapPosition = new Vector2();//Updated via WG.java, update();
 	public static boolean isTouchJustReleased = false, confirmedTouchOccured = false;
-	public static float confirmationTapDistance = 7;//px
+	public static float confirmationTapDistance = 20;//px
 	public static final int NULL_ID = -1;
 	public static final Random random = new Random();
 	

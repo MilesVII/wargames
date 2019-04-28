@@ -47,6 +47,8 @@ public class Heartstrings {
 	public static final float SQUAD_ATTACK_RANGE_MAX = 25f;
 	public static final float UNIT_FIREPOWER_MIN = 7f;
 	public static final float UNIT_FIREPOWER_MAX = 14f;
+	public static final float UNIT_MAX_ANNEXATION_CHANCE_PER_SECOND = .5f;
+	public static final float STRUCTURE_CONDITION_ANNEXATION_THRESHOLD_RELATIVE = .42f;
 	
 	//name, sign, description
 	public static ResourceProperties[] rProperties = {

@@ -299,18 +299,18 @@ public class GUI {
 	private final ListEntryCallback GUI_LEC_ST = new ListEntryCallback() {
 		@Override
 		public void action(int id) {
-			if (Faction.debug.isSTInvestigationPossibleRightNow(id))
-				Faction.debug.startInvestigatingSpecialTechnology(id);
+			if (focusedStruct.faction.isSTInvestigationPossibleRightNow(id))
+				focusedStruct.faction.startInvestigatingSpecialTechnology(id);
 		}
 		
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
-			if (Heartstrings.stProperties[id].areBasicSTInvestigated(Faction.debug)){
+			if (Heartstrings.stProperties[id].areBasicSTInvestigated(focusedStruct.faction)){
 				SpecialTechnologyProperties st = Heartstrings.stProperties[id];
 				Color c = null;
-				if (Faction.debug.isInvestigated(Heartstrings.SpecialTechnology.values()[id]))
+				if (focusedStruct.faction.isInvestigated(Heartstrings.SpecialTechnology.values()[id]))
 					c = Color.GREEN;
-				if (Faction.debug.isBeingInvestigated(Heartstrings.SpecialTechnology.values()[id]))
+				if (focusedStruct.faction.isBeingInvestigated(Heartstrings.SpecialTechnology.values()[id]))
 					c = GUI_COLOR_SEVENTH;
 				advancedButton(position, size, id, this, color, 
 				               st.title, st.description + "\n\n" + st.techReqsDescription, c);
@@ -330,7 +330,7 @@ public class GUI {
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
 			Craftable ca = Heartstrings.Craftable.values()[id];
-			if (Faction.debug.availableCraftables.contains(ca))
+			if (focusedStruct.faction.availableCraftables.contains(ca))
 				advancedButton(position, size, id, this, color, 
 				               Heartstrings.get(ca, Heartstrings.craftableProperties).title, 
 				               null, (craftingDialogState.selected == ca) ? GUI.GUI_COLOR_SEVENTH : null);
@@ -703,13 +703,13 @@ public class GUI {
 			float captionCenteringOffset = (aligner.size.y - font.getCapHeight()/*glay.height*/) / 2f;
 			for (int i = 0; i < Heartstrings.Technology.values().length; ++i){
 				if (!scrollbars[1 + i].initialized){
-					scrollbars[1 + i].offset = Faction.debug.techPriorities[i];
+					scrollbars[1 + i].offset = focusedStruct.faction.techPriorities[i];
 					scrollbars[1 + i].init(aligner.position, aligner.size, false, .5f);
 				}
 				scrollbars[1 + i].update(Faction.MAXPRIOR);
 				scrollbars[1 + i].render(GUI_COLORS_SCROLLBAR_COLORS);
 				
-				float investigationPriority = Faction.debug.getRelativeInvestigationPriority(Technology.values()[i]) * Faction.debug.investition;
+				float investigationPriority = focusedStruct.faction.getRelativeInvestigationPriority(Technology.values()[i]) * focusedStruct.faction.investition;
 				progressbar(aligner.position, aligner.size, investigationPriority,
 				            GUI_COLORS_SEVENTH_PROGRESS_TRANSPARENT);
 				
@@ -717,19 +717,19 @@ public class GUI {
 				String captionText = Heartstrings.tProperties[i].title;
 				caption(captionPosition, captionText, font, VALIGN_BOTTOM, null);
 				
-				Faction.debug.techPriorities[i] = scrollbars[1 + i].offset;
+				focusedStruct.faction.techPriorities[i] = scrollbars[1 + i].offset;
 				
 				aligner.next(1, 0);
 				
 				float centeringOffset = aligner.size.y / 2f;
 				Vector2 cPBPosition = Utils.getVector(aligner.position).add(centeringOffset * 1.5f, centeringOffset);
-				float cPBValue = Faction.debug.techLevel(Technology.values()[i]);
+				float cPBValue = focusedStruct.faction.techLevel(Technology.values()[i]);
 				circledProgressbar(cPBPosition, centeringOffset * 1.22f, cPBValue, GUI_COLOR_SEVENTH);
 				
 				aligner.next(-1, -1);
 			}
 			if (!scrollbars[23].initialized){
-				scrollbars[23].offset = Math.round(Faction.debug.investition * Scrollbar.GUI_SB_DEFAULT_STATES);
+				scrollbars[23].offset = Math.round(focusedStruct.faction.investition * Scrollbar.GUI_SB_DEFAULT_STATES);
 				scrollbars[23].init(aligner.position, aligner.size, false, .5f);
 			}
 			scrollbars[23].update(Scrollbar.GUI_SB_DEFAULT_STATES); //TODO: Probably must be +1 here
@@ -738,14 +738,16 @@ public class GUI {
 			Vector2 investitionCaptionCenteredPosition = Utils.getVector(aligner.position).add(3f, captionCenteringOffset);
 			float selectedInvestition = scrollbars[23].offset / ((float)Scrollbar.GUI_SB_DEFAULT_MAXVAL);
 			caption(investitionCaptionCenteredPosition, "Investition", font, VALIGN_BOTTOM, null);
-			Faction.debug.investition = selectedInvestition;
+			focusedStruct.faction.investition = selectedInvestition;
 			
 			aligner.next(0, -1);
-			String scienceDataAmount = String.format("Science data available: %.2f", Faction.debug.scienceDataAvailable);
+			String scienceDataAmount = String.format("Science data available: %.2f", focusedStruct.faction.scienceDataAvailable);
 			caption(aligner.position, scienceDataAmount, font, VALIGN_BOTTOM, null);
 			break;
 		case CRAFTING:
 			dialogTitle = "Assembly Factory";
+			craftingDialogState.init(focusedStruct.faction);
+			
 			aligner.setSize(.4f, .5f);
 			list(aligner.position, aligner.size, craftingDialogState.availableST.length, GUI_LEC_CST, GUI_COLORS_DEFAULT, 11);
 			aligner.next(0, 1);

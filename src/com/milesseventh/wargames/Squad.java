@@ -7,6 +7,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
+import com.milesseventh.wargames.Heartstrings.Technology;
 import com.milesseventh.wargames.WG.Dialog;
 
 public class Squad implements Piemenuable, Combatant {
@@ -135,46 +136,7 @@ public class Squad implements Piemenuable, Combatant {
 		//Fight
 		if (isUnitTypePresent(Unit.Type.FIGHTER) && resources.get(Resource.AMMO) > 0 &&
 		    (state == State.STAND || faction.isInvestigated(SpecialTechnology.MOBILE_ATTACK))){
-			float maxAttackRange2 = getMaxAttackRange2();
-			
-			targets.clear();
-			
-			for (Faction f: Faction.factions){
-				if (f == faction)
-					continue;
-				
-				Utils.findStructuresWithinRadius2(TStTargets, true, f, position, maxAttackRange2, null);
-				Utils.findSquadsWithinRadius2(TSqTargets, true, f, position, maxAttackRange2, this);
-				
-				targets.addAll(TSqTargets);
-				targets.addAll(TStTargets);
-				
-			}
-			if (targets.size() > 0){
-				for (Unit u: units){
-					if (u.type == Unit.Type.FIGHTER){
-						/* Well, listen
-						 * Here I iterate over every unit in squad
-						 * Then checking, how many of detected /targets/ their gun can reach
-						 * Then removing unit's regular amount of ammo for attack
-						 * And splitting it's power on every target reachable*/
-						
-						int targetsWithinRange = 0;
-						for (Combatant target: targets)
-							if (target.getPosition().dst2(position) <= u.getAttackRange2())
-								++targetsWithinRange;
-						
-						float bullets = dt; // TODO: Amount of ammo wasted on attack
-						bullets = Math.min(bullets, resources.get(Resource.AMMO));
-						boolean a = resources.tryRemove(Resource.AMMO, bullets);
-						assert(a);
-						
-						for (Combatant target: targets)
-							if (target.getPosition().dst2(position) <= u.getAttackRange2())
-								target.receiveFire(u.getFirepower() * bullets / targetsWithinRange);
-					}
-				}
-			}
+			fight(dt);
 		}
 		rebuildPiemenu();
 		
@@ -229,6 +191,60 @@ public class Squad implements Piemenuable, Combatant {
 			destroyUnit(finalVictim);
 			receiveFire(debrisDamage);
 		}
+	}
+	
+	private void fight(float dt){
+		float maxAttackRange2 = getMaxAttackRange2();
+		
+		targets.clear();
+		
+		for (Faction f: Faction.factions){
+			if (f == faction)
+				continue;
+			
+			Utils.findStructuresWithinRadius2(TStTargets, true, f, position, maxAttackRange2, null);
+			Utils.findSquadsWithinRadius2(TSqTargets, true, f, position, maxAttackRange2, this);
+			
+			targets.addAll(TSqTargets);
+			targets.addAll(TStTargets);
+			
+		}
+		if (targets.size() > 0){
+			for (Unit u: units){
+				if (u.type == Unit.Type.FIGHTER){
+					/* Well, listen
+					 * Here I iterate over every unit in squad
+					 * Then checking, how many of detected /targets/ their gun can reach
+					 * Then removing unit's regular amount of ammo for attack
+					 * And splitting it's power on every target reachable*/
+					
+					int targetsWithinRange = 0;
+					for (Combatant target: targets)
+						if (target.getPosition().dst2(position) <= u.getAttackRange2())
+							++targetsWithinRange;
+					
+					float bullets = dt; // TODO: Amount of ammo wasted on attack
+					bullets = Math.min(bullets, resources.get(Resource.AMMO));
+					boolean a = resources.tryRemove(Resource.AMMO, bullets);
+					assert(a);
+					
+					for (Combatant target: targets)
+						if (target.getPosition().dst2(position) <= u.getAttackRange2()){
+							target.receiveFire(u.getFirepower() * bullets / targetsWithinRange);
+							if (u.st.contains(SpecialTechnology.SIEGE) &&
+							    target.getClass().isAssignableFrom(Structure.class)){
+								tryAnnexate((Structure)target, u, dt);
+							}
+						}
+				}
+			}
+		}
+	}
+	
+	private void tryAnnexate(Structure s, Unit u, float dt){
+		if (s.condition <= s.getMaxCondition() * Heartstrings.STRUCTURE_CONDITION_ANNEXATION_THRESHOLD_RELATIVE &&
+		    Heartstrings.UNIT_MAX_ANNEXATION_CHANCE_PER_SECOND * Heartstrings.get(Technology.ACCURACY, u.techLevel) * dt > Utils.random.nextFloat())
+			s.annexated(faction);
 	}
 	
 	public void destroyUnit(Unit u){
