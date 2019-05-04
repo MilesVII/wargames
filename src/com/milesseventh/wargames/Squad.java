@@ -12,7 +12,7 @@ import com.milesseventh.wargames.WG.Dialog;
 
 public class Squad implements Piemenuable, Combatant {
 	public enum State {
-		STAND, MOVING
+		STAND, MOVING, FORTIFIED
 	}
 
 	public static Comparator<Unit> sortByCapacity = new Comparator<Unit>(){
@@ -37,6 +37,7 @@ public class Squad implements Piemenuable, Combatant {
 	private ArrayList<Combatant> targets = new ArrayList<Combatant>();
 	private ArrayList<Squad> TSqTargets = new ArrayList<Squad>();         // Temporary target lists for two enemy types
 	private ArrayList<Structure> TStTargets = new ArrayList<Structure>(); 
+	private float fortification = 0;
 	
 	private Vector2[] path = null;
 	private int pathSegment = -1;
@@ -133,6 +134,10 @@ public class Squad implements Piemenuable, Combatant {
 			}
 		}
 		
+		//Fortification
+		if (fortification <= 1)
+			fortification += Heartstrings.SQUAD_FORTIFICATION_PER_SECOND * dt;
+		
 		//Fight
 		if (isUnitTypePresent(Unit.Type.FIGHTER) && resources.get(Resource.AMMO) > 0 &&
 		    (state == State.STAND || faction.isInvestigated(SpecialTechnology.MOBILE_ATTACK))){
@@ -151,6 +156,8 @@ public class Squad implements Piemenuable, Combatant {
 	public void receiveFire(float power) {
 		if (units.size() == 0)
 			return;
+		
+
 		
 		//Count sum of chances for types to get hit when squad is attacked
 		float chancesSum = 0;
@@ -179,6 +186,13 @@ public class Squad implements Piemenuable, Combatant {
 		float debrisDamage = -1;
 		for (Unit u: units){
 			if (u.type == victimType && i++ == victimId){
+				//Change hit power if fortified
+				if (state == State.FORTIFIED && u.st.contains(Heartstrings.SpecialTechnology.FORTIFICATION))
+					if (fortification <= 1)
+						power *= 2.5f;
+					else 
+						power *= .2f;
+				
 				finalVictim = u;
 				debrisDamage = u.receiveDamage(power);
 				break;
@@ -319,6 +333,13 @@ public class Squad implements Piemenuable, Combatant {
 			if (u.type == type)
 				++r;
 		return r;
+	}
+	
+	public boolean canFortify(){
+		for (Unit u: units)
+			if (u.type == Unit.Type.FIGHTER && u.st.contains(Heartstrings.SpecialTechnology.FORTIFICATION))
+				return true;
+		return false;
 	}
 	
 	public float getFuelConsumption(){
@@ -713,6 +734,13 @@ public class Squad implements Piemenuable, Combatant {
 			    (hasFuel() || ns.hasFuel()) && ns.state == State.STAND){
 				piemenu.add(PME_REFUEL);
 			}
+			
+			if (canFortify()){
+				piemenu.add(PME_FORTIFY);
+			}
+		}
+		if (state == State.FORTIFIED){
+			piemenu.add(PME_MOBILIZE);
 		}
 	}
 
@@ -762,6 +790,18 @@ public class Squad implements Piemenuable, Combatant {
 		@Override
 		public void action(int source) {
 			WG.antistatic.setMenu(LEC_REFUEL_MENU, 3);
+		}
+	});
+	public final PiemenuEntry PME_FORTIFY = new PiemenuEntry("Fortify", new Callback(){
+		@Override
+		public void action(int source) {
+			state = State.FORTIFIED;
+		}
+	});
+	public final PiemenuEntry PME_MOBILIZE = new PiemenuEntry("Mobilize", new Callback(){
+		@Override
+		public void action(int source) {
+			state = State.STAND;
 		}
 	});
 	private void disband(ArrayList<Unit> to, ResourceStorage rs){

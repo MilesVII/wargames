@@ -20,19 +20,17 @@ public class Heartstrings {
 	}
 	public enum SpecialTechnology{
 		BASIC_WARFARE,            //Allows building of fighters, ammo crafting; Req: ENG(5%)
-		SIEGE, //SIEGE_I, SIEGE_II,        //Allows squads to siege structures and conquer them; Req: BASIC_WARFARE, ARMOR(10%), ARMOR(40%), ACC(10%)
-		FORTIFICATION,            //Allows squads to fortify position and defend a spot, acting like a portable MB; Req: BASIC_WARFARE, FP(10%), ARMOR(30%)
+		SIEGE,                    //Allows squads to siege structures and conquer them; Req: BASIC_WARFARE, ARMOR(10%), ARMOR(40%), ACC(10%)
+		FORTIFICATION,            //Allows squads to fortify position and reduce amount of damage taken; Req: BASIC_WARFARE, FP(10%), ARMOR(30%)
 		MOBILE_ATTACK,            //Allows squads to attack on the go; Req: BASIC_WARFARE, ACC(5%)
-		//COLUMN_INTERCEPTION,      //Allows squads to intercept other squads; Req: BASIC_WARFARE, ACC(20%)
 		ADVANCED_WARFARE,         //Allows building of MB; Req: BASIC_WARFARE, ENG(10%), FP(30%)
 		RADIO,                    //Allows building of radars; Req: ADVANCED_WARFARE, ENG(15%)
-		AMD, //AMD_I, AMD_II,            //Allows building of AMD stations; Req_1: ADVANCED_WARFARE, ENG(25%), ACC(30%); Allows building of laser AMD stations; Req_2: AMD_I, ENG(45%), ACC(60%) 
+		AMD,                      //Allows building of AMD stations; ADVANCED_WARFARE, ENG(25%), ACC(30%)
 		ESPIONAGE,                //Allows faction to steal foreign special tecnologies by capturing enemy's radars; Req: RADIO, SIEGE, ENG(30%)
 		STRATEGIC_WARFARE,        //Allows building of missile silos and missile crafting; Req: ADVANCED_WARFARE, ENG(40%), ACC(25%), FP(50%), SPD(25%)
-		WARHEAD_FRAGMENTATION,  //Allows missiles' payload to fragmentate, increasing effective area and reducing chance to be shotdown by AMD; Req: SW, ENG(60%), FP(60%)
-		//WARHEAD_FRAGMENTATION_II, //Req: WF_I, ACC(35%), SPD(40%)
+		WARHEAD_FRAGMENTATION,    //Allows missiles' payload to fragmentate, increasing effective area and reducing chance to be shotdown by AMD; Req: SW, ENG(60%), FP(60%)
 		FLARES,                   //Allows missiles to use decoy flares; Req: SW, RADIO, ENG(50%)
-	} 
+	}
 
 	public static final float STRUCTURE_BUILDING_MIN_DISTANCE2 = 120;
 	public static final float STRUCTURE_INTERACTION_DISTANCE2 = 120;
@@ -45,6 +43,7 @@ public class Heartstrings {
 	public static final float DEBUG_STRUCTURE_DAMAGE = 32f;
 	public static final float SQUAD_ATTACK_RANGE_MIN = 15f;
 	public static final float SQUAD_ATTACK_RANGE_MAX = 25f;
+	public static final float SQUAD_FORTIFICATION_PER_SECOND = .1f;
 	public static final float UNIT_FIREPOWER_MIN = 7f;
 	public static final float UNIT_FIREPOWER_MAX = 14f;
 	public static final float UNIT_MAX_ANNEXATION_CHANCE_PER_SECOND = .5f;
@@ -95,7 +94,7 @@ public class Heartstrings {
 			}, 
 			new SpecialTechnology[]{}),
 
-		//SIEGE //SIEGE_I
+		//SIEGE
 		new SpecialTechnologyProperties("Siege", 
 			"Allows squads to siege structures and capture them;", 
 			120f, 20f, 120f, 20f,
@@ -107,22 +106,10 @@ public class Heartstrings {
 				SpecialTechnology.BASIC_WARFARE
 			}),
 		
-		/*//SIEGE_II
-		new SpecialTechnologyProperties("Siege II", 
-			"Allows squads to siege structures and capture them;", 
-			130f, 25f, 320f, 25f,
-			new TechnologyRequirement[]{
-				new TechnologyRequirement(Technology.ARMOR, .4f)
-			}, 
-			new SpecialTechnology[]{
-				SpecialTechnology.SIEGE_I
-		}),*/
-		
 		//FORTIFICATION
 		new SpecialTechnologyProperties("Fortification", 
-			"Allows squads to fortify position and defend a spot, "
-			+ "acting like a portable military base;", 
-			100f, 15f, 270f, 40f,
+			"Allows squads to fortify position and reduce amount of damage taken", 
+			64f, 15f, 270f, 40f,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.FIREPOWER, .1f),
 				new TechnologyRequirement(Technology.ARMOR, .3f)
@@ -142,18 +129,6 @@ public class Heartstrings {
 				SpecialTechnology.BASIC_WARFARE
 			}
 		),
-		
-		/*/COLUMN_INTERCEPTION
-		new SpecialTechnologyProperties("Column interception", 
-			"Allows squads to intercept other squads;", 
-			115f, 10f, 210f, 10f,
-			new TechnologyRequirement[]{
-				new TechnologyRequirement(Technology.ACCURACY, .2f)
-			}, 
-			new SpecialTechnology[]{
-				SpecialTechnology.MOBILE_ATTACK
-			}
-		),*/
 		
 		//ADVANCED_WARFARE
 		new SpecialTechnologyProperties("Advanced warfare", 
@@ -180,8 +155,8 @@ public class Heartstrings {
 			}
 		),
 		
-		//AMD //AMD I
-		new SpecialTechnologyProperties("Anti-Missile Defence I", 
+		//AMD
+		new SpecialTechnologyProperties("Anti-Missile Defence", 
 			"Allows building of anti-missile defence systems;",
 			220f, 0f, 510f, 0f,
 			new TechnologyRequirement[]{
@@ -192,20 +167,6 @@ public class Heartstrings {
 				SpecialTechnology.STRATEGIC_WARFARE
 			}
 		),
-		
-		/*//AMD II
-		new SpecialTechnologyProperties("Anti-Missile Defence II", 
-			"Allows building of laser AMD systems;",
-			270f, 0f, 790f, 0f,
-			new TechnologyRequirement[]{
-				new TechnologyRequirement(Technology.ACCURACY, .6f),
-				new TechnologyRequirement(Technology.ENGINEERING, .45f)
-			}, 
-			new SpecialTechnology[]{
-				SpecialTechnology.RADIO,
-				SpecialTechnology.AMD//I
-			}
-		),*/
 		
 		//ESPIONAGE
 		new SpecialTechnologyProperties("Industrial espionage", 
@@ -236,7 +197,7 @@ public class Heartstrings {
 			}
 		),
 		
-		//WARHEAD_FRAGMENTATION //WARHEAD_FRAGMENTATION_I
+		//WARHEAD_FRAGMENTATION
 		new SpecialTechnologyProperties("Warhead fragmentation", 
 			"Allows missiles' payload to fragmentate, increasing"
 			+ "effective area and reducing chance to be shotdown by AMD;",
@@ -249,19 +210,6 @@ public class Heartstrings {
 				SpecialTechnology.STRATEGIC_WARFARE
 			}
 		),
-		
-		/*//WARHEAD_FRAGMENTATION_II
-		new SpecialTechnologyProperties("Warhead fragmentation II", 
-			"\"HIGH JACK THIS FAGS\";",
-			420f, 400f, 750f, 200f,
-			new TechnologyRequirement[]{
-				new TechnologyRequirement(Technology.ACCURACY, .35f),
-				new TechnologyRequirement(Technology.SPEED, .4f)
-			}, 
-			new SpecialTechnology[]{
-				SpecialTechnology.WARHEAD_FRAGMENTATION//_I
-			}
-		),*/
 		
 		//FLARES
 		new SpecialTechnologyProperties("Decoy flares", 
