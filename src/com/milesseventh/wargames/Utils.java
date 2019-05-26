@@ -28,6 +28,18 @@ public class Utils {
 		return (x - froml) / (fromh - froml) * (toh - tol) + tol;
 	}
 	
+	public static float min(float[] values){
+		if (values.length < 1)
+			return Float.NaN; // Go fuck yourself
+		
+		float min = values[0];
+		for (int i = 1; i < values.length; ++i) // I'm just insane
+			if (values[i] < min)
+				min = values[i];
+		
+		return min;
+	}
+	
 	public static boolean isBuildingAllowed(HeightMap _map, float _x, float _y){
 		return _map.getMeta(_x, _y) < _map.getMetaThreshold();
 	}

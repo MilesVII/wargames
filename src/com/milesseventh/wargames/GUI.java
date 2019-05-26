@@ -426,16 +426,16 @@ public class GUI {
 	};
 	
 	//TRADE: Resource selector on the left
-	/**Sets initial offset for scrollbar-35, main scrollbar for resource transferring
+	/**Sets initial offset for scrollbar-35, the main scrollbar for resource transferring
 	 * Must be called after init
 	 * @return
 	 */
 	private void guiTradeSetSBInitialOffset(){
 		guiTradeSBUpdate();
-		scrollbars[35].offset = (int)Math.floor(focusedSquad.resources.get(tradeDialogState.selectedResource));
+		scrollbars[35].offset = (int)Math.floor(tradeSideB.getTradeStorage().get(tradeDialogState.selectedResource));
 	}
 	private void guiTradeSBUpdate(){
-		scrollbars[35].update((int)Math.floor(tradeDialogState.getMaxLoad(focusedSquad)) + 1);
+		scrollbars[35].update((int)Math.floor(tradeDialogState.getTradeableResourceShare(tradeSideA, tradeSideB)) + 1);
 	}
 	private final ListEntryCallback GUI_LEC_TRADE_RESOURCES = new ListEntryCallback() {
 		@Override
@@ -655,6 +655,9 @@ public class GUI {
 	
 	public Structure focusedStruct;
 	public Squad focusedSquad;
+	public Tradeable tradeSideA = null;
+	public Tradeable tradeSideB = null;
+	
 	private Aligner aligner;
 	private CraftingDialog craftingDialogState = new CraftingDialog();
 	private YardDialog yardDialogState = new YardDialog();
@@ -895,9 +898,16 @@ public class GUI {
 			break;
 		case TRADE:
 			dialogTitle = "The economy, stupid";
+
+			assert(tradeSideA != null);
+			assert(tradeSideB != null);
+			//Trade Registers should be initialized in Squad.java:trade();
+			//TradeSideA is recommended to be Structure if any Structure is present
 			
-			focusedSquad.DEBUG_INFO = "Call from GUI.java: dialog():TRADE";
-			focusedSquad.prepareForTrading();
+			//Use of Focused Registers is not allowed
+			
+			tradeSideA.prepareToTrade();
+			tradeSideB.prepareToTrade();
 			
 			aligner.setSize(.3f, .9f);
 			int listSize = Resource.values().length;
@@ -905,17 +915,19 @@ public class GUI {
 			aligner.next(0, 1);
 			
 			aligner.setSize(.3f, .1f);
-			caption(aligner.position, focusedSquad.tradePartner.name, font, VALIGN_BOTTOM, null);
+			caption(aligner.position, tradeSideA.getName()/*focusedSquad.tradePartner.name*/, font, VALIGN_BOTTOM, null);
 			
 			aligner.reset();
 			aligner.shift(.7f, .0f, 1, 0);
 			aligner.setSize(.3f, .9f);
 			
-			listSize = TradeDialog.countTransporters(focusedSquad);
-			list(aligner.position, aligner.size, listSize, GUI_LEC_TRADE_TRANSPORTERS, GUI_COLORS_DEFAULT, 34);
+			if (tradeSideB.getClass().isAssignableFrom(Squad.class)){
+				listSize = TradeDialog.countTransporters((Squad)tradeSideB);
+				list(aligner.position, aligner.size, listSize, GUI_LEC_TRADE_TRANSPORTERS, GUI_COLORS_DEFAULT, 34);
+			}
 			
 			aligner.next(0, 1);
-			caption(aligner.position, focusedSquad.name, font, VALIGN_BOTTOM, null);
+			caption(aligner.position, tradeSideB.getName()/*focusedSquad.name*/, font, VALIGN_BOTTOM, null);
 			aligner.reset();
 			
 			aligner.shift(.3f, .1f, 1, 9);
@@ -929,25 +941,24 @@ public class GUI {
 				guiTradeSBUpdate();
 				scrollbars[35].render(GUI_COLORS_SCROLLBAR_COLORS);
 
-				focusedSquad.resources.flushTo(tradeDialogState.selectedResource, focusedSquad.tradePartner);
-				focusedSquad.tradePartner.tryTransfer(tradeDialogState.selectedResource, scrollbars[35].offset, focusedSquad.resources);
+				tradeSideB.getTradeStorage().flushTo(tradeDialogState.selectedResource, tradeSideA.getTradeStorage());
+				tradeSideA.getTradeStorage().tryTransfer(tradeDialogState.selectedResource, scrollbars[35].offset, tradeSideB.getTradeStorage());
 				
 				aligner.next(0, -1);
 				
 				String selectedSign = Heartstrings.get(tradeDialogState.selectedResource, Heartstrings.rProperties).sign;
-				String loaded = focusedSquad.resources.get(tradeDialogState.selectedResource) + selectedSign;
-				String leftOnBase = String.format("%.1f", focusedSquad.tradePartner.get(tradeDialogState.selectedResource)) + selectedSign;
+				String loaded = tradeSideB.getTradeStorage().get(tradeDialogState.selectedResource) + selectedSign;
+				String leftOnBase = String.format("%.1f", tradeSideA.getTradeStorage().get(tradeDialogState.selectedResource)) + selectedSign;
 				caption(aligner.position, "Loaded: " + loaded +
-				                          "\nLeft on base: " + leftOnBase +
-				                          "\nSpace left: " + (focusedSquad.getFreeSpace(true)) +
-				                          "\nOverall capacity: " + focusedSquad.getCapacity(), 
+				                          "\nLeft on base: " + leftOnBase,
 				                          font, VALIGN_TOP, null);
 				aligner.next(0, -1);
 				
 				//caption(aligner.position, "And other", font, VALIGN_BOTTOM, null);
 			}
-			
-			focusedSquad.doneTrading();
+
+			tradeSideA.doneTrading();
+			tradeSideB.doneTrading();
 			
 			break;
 		case MISSILE_EXCHANGE:

@@ -9,12 +9,19 @@ import com.badlogic.gdx.math.Vector2;
 
 public class HeightMap implements Marching.Marchable, Pathfinder.Stridable{
 	public static final Color[] DEFAULT_MAIN_SCHEME = {
-			new Color(1, .6424f, .2212f, 1),
+			//new Color(.2f, .8f, 1f, 1),
+			new Color(.6f, .9f, 1f, 1),
+			new Color(1f, 1f, 1f, 1),
+			new Color(.98f, .98f, 1f, 1),
+			new Color(.92f, .92f, .97f, 1),
+			new Color(.8f, .8f, .8f, 1),
+			new Color(.6f, .6f, .6f, 1)
+			/*new Color(1, .6424f, .2212f, 1),
 			new Color(1, .6824f, .2706f, 1), 
 			Color.FOREST,
 			Color.BROWN,
 			Color.LIGHT_GRAY,
-			Color.WHITE
+			Color.WHITE*/
 		};
 	public static final Color[] DEFAULT_ORE_SCHEME = {
 			new Color(0, 0, 0, 0),

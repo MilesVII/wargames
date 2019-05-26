@@ -2,6 +2,7 @@ package com.milesseventh.wargames.dialogs;
 
 import com.milesseventh.wargames.Resource;
 import com.milesseventh.wargames.Squad;
+import com.milesseventh.wargames.Tradeable;
 import com.milesseventh.wargames.Unit;
 
 public class TradeDialog {
@@ -10,10 +11,17 @@ public class TradeDialog {
 	public TradeDialog() {
 		// TODO Auto-generated constructor stub
 	}
-	
-	public float getMaxLoad(Squad s){
-		return Math.min(s.tradePartner.get(selectedResource) + s.resources.get(selectedResource), 
-		                s.getFreeSpace(true) + s.resources.get(selectedResource));
+
+	public float getTradeableResourceShare(Tradeable A, Tradeable B){
+		//0: Amount of shareable resources is limited by overall amount of resources
+		float result = A.getTradeStorage().get(selectedResource) + B.getTradeStorage().get(selectedResource);
+		//1 and 2: Capacity of each side as another constraint
+		if (A.isCapacityLimited())
+			result = Math.min(result, A.getFreeSpace() + A.getTradeStorage().get(selectedResource));
+		if (B.isCapacityLimited())
+			result = Math.min(result, B.getFreeSpace() + B.getTradeStorage().get(selectedResource));
+		
+		return result;
 	}
 	
 	public void reset(){

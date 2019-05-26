@@ -12,7 +12,7 @@ import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
 
-public class Structure implements Piemenuable, Combatant{
+public class Structure implements Piemenuable, Combatant, Tradeable{
 	//////////////////////////////////////////////////////////////////
 	//STRUCTURE TYPES:
 	//> City: WLUCT
@@ -437,6 +437,30 @@ public class Structure implements Piemenuable, Combatant{
 		return Heartstrings.get(type, Heartstrings.structureProperties).maxCondition;
 	}
 	
+	@Override
+	public String getName(){
+		return name;
+	}
+	
+	@Override
+	public void prepareToTrade() {}
+	@Override
+	public ResourceStorage getTradeStorage() {
+		return resources;
+	}
+	@Override
+	public void doneTrading() {}
+
+	@Override
+	public boolean isCapacityLimited() {
+		return false;
+	}
+
+	@Override
+	public float getFreeSpace() {
+		assert(false);
+		return Float.POSITIVE_INFINITY;
+	}
 	////////////////////////////////////////////////////////////////////////////////
 	//Pie Menus
 	
