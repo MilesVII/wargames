@@ -101,6 +101,14 @@ public class Utils {
 		System.out.println("Displace failed: Utils.java: displaceSomeWhereWalkable()"); //TODO: Debug info
 	}
 	
+	public static Container findNearestContainer(Vector2 from){
+		Container nearest = null;
+		for (Container c: Faction.containers)
+			if (nearest == null || from.dst2(c.position) < from.dst2(nearest.position))
+				nearest = c;
+		return nearest;
+	}
+	
 	public static Squad findNearestSquad(Faction f, Vector2 from, Squad except){
 		if (f == null){
 			Squad nearest = null;
@@ -126,6 +134,20 @@ public class Utils {
 		if (clearList)
 			results.clear();
 		for (Structure to: f.structs)
+			if (to != except && from.dst2(to.position) <= radius2)
+				results.add(to);
+	}
+	
+	public static void findTradeablesWithinRadius2(ArrayList<Tradeable> results, boolean clearList, Faction f, Vector2 from, float radius2, Tradeable except){
+		if (clearList)
+			results.clear();
+		for (Structure to: f.structs)
+			if (to != except && from.dst2(to.position) <= radius2)
+				results.add(to);
+		for (Container to: Faction.containers)
+			if (to != except && from.dst2(to.position) <= radius2)
+				results.add(to);
+		for (Squad to: f.squads)
 			if (to != except && from.dst2(to.position) <= radius2)
 				results.add(to);
 	}

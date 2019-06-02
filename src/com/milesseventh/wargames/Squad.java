@@ -34,6 +34,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 	public ResourceStorage resources;
 	public boolean trading = false;
 	private ArrayList<Structure> interactableStructures = new ArrayList<Structure>();
+	private ArrayList<Tradeable> potentialTradeables = new ArrayList<Tradeable>();
 	private ArrayList<Combatant> targets = new ArrayList<Combatant>();
 	private ArrayList<Squad> TSqTargets = new ArrayList<Squad>();         // Temporary target lists for two enemy types
 	private ArrayList<Structure> TStTargets = new ArrayList<Structure>(); 
@@ -76,7 +77,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 	public void update(float dt){
 		DEBUG_INFO = "Call from Squad.java: update():concentratePartial()";
 		//concentratePartial(Resource.FUEL);
-		prepareToTrade();
+		beginTrade();
 		
 		//Interaction
 		if (WG.antistatic.getUIFromWorldV(position).dst(Utils.UIMousePosition) < WG.STRUCTURE_ICON_RADIUS * 1.2f &&
@@ -267,14 +268,26 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 		boolean wasTrading = trading;
 		
 		if (wasTrading)
-			doneTrading();
+			endTrade();
 		units.remove(u);
-		// TODO: Leave package with share of resources
+		dropResources(u);
 		if (wasTrading)
-			prepareToTrade();
+			beginTrade();
 		
 		if (units.size() == 0)
 			faction.unregisterSquad(this);
+	}
+	
+	private void dropResources(Unit u){
+		Container c = Utils.findNearestContainer(position);
+		if (c == null || position.dst2(c.position) < Heartstrings.STRUCTURE_INTERACTION_DISTANCE2)
+			c = new Container(position);
+		
+		for (Resource r: Resource.values()){
+			u.resources.tryTransfer(r, 
+			                        u.resources.get(r) * Utils.remap(Utils.random.nextFloat(),  0, 1, .2f, .75f), 
+			                        c.getTradeStorage());
+		}
 	}
 	
 	@Override
@@ -369,14 +382,14 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 	public int getMissilesFreeSpace(){
 		boolean ttrading = trading;
 		if (ttrading)
-			doneTrading();
+			endTrade();
 		
 		int r = 0;
 		for (Unit u: units)
 			r += u.getMissilesFreeSpace();
 		
 		if (ttrading)
-			prepareToTrade();
+			beginTrade();
 		
 		return r;
 	}
@@ -431,16 +444,11 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 		}
 	}
 	
-	@Override
-	public String getName(){
-		return name;
-	}
-	
 	////////////////////////////////////////////////////////////////////////////////
 	//Internal resource management
 	public String DEBUG_INFO = "";
 	@Override
-	public void prepareToTrade(){
+	public void beginTrade(){
 		assert(!trading);
 		
 		//assert(resources.sum() == 0);
@@ -458,7 +466,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 	}
 
 	@Override
-	public void doneTrading(){
+	public void endTrade(){
 		trading = false;
 		
 		//Try to distribute resources so maximum amount of missiles can fit
@@ -492,7 +500,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 		}
 	}
 	
-	private void spread(){doneTrading();}
+	private void spread(){endTrade();}
 
 	@Override
 	public ResourceStorage getTradeStorage() {
@@ -524,12 +532,12 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 		public void action(int id) {
 			if (id < Structure.Type.values().length){
 				assert(!trading);
-				prepareToTrade();
+				beginTrade();
 				boolean x = resources.tryRemove(Resource.METAL, 
 				                                Heartstrings.get(Structure.Type.values()[id], 
 				                                                 Heartstrings.structureProperties).buildingPrice);
 				assert(x);
-				doneTrading();
+				endTrade();
 				Structure s = new Structure(position, Structure.Type.values()[id], faction);
 				faction.registerStructure(s);
 				
@@ -552,7 +560,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 				Structure.Type st = Structure.Type.values()[id];
 
 				
-				prepareToTrade();
+				beginTrade();
 				switch(st){
 				case CITY:
 					if (!isEnoughMetalForBuilding(Structure.Type.CITY))
@@ -597,7 +605,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 					
 					break;
 				}
-				doneTrading();
+				endTrade();
 				
 				description = Heartstrings.get(st, Heartstrings.structureProperties).description;
 				title = Heartstrings.get(st, Heartstrings.structureProperties).title;
@@ -631,24 +639,41 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 			WG.antistatic.gui.advancedButton(position, size, id, this, color, title, null, null);
 		}
 	};
-	private ListEntryCallback LEC_TRADE_SELECTION_MENU = new ListEntryCallback(){
+	static abstract class TradeSelectionMenuCallbackPrototype implements ListEntryCallback{
+		private ArrayList<Tradeable> nearestTradeables;
+		
+		public TradeSelectionMenuCallbackPrototype(ArrayList<Tradeable> nt){
+			nearestTradeables = nt;
+		}
+		
+		protected abstract void openTradeDialog(Tradeable t);
+		
 		@Override
 		public void action(int id) {
-			if (id < Structure.Type.values().length)
-				trade(interactableStructures.get(id));
-			
-			WG.antistatic.uistate = WG.UIState.FREE;
+			if (id < nearestTradeables.size())
+				openTradeDialog(nearestTradeables.get(id));
+			else
+				WG.antistatic.uistate = WG.UIState.FREE;
 		}
 
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
 			String title;
-			if (id < Structure.Type.values().length)
-				title = interactableStructures.get(id).name;
-			else
+			if (id < nearestTradeables.size()){
+				Tradeable t = nearestTradeables.get(id);
+				t.beginTrade();
+				title = nearestTradeables.get(id).getTradeStorage().name;
+				t.endTrade();
+			} else
 				title = "Cancel";
 			
 			WG.antistatic.gui.advancedButton(position, size, id, this, color, title, null, null);
+		}
+	};
+	private ListEntryCallback LEC_TRADE_SELECTION_MENU = new TradeSelectionMenuCallbackPrototype(potentialTradeables){
+		@Override
+		protected void openTradeDialog(Tradeable t) {
+			trade(t);
 		}
 	};
 	private GUI.Scrollbar refuelSB;
@@ -673,7 +698,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 				//TODO: Probably the whole scrollbar should be operational, scaled into constrained zone. Rethink
 				me.DEBUG_INFO = "Call from Squad.java: entry() of LEC_REFUEL_MENU";
 				ns.DEBUG_INFO = "Call from Squad.java: entry() of LEC_REFUEL_MENU";
-				me.prepareToTrade(); ns.prepareToTrade();
+				me.beginTrade(); ns.beginTrade();
 				
 				boolean initThumb = false;
 				if (!refuelSB.initialized){
@@ -705,7 +730,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 				
 				refuelSB.render(GUI.GUI_COLORS_SCROLLBAR_COLORS);
 				
-				me.doneTrading(); ns.doneTrading();
+				me.endTrade(); ns.endTrade();
 				
 				//Caption over scrollbar
 				WG.antistatic.gui.advancedButton(position, size, id, GUI.GUI_ACT_DUMMY, GUI.GUI_COLORS_TRANSPARENT, 
@@ -730,14 +755,17 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 		
 		if (state == State.STAND){
 			Utils.findStructuresWithinRadius2(interactableStructures, true, faction, position, Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, null);
+			Utils.findTradeablesWithinRadius2(potentialTradeables, true, faction, position, Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, this);
 			
 			if (isUnitTypePresent(Unit.Type.BUILDER) &&
 			    Utils.isOkToBuild(position))
 				piemenu.add(PME_BUILD);
-			
-			if (interactableStructures.size() > 0){
+
+			if (potentialTradeables.size() > 0){
 				if (isUnitTypePresent(Unit.Type.TRANSPORTER))
 					piemenu.add(PME_TRADE);
+			}
+			if (interactableStructures.size() > 0){
 				
 				for (Structure s: interactableStructures)
 					if (s.hasYard()){
@@ -777,12 +805,12 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 	public final PiemenuEntry PME_TRADE = new PiemenuEntry("Trade", new Callback(){
 		@Override
 		public void action(int source) {
-			assert(interactableStructures.size() > 0);
+			assert(potentialTradeables.size() > 0);
 			
-			if (interactableStructures.size() == 1)
-				trade(interactableStructures.get(0));
+			if (potentialTradeables.size() == 1)
+				trade(potentialTradeables.get(0));
 			else
-				WG.antistatic.setMenu(LEC_TRADE_SELECTION_MENU, interactableStructures.size() + 1);
+				WG.antistatic.setMenu(LEC_TRADE_SELECTION_MENU, potentialTradeables.size() + 1);
 		}
 	});
 	public final PiemenuEntry PME_BUILD = new PiemenuEntry("Build", new Callback(){
@@ -823,7 +851,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 		}
 	});
 	private void disband(ArrayList<Unit> to, ResourceStorage rs){
-		prepareToTrade();
+		beginTrade();
 		resources.fullFlushTo(rs);
 		to.addAll(units);
 		faction.squads.remove(me);

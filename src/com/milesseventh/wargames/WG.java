@@ -228,6 +228,9 @@ public class WG extends ApplicationAdapter {
 				sr.circle(marchordie.position.x, marchordie.position.y, marchordie.getMaxAttackRange());
 			}
 		}
+		for (Container standstill: Faction.containers){
+			gui.drawWorldIconOnHUD(Faction.ICONS[1], standstill.position, 0, ICON_SIDE, Color.BLACK);
+		}
 		if (uistate == UIState.PIEMENU && focusedObject != null)
 			gui.piemenu(getUIFromWorldV(focusedObject.getWorldPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, focusedObject.getEntries());
 		if (uistate == UIState.DIALOG && currentDialog != Dialog.NONE)

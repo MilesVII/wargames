@@ -44,6 +44,7 @@ public class Faction {
 	public Color factionColor;
 	public ArrayList<Structure> structs = new ArrayList<Structure>();
 	public ArrayList<Squad> squads = new ArrayList<Squad>();
+	public static ArrayList<Container> containers = new ArrayList<Container>();
 	public Structure capital = null;
 	public float scienceDataAvailable = 0;
 	public float investition = 0;

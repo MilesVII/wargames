@@ -464,7 +464,7 @@ public class GUI {
 		
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
-			Unit u =  TradeDialog.getTransporterByID(focusedSquad, id);
+			Unit u =  TradeDialog.getTransporterByID((Squad)tradeSideB, id);
 			advancedButton(position, size, id, this, color, 
 			               u.name, null, null);
 		}
@@ -906,8 +906,8 @@ public class GUI {
 			
 			//Use of Focused Registers is not allowed
 			
-			tradeSideA.prepareToTrade();
-			tradeSideB.prepareToTrade();
+			tradeSideA.beginTrade();
+			tradeSideB.beginTrade();
 			
 			aligner.setSize(.3f, .9f);
 			int listSize = Resource.values().length;
@@ -915,7 +915,7 @@ public class GUI {
 			aligner.next(0, 1);
 			
 			aligner.setSize(.3f, .1f);
-			caption(aligner.position, tradeSideA.getName()/*focusedSquad.tradePartner.name*/, font, VALIGN_BOTTOM, null);
+			caption(aligner.position, tradeSideA.getTradeStorage().name, font, VALIGN_BOTTOM, null);
 			
 			aligner.reset();
 			aligner.shift(.7f, .0f, 1, 0);
@@ -927,7 +927,7 @@ public class GUI {
 			}
 			
 			aligner.next(0, 1);
-			caption(aligner.position, tradeSideB.getName()/*focusedSquad.name*/, font, VALIGN_BOTTOM, null);
+			caption(aligner.position, tradeSideB.getTradeStorage().name, font, VALIGN_BOTTOM, null);
 			aligner.reset();
 			
 			aligner.shift(.3f, .1f, 1, 9);
@@ -957,8 +957,8 @@ public class GUI {
 				//caption(aligner.position, "And other", font, VALIGN_BOTTOM, null);
 			}
 
-			tradeSideA.doneTrading();
-			tradeSideB.doneTrading();
+			tradeSideA.endTrade();
+			tradeSideB.endTrade();
 			
 			break;
 		case MISSILE_EXCHANGE:

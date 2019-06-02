@@ -1,10 +1,9 @@
 package com.milesseventh.wargames;
 
 public interface Tradeable {
-	public String getName();
-	public void prepareToTrade();
+	public void beginTrade();
 	public ResourceStorage getTradeStorage();
-	public void doneTrading();
+	public void endTrade();
 	public boolean isCapacityLimited();
 	public float getFreeSpace();
 }

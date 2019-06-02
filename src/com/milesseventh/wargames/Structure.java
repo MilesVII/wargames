@@ -11,6 +11,8 @@ import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
+import com.milesseventh.wargames.Squad.TradeSelectionMenuCallbackPrototype;
+import com.milesseventh.wargames.WG.Dialog;
 
 public class Structure implements Piemenuable, Combatant, Tradeable{
 	//////////////////////////////////////////////////////////////////
@@ -117,6 +119,7 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 	private Queue<Unit> upgradingQueue = new Queue<Unit>();
 	
 	private ArrayList<Squad> nearbyEnemies = new ArrayList<Squad>();
+	private ArrayList<Tradeable> potentialTradeables = new ArrayList<Tradeable>();
 	
 	public ArrayList<Unit> yard = new ArrayList<Unit>();
 	private Random r = new Random();
@@ -438,18 +441,13 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 	}
 	
 	@Override
-	public String getName(){
-		return name;
-	}
-	
-	@Override
-	public void prepareToTrade() {}
+	public void beginTrade() {}
 	@Override
 	public ResourceStorage getTradeStorage() {
 		return resources;
 	}
 	@Override
-	public void doneTrading() {}
+	public void endTrade() {}
 
 	@Override
 	public boolean isCapacityLimited() {
@@ -464,25 +462,29 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 	////////////////////////////////////////////////////////////////////////////////
 	//Pie Menus
 	
-	public final ArrayList<PiemenuEntry> PIEMENU = new ArrayList<PiemenuEntry>();
+	public final ArrayList<PiemenuEntry> piemenu = new ArrayList<PiemenuEntry>();
 	private void rebuildPiemenu(){
-		PIEMENU.clear();
-		PIEMENU.add(PiemenuEntry.PME_CANCEL);
-		PIEMENU.add(PME_STATS);
+		piemenu.clear();
+		piemenu.add(PiemenuEntry.PME_CANCEL);
+		piemenu.add(PME_STATS);
 		if (type == Type.CITY && faction.capital == this)
-			PIEMENU.add(PME_LAB);
+			piemenu.add(PME_LAB);
 		if (type == Type.CITY || type == Type.MB)
-			PIEMENU.add(PME_CRAFT);
+			piemenu.add(PME_CRAFT);
 		if ((!yard.isEmpty() && hasYard()) || isCraftingInProcess())
-			PIEMENU.add(PME_YARD);
+			piemenu.add(PME_YARD);
 		Squad ns = Utils.findNearestSquad(faction, position, null);
+		Utils.findTradeablesWithinRadius2(potentialTradeables, true, faction, position, Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, this);
+
 		if (ns != null && ns.position.dst2(position) < Heartstrings.STRUCTURE_INTERACTION_DISTANCE2 &&
 		    ns.state == Squad.State.STAND &&
 		    (type == Type.CITY || type == Type.MB || type == Type.ML)){
-			PIEMENU.add(PME_MISSILE_TRADE);
+			piemenu.add(PME_MISSILE_TRADE);
 		}
+		if (potentialTradeables.size() > 0)
+			piemenu.add(PME_TRADE);
 		if (type == Type.ML)
-			PIEMENU.add(PME_MISSILE_DEPLOY);
+			piemenu.add(PME_MISSILE_DEPLOY);
 	}
 	
 	public final PiemenuEntry PME_STATS = new PiemenuEntry("Stats", new Callback(){
@@ -524,6 +526,28 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 			WG.antistatic.openDialog(WG.Dialog.MISSILE_DEPLOY);
 		}
 	});
+	private ListEntryCallback LEC_TRADE_SELECTION_MENU = new Squad.TradeSelectionMenuCallbackPrototype(potentialTradeables){
+		@Override
+		protected void openTradeDialog(Tradeable t) {
+			trade(t);
+		}
+	};
+	public final PiemenuEntry PME_TRADE = new PiemenuEntry("Trade", new Callback(){
+		@Override
+		public void action(int source) {
+			assert(potentialTradeables.size() > 0);
+			
+			if (potentialTradeables.size() == 1)
+				trade(potentialTradeables.get(0));
+			else
+				WG.antistatic.setMenu(LEC_TRADE_SELECTION_MENU, potentialTradeables.size() + 1);
+		}
+	});
+	private void trade(Tradeable ta){
+		WG.antistatic.gui.tradeSideA = this;
+		WG.antistatic.gui.tradeSideB = ta;
+		WG.antistatic.openDialog(Dialog.TRADE);
+	}
 	
 	//Piemenuable interface implementation
 	@Override
@@ -532,6 +556,6 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 	}
 	@Override
 	public ArrayList<PiemenuEntry> getEntries() {
-		return PIEMENU;
+		return piemenu;
 	}
 }
