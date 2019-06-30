@@ -248,11 +248,9 @@ public class WG extends ApplicationAdapter {
 				new Faction(Color.MAGENTA, "Starfuckers, inc", Utils.WorldMousePosition);
 			}
 		}
-		//Debug mechanics
-		//...
+		
 		for (Faction f: Faction.factions){
 			f.update(Gdx.graphics.getDeltaTime());
-			f.doInvestigation(Gdx.graphics.getDeltaTime() * 1000f);
 		}
 		
 		//Camera controls

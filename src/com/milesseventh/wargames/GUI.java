@@ -976,7 +976,7 @@ public class GUI {
 			Utils.findSquadsWithinRadius2(mexchangeDialogState.nearby, true,
 			                              focusedStruct.faction, 
 			                              focusedStruct.position, 
-			                              Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, null);
+			                              Heartstrings.INTERACTION_DISTANCE2, null);
 			ArrayList<Squad> ns = mexchangeDialogState.filterNearby();
 			list(aligner.position, aligner.size, ns.size(), GUI_LEC_MISSILE_EXCHANGE_SQUAD_SELECTOR, GUI_COLORS_DEFAULT, 37);
 			aligner.next(0, 1);

@@ -269,8 +269,8 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 		
 		if (wasTrading)
 			endTrade();
-		units.remove(u);
 		dropResources(u);
+		units.remove(u);
 		if (wasTrading)
 			beginTrade();
 		
@@ -279,15 +279,14 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 	}
 	
 	private void dropResources(Unit u){
-		Container c = Utils.findNearestContainer(position);
-		if (c == null || position.dst2(c.position) < Heartstrings.STRUCTURE_INTERACTION_DISTANCE2)
-			c = new Container(position);
+		for (Resource r: Resource.values())
+			u.resources.tryRemove(r, u.resources.get(r) * Utils.remap(Utils.random.nextFloat(),  0, 1, .25f, .8f));
 		
-		for (Resource r: Resource.values()){
-			u.resources.tryTransfer(r, 
-			                        u.resources.get(r) * Utils.remap(Utils.random.nextFloat(),  0, 1, .2f, .75f), 
-			                        c.getTradeStorage());
-		}
+		Container c = Utils.findNearestContainer(position);
+		if (c == null || position.dst2(c.position) < Heartstrings.INTERACTION_DISTANCE2)
+			c = new Container(position, u.resources);
+		else
+			u.resources.fullFlushTo(c.getTradeStorage());
 	}
 	
 	@Override
@@ -542,7 +541,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 				faction.registerStructure(s);
 				
 				Utils.displaceSomewhereWalkable(position, 
-				                                Heartstrings.STRUCTURE_INTERACTION_DISTANCE2 * .2f * .2f, 
+				                                Heartstrings.INTERACTION_DISTANCE2 * .2f * .2f, 
 				                                WG.antistatic.map);
 			}
 			
@@ -754,8 +753,8 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 			piemenu.add(PME_MOVE);
 		
 		if (state == State.STAND){
-			Utils.findStructuresWithinRadius2(interactableStructures, true, faction, position, Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, null);
-			Utils.findTradeablesWithinRadius2(potentialTradeables, true, faction, position, Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, this);
+			Utils.findStructuresWithinRadius2(interactableStructures, true, faction, position, Heartstrings.INTERACTION_DISTANCE2, null);
+			Utils.findTradeablesWithinRadius2(potentialTradeables, true, faction, position, Heartstrings.INTERACTION_DISTANCE2, this);
 			
 			if (isUnitTypePresent(Unit.Type.BUILDER) &&
 			    Utils.isOkToBuild(position))
@@ -776,7 +775,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 			
 			Squad ns = Utils.findNearestSquad(faction, position, this);
 			if (ns != null &&
-			    position.dst2(ns.position) <= Heartstrings.STRUCTURE_INTERACTION_DISTANCE2 && 
+			    position.dst2(ns.position) <= Heartstrings.INTERACTION_DISTANCE2 && 
 			    (hasFuel() || ns.hasFuel()) && ns.state == State.STAND){
 				piemenu.add(PME_REFUEL);
 			}

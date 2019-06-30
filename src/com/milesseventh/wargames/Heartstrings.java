@@ -32,9 +32,9 @@ public class Heartstrings {
 		FLARES,                   //Allows missiles to use decoy flares; Req: SW, RADIO, ENG(50%)
 	}
 
-	public static final float STRUCTURE_BUILDING_MIN_DISTANCE2 = 120;
-	public static final float STRUCTURE_INTERACTION_DISTANCE2 = 120;
-	public static final float STRUCTURE_INTERACTION_COLLISION_DISTANCE2 = STRUCTURE_INTERACTION_DISTANCE2 * .12f;
+	public static final float INTERACTION_DISTANCE2 = 120;
+	public static final float STRUCTURE_BUILDING_MIN_DISTANCE2 = INTERACTION_DISTANCE2 * 2;
+	public static final float STRUCTURE_INTERACTION_COLLISION_DISTANCE2 = INTERACTION_DISTANCE2 * .12f;
 	
 	public static final int MISSILE_ACTIVE_STORAGE_CAPACITY = 3;
 	public static final float MISSILE_MOUNTING_SPEED_MIN = .02f;

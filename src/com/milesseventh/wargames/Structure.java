@@ -337,7 +337,7 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 				return;
 			}
 			ns = Utils.findNearestSquad(faction, sposition, null);
-		} while (!WG.antistatic.map.isWalkable(sposition.x, sposition.y) || (ns != null && ns.position.dst2(sposition) < Heartstrings.STRUCTURE_INTERACTION_DISTANCE2 * .4f));
+		} while (!WG.antistatic.map.isWalkable(sposition.x, sposition.y) || (ns != null && ns.position.dst2(sposition) < Heartstrings.INTERACTION_DISTANCE2 * .4f));
 		Squad s = new Squad(faction, sposition);
 		
 		for (Unit u: (ArrayList<Unit>)units.clone()){
@@ -474,9 +474,9 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		if ((!yard.isEmpty() && hasYard()) || isCraftingInProcess())
 			piemenu.add(PME_YARD);
 		Squad ns = Utils.findNearestSquad(faction, position, null);
-		Utils.findTradeablesWithinRadius2(potentialTradeables, true, faction, position, Heartstrings.STRUCTURE_INTERACTION_DISTANCE2, this);
+		Utils.findTradeablesWithinRadius2(potentialTradeables, true, faction, position, Heartstrings.INTERACTION_DISTANCE2, this);
 
-		if (ns != null && ns.position.dst2(position) < Heartstrings.STRUCTURE_INTERACTION_DISTANCE2 &&
+		if (ns != null && ns.position.dst2(position) < Heartstrings.INTERACTION_DISTANCE2 &&
 		    ns.state == Squad.State.STAND &&
 		    (type == Type.CITY || type == Type.MB || type == Type.ML)){
 			piemenu.add(PME_MISSILE_TRADE);

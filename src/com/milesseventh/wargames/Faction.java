@@ -77,6 +77,22 @@ public class Faction {
 		for (Squad s : squads)
 			s.update(dt);
 	}
+
+	private static ArrayList<Container> temporaryKillList = new ArrayList<Container>();
+	public static void updateContainers(float dt){
+		temporaryKillList.clear();
+		for (Container c: Faction.containers){
+			Squad s = Utils.findNearestSquad(null, c.position, null);
+			if (s != null && s.position.dst2(c.position) < Heartstrings.INTERACTION_DISTANCE2){
+				c.lifetimeInSeconds -= dt;
+				if (c.lifetimeInSeconds <= 0)
+					temporaryKillList.add(c);
+			}
+		}
+		
+		for (Container c: temporaryKillList)
+			Faction.containers.remove(c);
+	}
 	
 	public boolean isInvestigated(SpecialTechnology st){
 		return specTech.contains(st);
