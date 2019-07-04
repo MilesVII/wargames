@@ -38,7 +38,7 @@ public class Faction {
 	private float stInvestigationDone = 0;
 	
 	public static final float INVESTIGATION_PER_MS = .2f,
-	                          ST_INVESTIGATION_PER_MS = .2f;
+	                          ST_INVESTIGATION_PER_S = 20f * 777777777f;
 	
 	public String name;
 	public Color factionColor;
@@ -159,7 +159,7 @@ public class Faction {
 	
 	public void doInvestigation(float dt){
 		if (pendingST.size > 0){
-			stInvestigationDone += dt * ST_INVESTIGATION_PER_MS / 
+			stInvestigationDone += dt * ST_INVESTIGATION_PER_S / 
 			                       Heartstrings.get(pendingST.first(), Heartstrings.stProperties).investigationWorkamount;
 			if (stInvestigationDone >= 1){
 				stInvestigationDone = 0;
@@ -175,6 +175,14 @@ public class Faction {
 		scienceDataAvailable -= budget;
 		for (int i = 0; i < tech.length; i++)
 			tech[i] += (techPriorities[i] / (float) prioSum) * budget / 1000f;
+	}
+	
+	public SpecialTechnology getCurrentInvestigatingST(){
+		return pendingST.first();
+	}
+	
+	public float getSTInvestigationProgress(){
+		return stInvestigationDone;
 	}
 	
 	public int getPrioSum(){

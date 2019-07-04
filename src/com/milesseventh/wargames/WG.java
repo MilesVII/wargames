@@ -220,6 +220,7 @@ public class WG extends ApplicationAdapter {
 				gui.circledProgressbar(neverlookback.position, PIE_MENU_RADIUS * 1.5f, neverlookback.condition / neverlookback.getMaxCondition(), runhorsey.factionColor);
 				sr.setColor(Color.DARK_GRAY);
 				sr.circle(neverlookback.position.x, neverlookback.position.y, Heartstrings.get(neverlookback.type, Heartstrings.structureProperties).fightingRange);
+				sr.circle(neverlookback.position.x, neverlookback.position.y, (float)Math.sqrt(Heartstrings.INTERACTION_DISTANCE2));
 			}
 			for (Squad marchordie: runhorsey.squads){
 				gui.drawWorldIconOnHUD(Faction.SQUAD_ICON, marchordie.position, marchordie.lostDirection, ICON_SIDE, runhorsey.factionColor);

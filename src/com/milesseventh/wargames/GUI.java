@@ -306,14 +306,19 @@ public class GUI {
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
 			if (Heartstrings.stProperties[id].areBasicSTInvestigated(focusedStruct.faction)){
-				SpecialTechnologyProperties st = Heartstrings.stProperties[id];
+				SpecialTechnologyProperties stp = Heartstrings.stProperties[id];
+				SpecialTechnology st = Heartstrings.SpecialTechnology.values()[id];
 				Color c = null;
 				if (focusedStruct.faction.isInvestigated(Heartstrings.SpecialTechnology.values()[id]))
 					c = Color.GREEN;
-				if (focusedStruct.faction.isBeingInvestigated(Heartstrings.SpecialTechnology.values()[id]))
+				if (focusedStruct.faction.isBeingInvestigated(Heartstrings.SpecialTechnology.values()[id])){
 					c = GUI_COLOR_SEVENTH;
+					if (focusedStruct.faction.getCurrentInvestigatingST() == st)
+						progressbar(position, size, focusedStruct.faction.getSTInvestigationProgress(), 
+						            GUI_COLORS_SEVENTH_PROGRESS_TRANSPARENT);
+				}
 				advancedButton(position, size, id, this, color, 
-				               st.title, st.description + "\n\n" + st.techReqsDescription, c);
+				               stp.title, stp.description + "\n\n" + stp.techReqsDescription, c);
 			}
 		}
 	};
@@ -432,10 +437,15 @@ public class GUI {
 	 */
 	private void guiTradeSetSBInitialOffset(){
 		guiTradeSBUpdate();
-		scrollbars[35].offset = (int)Math.floor(tradeSideB.getTradeStorage().get(tradeDialogState.selectedResource));
+		float offset = Utils.remap(tradeSideA.getTradeStorage().get(tradeDialogState.selectedResource), 
+		                           tradeDialogState.allToB.x, 
+		                           tradeDialogState.allToA.x, 
+		                           0, 
+		                           tradeDialogState.resourceSharingRange);
+		scrollbars[35].offset = (int)Math.floor(offset);
 	}
 	private void guiTradeSBUpdate(){
-		scrollbars[35].update((int)Math.floor(tradeDialogState.getTradeableResourceShare(tradeSideA, tradeSideB)) + 1);
+		scrollbars[35].update(tradeDialogState.estimateTradeableResourceShare(tradeSideA, tradeSideB) + 1);
 	}
 	private final ListEntryCallback GUI_LEC_TRADE_RESOURCES = new ListEntryCallback() {
 		@Override
@@ -941,16 +951,30 @@ public class GUI {
 				guiTradeSBUpdate();
 				scrollbars[35].render(GUI_COLORS_SCROLLBAR_COLORS);
 
-				tradeSideB.getTradeStorage().flushTo(tradeDialogState.selectedResource, tradeSideA.getTradeStorage());
-				tradeSideA.getTradeStorage().tryTransfer(tradeDialogState.selectedResource, scrollbars[35].offset, tradeSideB.getTradeStorage());
+				//Rearranging resources
+				tradeSideA.getTradeStorage().flushTo(tradeDialogState.selectedResource, tradeDialogState.dispenser);
+				tradeSideB.getTradeStorage().flushTo(tradeDialogState.selectedResource, tradeDialogState.dispenser);
+				
+				float toA = Utils.remap(scrollbars[35].offset, 
+				                        0, tradeDialogState.resourceSharingRange, 
+				                        tradeDialogState.allToB.x, tradeDialogState.allToA.x);
+				float toB = Utils.remap(scrollbars[35].offset, //ASSERTION CHECK
+				                        0, tradeDialogState.resourceSharingRange, 
+				                        tradeDialogState.allToB.y, tradeDialogState.allToA.y);
+				
+				tradeDialogState.dispenser.tryTransfer(tradeDialogState.selectedResource, toA, tradeSideA.getTradeStorage());
+				float assertRLeft = tradeDialogState.dispenser.get(tradeDialogState.selectedResource);
+				assert(Math.abs(toB - assertRLeft) < .5f);
+				tradeDialogState.dispenser.flushTo(tradeDialogState.selectedResource, tradeSideB.getTradeStorage());
+				///////////////////////
 				
 				aligner.next(0, -1);
 				
 				String selectedSign = Heartstrings.get(tradeDialogState.selectedResource, Heartstrings.rProperties).sign;
 				String loaded = tradeSideB.getTradeStorage().get(tradeDialogState.selectedResource) + selectedSign;
 				String leftOnBase = String.format("%.1f", tradeSideA.getTradeStorage().get(tradeDialogState.selectedResource)) + selectedSign;
-				caption(aligner.position, "Loaded: " + loaded +
-				                          "\nLeft on base: " + leftOnBase,
+				caption(aligner.position, tradeSideB.getTradeStorage().name + ": " + loaded +
+				                          "\n" + tradeSideA.getTradeStorage().name + ": " + leftOnBase,
 				                          font, VALIGN_TOP, null);
 				aligner.next(0, -1);
 				
