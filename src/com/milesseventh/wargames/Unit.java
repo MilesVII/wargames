@@ -14,8 +14,8 @@ public class Unit {
 	public enum Type {FIGHTER, TRANSPORTER, BUILDER};
 	public enum State {PARKED, REPAIRING, UPGRADING, ACTIVE, FORTIFIED};
 
-	public static final float MIN_CARGO = 120f;
-	public static final float MAX_CARGO = 700f;
+	public static final int MIN_CARGO = 120000;
+	public static final int MAX_CARGO = 700000;
 	
 	public String name;
 	public float[] techLevel;
@@ -64,14 +64,14 @@ public class Unit {
 		                   Heartstrings.get(type, Heartstrings.uProperties).maxSpeed);
 	}
 	
-	public float getCapacity(){
+	public int getCapacity(){
 		if (type == Type.TRANSPORTER)
-			return Utils.remap(techLevel[Technology.CARGO.ordinal()], 0, 1, MIN_CARGO, MAX_CARGO);
+			return Math.round(Utils.remap(techLevel[Technology.CARGO.ordinal()], 0, 1, MIN_CARGO, MAX_CARGO));
 		else
 			return 0;
 	}
 	
-	public float getFreeSpace(){
+	public int getFreeSpace(){
 		return getCapacity() - resources.sum() - missilesLoaded.size() * Missile.WEIGHT;
 	}
 	

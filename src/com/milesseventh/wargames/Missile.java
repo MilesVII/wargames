@@ -9,7 +9,7 @@ public class Missile {
 	public enum State{
 		UNMOUNTED, READY
 	}
-	public static final float WEIGHT = Utils.remap(.5f, 0, 1, Unit.MIN_CARGO, Unit.MAX_CARGO);
+	public static final int WEIGHT = Math.round(Utils.remap(.5f, 0, 1, Unit.MIN_CARGO, Unit.MAX_CARGO));
 	
 	private float[] tech;
 	private ArrayList<SpecialTechnology> st;

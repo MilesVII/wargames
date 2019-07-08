@@ -34,6 +34,7 @@ public class WG extends ApplicationAdapter {
 	public static final float MINIMAL_WALKABLE_AREA = 1200; //Relative to pathfinder step
 	public static final float CAM_ZOOM_MIN = .2f,
 	                          CAM_ZOOM_STEP = .02f;
+	public static final int VIRTUAL_FRACTION_SIZE = 1000;
 	
 	//Dimensions
 	public static final float STRUCTURE_ICON_RADIUS = 12,

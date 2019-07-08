@@ -51,36 +51,33 @@ public class Heartstrings {
 	
 	//name, sign, description
 	public static ResourceProperties[] rProperties = {
-		new ResourceProperties("Iron Ore",    "T",   "Raw iron ore. Can be converted into Metal when stored in the City"),
 		new ResourceProperties("Metal Ingot", "M",   "Metal slug. Main building material and currency"),
 		new ResourceProperties("Ammo Boxes",  "pcs", "Ammunition. Used by squads and structures to defend themselves"),
-		new ResourceProperties("Raw Oil",     "bbl", "Raw oil. Can be converted into Fuel when stored in the City"),
-		new ResourceProperties("Fuel",        "bbl", "Fuel. used by squads when moving"),
-		new ResourceProperties("Missile",     "pcs", "Ballistic Missile. Can be launched from Missile Silo. High jack this buddy!")
+		new ResourceProperties("Fuel",        "bbl", "Fuel. used by squads when moving")
 	};
 	//title, shortTitle, maxMarkup
 	public static TechnologyProperties[] tProperties = {
-		new TechnologyProperties("Firepower",   "FPW", 70f), //Improves potential damage from squad's fire
-		new TechnologyProperties("Armor",       "ARM", 80f), //Improves vitality of units
-		new TechnologyProperties("Accuracy",    "ACC", 50f), //Improves fire efficiency and fighting radius
-		new TechnologyProperties("Speed",       "SPD", 30f), //Improves speed and reduces fuel consumption
-		new TechnologyProperties("Cargo load",  "CRG", 40f), //Improves transporters' capacity
-		new TechnologyProperties("Engineering", "ENG", 120f) //Improves effectiveness of cities and reduces building costs
+		new TechnologyProperties("Firepower",   "FPW", 70000), //Improves potential damage from squad's fire
+		new TechnologyProperties("Armor",       "ARM", 80000), //Improves vitality of units
+		new TechnologyProperties("Accuracy",    "ACC", 50000), //Improves fire efficiency and fighting radius
+		new TechnologyProperties("Speed",       "SPD", 30000), //Improves speed and reduces fuel consumption
+		new TechnologyProperties("Cargo load",  "CRG", 40000), //Improves transporters' capacity
+		new TechnologyProperties("Engineering", "ENG", 120000) //Improves effectiveness of cities and reduces building costs
 	};
 	//title, fightingRange, maxCondition, craftSpeed, buildingPrice (In Metal)
 	public static StructureProperties[] structureProperties = {
-		new StructureProperties("City",             22f, 1260f, .8f,  700f, "Universal sructure. Medium defence"),
-		new StructureProperties("Mining Outpost",     0,  210f,   0,  120f, "Ore miner. No defence"),
-		new StructureProperties("Military Outpost", 32f,  600f, .2f,  420f, "Military forification. Can build own units, has strong defence"),
-		new StructureProperties("Missile Silo",     12f,  128f,   0, 1700f, "Missile silo. Weak defence"),
-		new StructureProperties("Radar",            12f,  210f,   0,  300f, "Radar. Controls missile's flight, has weak defence"),
-		new StructureProperties("AMD",              17f,  360f,   0,  750f, "Anti-Missile Defence. Can shoot down incoming missiles. Has weak defence against troops")
+		new StructureProperties("City",             22f, 1260f, .8f,  700000, "Universal sructure. Medium defence"),
+		new StructureProperties("Mining Outpost",     0,  210f,   0,  120000, "Ore miner. No defence"),
+		new StructureProperties("Military Outpost", 32f,  600f, .2f,  420000, "Military forification. Can build own units, has strong defence"),
+		new StructureProperties("Missile Silo",     12f,  128f,   0, 1700000, "Missile silo. Weak defence"),
+		new StructureProperties("Radar",            12f,  210f,   0,  300000, "Radar. Controls missile's flight, has weak defence"),
+		new StructureProperties("AMD",              17f,  360f,   0,  750000, "Anti-Missile Defence. Can shoot down incoming missiles. Has weak defence against troops")
 	};
 	//name, fuelConsumption, minMaxCondition, maxMaxCondition, minSpeed, maxSpeed, receiveFireChance
 	public static UnitProperties[] uProperties = {
-		new UnitProperties("Fighter",      .3f, 350, 750,  3,  7, 70),
-		new UnitProperties("Transporter", .12f,  60, 375,  5, 10, 25),
-		new UnitProperties("MCV",           2f, 160, 260,  2,  4,  5)
+		new UnitProperties("Fighter",      .3f, 350000, 750,  3,  7, 70),
+		new UnitProperties("Transporter", .12f,  60000, 375,  5, 10, 25),
+		new UnitProperties("MCV",           2f, 160000, 260,  2,  4,  5)
 	};
 	//title, description, investigationWorkamount, workamountMarkup, investigationPrice, 
 	//priceMarkup, TechnologyRequirement[], SpecialTechnology[]
@@ -88,7 +85,7 @@ public class Heartstrings {
 		//BASIC_WARFARE
 		new SpecialTechnologyProperties("Basic warfare", 
 			"Allows building of fighters, ammo crafting;", 
-			100f, 0f, 20f, 0f, 
+			100000, 0, 20000, 0, 
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .05f)
 			}, 
@@ -97,7 +94,7 @@ public class Heartstrings {
 		//SIEGE
 		new SpecialTechnologyProperties("Siege", 
 			"Allows squads to siege structures and capture them;", 
-			120f, 20f, 120f, 20f,
+			120000, 20000, 120000, 20000,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ARMOR, .1f),
 				new TechnologyRequirement(Technology.ACCURACY, .1f)
@@ -109,7 +106,7 @@ public class Heartstrings {
 		//FORTIFICATION
 		new SpecialTechnologyProperties("Fortification", 
 			"Allows squads to fortify position and reduce amount of damage taken", 
-			64f, 15f, 270f, 40f,
+			64000, 15000, 270000, 40000,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.FIREPOWER, .1f),
 				new TechnologyRequirement(Technology.ARMOR, .3f)
@@ -121,7 +118,7 @@ public class Heartstrings {
 		//MOBILE_ATTACK
 		new SpecialTechnologyProperties("Column attack", 
 			"Allows squads to attack other squads;", 
-			110f, 15f, 175f, 15f,
+			110000, 15000, 175000, 15000,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ACCURACY, .05f)
 			}, 
@@ -133,7 +130,7 @@ public class Heartstrings {
 		//ADVANCED_WARFARE
 		new SpecialTechnologyProperties("Advanced warfare", 
 			"Allows building of military bases;", 
-			320f, 0f, 760f, 0f,
+			320000, 0, 760000, 0,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .1f),
 				new TechnologyRequirement(Technology.FIREPOWER, .3f)
@@ -146,7 +143,7 @@ public class Heartstrings {
 		//RADIO
 		new SpecialTechnologyProperties("Electronic warfare", 
 			"Allows building of radars", 
-			170f, 0f, 410f, 0f,
+			170000, 0, 410000, 0,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .15f)
 			}, 
@@ -158,7 +155,7 @@ public class Heartstrings {
 		//AMD
 		new SpecialTechnologyProperties("Anti-Missile Defence", 
 			"Allows building of anti-missile defence systems;",
-			220f, 0f, 510f, 0f,
+			220000, 0, 510000, 0,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ARMOR, .3f),
 				new TechnologyRequirement(Technology.ENGINEERING, .25f)
@@ -172,7 +169,7 @@ public class Heartstrings {
 		new SpecialTechnologyProperties("Industrial espionage", 
 			"Allows faction to steal foreign special tecnologies "
 			+ "by capturing enemy's radars",
-			170f, 27f, 310f, 170f,
+			170000, 27000, 310000, 170000,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .3f)
 			}, 
@@ -185,7 +182,7 @@ public class Heartstrings {
 		//STRATEGIC_WARFARE
 		new SpecialTechnologyProperties("Strategic warfare", 
 			"Allows building of missile silos and missile crafting;",
-			700f, 0f, 1740f, 0f,
+			700000, 0, 1740000, 0,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .4f),
 				new TechnologyRequirement(Technology.ACCURACY, .25f),
@@ -201,7 +198,7 @@ public class Heartstrings {
 		new SpecialTechnologyProperties("Warhead fragmentation", 
 			"Allows missiles' payload to fragmentate, increasing"
 			+ "effective area and reducing chance to be shotdown by AMD;",
-			400f, 300f, 810f, 120f,
+			400000, 300000, 810000, 120000,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.ENGINEERING, .6f),
 				new TechnologyRequirement(Technology.FIREPOWER, .6f)
@@ -214,7 +211,7 @@ public class Heartstrings {
 		//FLARES
 		new SpecialTechnologyProperties("Decoy flares", 
 			"Allows missiles to use decoy flares;",
-			170f, 70f, 170f, 70f,
+			170000, 70000, 170000, 70000,
 			new TechnologyRequirement[]{
 				new TechnologyRequirement(Technology.FIREPOWER, .5f),
 			}, 
@@ -229,14 +226,14 @@ public class Heartstrings {
 			new CraftableProperties("Science data", 
 			                        "Allows doing investigations",
 			                        new Resource[] {Resource.METAL, Resource.FUEL},
-			                        new float[] {1.2f, .7f},
+			                        new int[] {1000, 700},
 			                        new Technology[] {Technology.ENGINEERING},
 			                        new SpecialTechnology[] {},
 			                        20),
 			new CraftableProperties("Transporter", 
 			                        "Transports cargo between structures: ore, metal, oil, fuel, ammo, or missiles",
 			                        new Resource[] {Resource.METAL},
-			                        new float[] {32f},
+			                        new int[] {32000},
 			                        new Technology[] {
 			                        	Technology.ARMOR,
 			                        	Technology.SPEED,
@@ -247,7 +244,7 @@ public class Heartstrings {
 			new CraftableProperties("Builder", 
 			                        "Special vehicle that is able to create new structures \nusing resources that are being transported using transporters",
 			                        new Resource[] {Resource.METAL},
-			                        new float[] {420f},
+			                        new int[] {420000},
 			                        new Technology[] {
 			                        	Technology.ARMOR,
 			                        	Technology.SPEED,
@@ -258,7 +255,7 @@ public class Heartstrings {
 			new CraftableProperties("Fighter", 
 			                        "Protects column and is able to attack structures using ammo",
 			                        new Resource[] {Resource.METAL},
-			                        new float[] {70f},
+			                        new int[] {70000},
 			                        new Technology[] {
 			                        	Technology.ACCURACY,
 			                        	Technology.ARMOR,
@@ -276,16 +273,16 @@ public class Heartstrings {
 			new CraftableProperties("Ammo", 
 			                        "Allows fighters to do their job, transported via Transporters",
 			                        new Resource[] {Resource.METAL, Resource.FUEL},
-			                        new float[] {.7f, .1f},
+			                        new int[] {700, 100},
 			                        new Technology[] {
 			                        	//Technology.FIREPOWER
 			                        },
 			                        new SpecialTechnology[] {},
 			                        2),
 			new CraftableProperties("Missile", 
-			                        "Nuclear missile, launched by silos",
+			                        "Ballistic Missile. Can be launched from Missile Silo. High jack this buddy!",
 			                        new Resource[] {Resource.METAL},
-			                        new float[] {700f},
+			                        new int[] {700000},
 			                        new Technology[] {
 			                        	Technology.ACCURACY,
 			                        	Technology.SPEED,
@@ -300,8 +297,8 @@ public class Heartstrings {
 	};
 	
 	//share of initial craftable's price with a regard of it's techs
-	public static float getTechMarkup(float[] t, ArrayList<SpecialTechnology> st){
-		float cost = 0;
+	public static int getTechMarkup(float[] t, ArrayList<SpecialTechnology> st){
+		int cost = 0;
 		for (int i = 0; i < Technology.values().length; i++)
 			cost += t[i] * tProperties[i].maxMarkup;
 		for (int i = 0; i < stProperties.length; i++)
@@ -309,10 +306,10 @@ public class Heartstrings {
 				cost += stProperties[i].priceMarkupInMetal;
 		return cost;
 	}
-	public static float getCraftingCost(CraftingDialog cd, Resource r, int count){
+	public static int getCraftingCost(CraftingDialog cd, Resource r, int count){
 		return getCraftingCost(cd.selected, r, cd.selectedT, cd.selectedST, count);
 	}
-	public static float getCraftingCost(Craftable unit, Resource res, float[] t, ArrayList<SpecialTechnology> st, int count){
+	public static int getCraftingCost(Craftable unit, Resource res, float[] t, ArrayList<SpecialTechnology> st, int count){
 		//Count only those technologies that used by unit
 		for (int i = 0; i < t.length; ++i){
 			boolean keepTech = false;
@@ -327,11 +324,11 @@ public class Heartstrings {
 		return (get(unit, craftableProperties).getSingleCraftingCost(res) + getTechMarkup(t, st)) * count;
 	}
 	
-	public static float getWorkamount(Unit u, float[] t, ArrayList<SpecialTechnology> st){
+	public static int getWorkamount(Unit u, float[] t, ArrayList<SpecialTechnology> st){
 		return getWorkamount(fromUnitType(u.type), t, st);
 	}
-	public static float getWorkamount(Craftable c, float[] t, ArrayList<SpecialTechnology> st){
-		float wa = get(c, craftableProperties).workamount;
+	public static int getWorkamount(Craftable c, float[] t, ArrayList<SpecialTechnology> st){
+		int wa = get(c, craftableProperties).workamount;
 		for (int i = 0; i < Technology.values().length; ++i)
 			wa += tProperties[i].maxMarkup * t[i];
 		for (SpecialTechnology i : st)
@@ -351,16 +348,16 @@ public class Heartstrings {
 		return minOrder;
 	}
 
-	public static float getRepairCostInMetal(Unit u){
+	public static int getRepairCostInMetal(Unit u){
 		if (!u.isDamaged())
 			return 0;
 		
-		return ((u.getMaxCondition() - u.condition) / u.getMaxCondition()) *      //Damage fraction
+		return Math.round((u.getMaxCondition() - u.condition) / u.getMaxCondition()) *      //Damage fraction
 		       getCraftingCost(fromUnitType(u.type), Resource.METAL, u.techLevel, u.st, 1); //Cost of bulding of a new analog unit
 	}
 
 	private static final ArrayList<SpecialTechnology> imperialistscums = new ArrayList<SpecialTechnology>();
-	public static float getUpgradeCostInMetal(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
+	public static int getUpgradeCostInMetal(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
 		imperialistscums.clear();
 		imperialistscums.addAll(u.st);
 		imperialistscums.addAll(stToAdd);
@@ -370,7 +367,7 @@ public class Heartstrings {
 		getCraftingCost(fromUnitType(u.type), Resource.METAL, u.techLevel, u.st, 1);
 	}
 	
-	public static float getUpgradeWorkamount(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
+	public static int getUpgradeWorkamount(Unit u, float[] nt, ArrayList<SpecialTechnology> stToAdd){
 		imperialistscums.clear();
 		imperialistscums.addAll(u.st);
 		imperialistscums.addAll(stToAdd);

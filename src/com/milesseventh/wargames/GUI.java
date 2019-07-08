@@ -806,7 +806,7 @@ public class GUI {
 			aligner.setSize(.6f, .12f);
 			aligner.next(0, -1);
 			
-			float price = Heartstrings.getCraftingCost(craftingDialogState, Resource.METAL, 1);
+			int price = Heartstrings.getCraftingCost(craftingDialogState, Resource.METAL, 1) / WG.VIRTUAL_FRACTION_SIZE;
 			int amount = scrollbars[22].offset;
 			
 			caption(aligner.position, "Price: " + price + "M × " + amount + " = " + (price * amount) + "M", 
@@ -900,7 +900,7 @@ public class GUI {
 						aligner.next(0, 1);
 						
 						float upgradeCost = Heartstrings.getUpgradeCostInMetal(u, guiYMHarvestUpgradeNTData(), yardDialogState.stToAdd);
-						captionText = "Upgrade cost: " + upgradeCost + "M";
+						captionText = "Upgrade cost: " + (upgradeCost / WG.VIRTUAL_FRACTION_SIZE) + "M";
 						caption(aligner.position, captionText, font, VALIGN_BOTTOM, null);
 					} else if (u.state == Unit.State.UPGRADING){
 						caption(aligner.position, "Upgrading...", font, VALIGN_BOTTOM, null);
@@ -968,7 +968,7 @@ public class GUI {
 					                        0, tradeDialogState.resourceSharingRange, 
 					                        tradeDialogState.allToB.y, tradeDialogState.allToA.y);
 					
-					tradeDialogState.dispenser.tryTransfer(tradeDialogState.selectedResource, toA, tradeSideA.getTradeStorage());
+					tradeDialogState.dispenser.tryTransfer(tradeDialogState.selectedResource, (int)Math.floor(toA), tradeSideA.getTradeStorage());
 					float assertRLeft = tradeDialogState.dispenser.get(tradeDialogState.selectedResource);
 					assert(Math.abs(toB - assertRLeft) < .5f);
 					tradeDialogState.dispenser.flushTo(tradeDialogState.selectedResource, tradeSideB.getTradeStorage());
@@ -977,8 +977,8 @@ public class GUI {
 				aligner.next(0, -1);
 				
 				String selectedSign = Heartstrings.get(tradeDialogState.selectedResource, Heartstrings.rProperties).sign;
-				String loaded = tradeSideB.getTradeStorage().get(tradeDialogState.selectedResource) + selectedSign;
-				String leftOnBase = String.format("%.1f", tradeSideA.getTradeStorage().get(tradeDialogState.selectedResource)) + selectedSign;
+				String loaded = (tradeSideB.getTradeStorage().get(tradeDialogState.selectedResource) / WG.VIRTUAL_FRACTION_SIZE) + selectedSign;
+				String leftOnBase = (tradeSideA.getTradeStorage().get(tradeDialogState.selectedResource) / WG.VIRTUAL_FRACTION_SIZE) + selectedSign;
 				caption(aligner.position, tradeSideB.getTradeStorage().name + ": " + loaded +
 				                          "\n" + tradeSideA.getTradeStorage().name + ": " + leftOnBase,
 				                          font, VALIGN_TOP, null);

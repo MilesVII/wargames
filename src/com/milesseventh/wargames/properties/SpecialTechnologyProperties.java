@@ -17,14 +17,14 @@ public class SpecialTechnologyProperties {
 		}
 	}
 	
-	public float investigationWorkamount, workamountMarkup, investigationPriceInData, priceMarkupInMetal;
+	public int investigationWorkamount, workamountMarkup, investigationPriceInData, priceMarkupInMetal;
 	public String title, description;
 	public TechnologyRequirement[] techReqs;
 	public SpecialTechnology[] stReqs;
 	public String techReqsDescription;
 	public SpecialTechnologyProperties(String tit, String desc,
-	                                   float invWork, float workMarkup, 
-	                                   float invPrice, float priceMarkup,
+	                                   int invWork, int workMarkup, 
+	                                   int invPrice, int priceMarkup,
 	                                   TechnologyRequirement[] tr,
 	                                   SpecialTechnology[] str) {
 		title                    = tit;

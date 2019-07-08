@@ -215,9 +215,9 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		if (type == Type.MINER)
 			mine(dt);
 		
-		//Resource Processing
+/*		//Resource Processing
 		if (type == Type.CITY)
-			processResources(dt);
+			processResources(dt);*/
 		
 		//Missile mounting
 		for (int i = 0; i < missilesReady.length; ++i){
@@ -266,7 +266,7 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 			for (Combatant fucker: nearbyEnemies){
 				float bullets = dt / nearbyEnemies.size(); // TODO: Amount of ammo wasted on attack
 				bullets = Math.min(bullets, resources.get(Resource.AMMO));
-				boolean a = resources.tryRemove(Resource.AMMO, bullets);
+				boolean a = resources.tryRemove(Resource.AMMO, Math.round(bullets * WG.VIRTUAL_FRACTION_SIZE));
 				assert(a);
 				fucker.receiveFire(bullets * Heartstrings.DEBUG_STRUCTURE_DAMAGE);
 			}
@@ -357,9 +357,9 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		float t = faction.techLevel(Technology.ENGINEERING);
 		
 		float k = miningHeightToDensity(WG.antistatic.oilMap);
-		resources.add(Resource.OIL, Utils.remap(t, 0, 1, k, k * 3) * dt);
+		resources.add(Resource.FUEL, Math.round(Utils.remap(t, 0, 1, k, k * 3) * dt * WG.VIRTUAL_FRACTION_SIZE));
 		k = miningHeightToDensity(WG.antistatic.oreMap);
-		resources.add(Resource.ORE, Utils.remap(t, 0, 1, k, k * 3) * dt);
+		resources.add(Resource.METAL, Math.round(Utils.remap(t, 0, 1, k, k * 3) * dt * WG.VIRTUAL_FRACTION_SIZE));
 	}
 	private float miningHeightToDensity(HeightMap map){
 		float x = map.getMeta(position.x, position.y);
@@ -369,7 +369,7 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 			return Utils.remap(x, .667f, 1, .2f, 1);
 	}
 
-	private static final float ORE_TO_METAL_PROCESS_RATIO_MIN = 3f,
+/*	private static final float ORE_TO_METAL_PROCESS_RATIO_MIN = 3f,
 	                           ORE_TO_METAL_PROCESS_RATIO_MAX = 1.2f,
 	                           OIL_TO_FUEL_PROCESS_RATIO_MIN = 4f,
 	                           OIL_TO_FUEL_PROCESS_RATIO_MAX = 1.7f,
@@ -391,7 +391,7 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		x = resources.tryRemove(Resource.OIL, amount);
 		assert(x);
 		resources.add(Resource.FUEL, amount / ratio);
-	}
+	}*/
 
 	public boolean isCraftingInProcess(){
 		return manufactoryQueue.size > 0;

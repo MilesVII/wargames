@@ -102,7 +102,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 			} else {
 				float step = getSpeed() * dt;
 				
-				float fuelWasted = step * getFuelConsumption();
+				int fuelWasted = Math.round(step * getFuelConsumption());
 				
 				if (resources.isEnough(Resource.FUEL, fuelWasted))
 					resources.tryRemove(Resource.FUEL, fuelWasted);
@@ -240,7 +240,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 					
 					float bullets = dt; // TODO: Amount of ammo wasted on attack
 					bullets = Math.min(bullets, resources.get(Resource.AMMO));
-					boolean a = resources.tryRemove(Resource.AMMO, bullets);
+					boolean a = resources.tryRemove(Resource.AMMO, Math.round(bullets * WG.VIRTUAL_FRACTION_SIZE));
 					assert(a);
 					
 					for (Combatant target: targets)
@@ -280,7 +280,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 	
 	private void dropResources(Unit u){
 		for (Resource r: Resource.values())
-			u.resources.tryRemove(r, u.resources.get(r) * Utils.remap(Utils.random.nextFloat(),  0, 1, .25f, .8f));
+			u.resources.tryRemove(r, u.resources.get(r) * Math.round(Utils.remap(Utils.random.nextFloat(),  0, 1, 250, 800)));
 		
 		Container c = Utils.findNearestContainer(position);
 		if (c == null || position.dst2(c.position) < Heartstrings.INTERACTION_DISTANCE2)
@@ -476,7 +476,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 			if (u.getFreeSpace() > 0){
 				for (Resource r: Resource.values())
 					if (resources.get(r) > 0){
-						float space = u.getFreeSpace();
+						int space = u.getFreeSpace();
 						while (space >= Missile.WEIGHT)
 							space -= Missile.WEIGHT;
 						resources.tryTransfer(r, Math.min(space, resources.get(r)), 
@@ -723,7 +723,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 					//TODO: Make sure that "me" (left side squad) cannot be receiver from abovementioned case 
 					if (ns.resources.get(Resource.FUEL) > ns.getCapacity())
 						ns.resources.tryTransfer(Resource.FUEL, 
-						                         ns.resources.get(Resource.FUEL) - ns.getCapacity(), 
+						                         (int)Math.floor(ns.resources.get(Resource.FUEL) - ns.getCapacity()), 
 						                         me.resources);
 				assert(temporaryFuelTank.sum() == 0);
 				

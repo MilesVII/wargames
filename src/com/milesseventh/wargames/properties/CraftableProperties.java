@@ -9,25 +9,25 @@ public class CraftableProperties {
 	public Resource[] ingridients;
 	public Technology[] availableTechs;
 	public SpecialTechnology[] availableSTs;
-	public float[] relativeCosts;
-	public float workamount;
+	public int[] relativeCosts;
+	public int workamount;
 	
-	public CraftableProperties(String _title, String _description, 
-	                           Resource[] _ingridients, float[] _relativeCosts, 
-	                           Technology[] _availableTechs,
-	                           SpecialTechnology[] _availableSTs, 
-	                           float _workamount) {
-		assert(_ingridients.length == _relativeCosts.length);
-		title              = _title;
-		description        = _description;
-		ingridients        = _ingridients;
-		relativeCosts      = _relativeCosts;
-		availableTechs     = _availableTechs;
-		availableSTs       = _availableSTs;
-		workamount = _workamount;
+	public CraftableProperties(String ntitle, String ndescription, 
+	                           Resource[] ningridients, int[] nrelativeCosts, 
+	                           Technology[] navailableTechs,
+	                           SpecialTechnology[] navailableSTs, 
+	                           int nworkamount) {
+		assert(ningridients.length == nrelativeCosts.length);
+		title              = ntitle;
+		description        = ndescription;
+		ingridients        = ningridients;
+		relativeCosts      = nrelativeCosts;
+		availableTechs     = navailableTechs;
+		availableSTs       = navailableSTs;
+		workamount = nworkamount;
 	}
 	
-	public float getSingleCraftingCost(Resource res){
+	public int getSingleCraftingCost(Resource res){
 		for (int i = 0; i < ingridients.length; i++){
 			if (ingridients[i] == res)
 				return relativeCosts[i];
