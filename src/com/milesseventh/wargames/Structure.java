@@ -11,7 +11,6 @@ import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
-import com.milesseventh.wargames.Squad.TradeSelectionMenuCallbackPrototype;
 import com.milesseventh.wargames.WG.Dialog;
 
 public class Structure implements Piemenuable, Combatant, Tradeable{
@@ -478,12 +477,13 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 
 		if (ns != null && ns.position.dst2(position) < Heartstrings.INTERACTION_DISTANCE2 &&
 		    ns.state == Squad.State.STAND &&
-		    (type == Type.CITY || type == Type.MB || type == Type.ML)){
+		    (type == Type.CITY || type == Type.MB || type == Type.ML) &&
+		    !missilesStorage.isEmpty()){
 			piemenu.add(PME_MISSILE_TRADE);
 		}
 		if (potentialTradeables.size() > 0)
 			piemenu.add(PME_TRADE);
-		if (type == Type.ML)
+		if (type == Type.ML && !missilesStorage.isEmpty())
 			piemenu.add(PME_MISSILE_DEPLOY);
 	}
 	

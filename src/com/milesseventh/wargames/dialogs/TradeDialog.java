@@ -40,7 +40,7 @@ public class TradeDialog {
 			allToB.x = 0;
 		}
 		
-		resourceSharingRange = (int)Math.floor(Math.abs(allToA.x - allToA.y));
+		resourceSharingRange = (int)Math.floor(Math.abs(allToA.x - allToB.x));
 		return resourceSharingRange;
 	}
 	

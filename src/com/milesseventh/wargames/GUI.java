@@ -545,6 +545,11 @@ public class GUI {
 		
 		@Override
 		public void entry(Vector2 position, Vector2 size, int id, Color[] color) {
+			//If we load a missile into the silo, the state of missileStorage will be modified 
+			//and the list iterator will call entry with id that does not exist
+			if (id >= focusedStruct.missilesStorage.size())
+				return;
+			
 			Missile m = focusedStruct.missilesStorage.get(id);
 			
 			advancedButton(position, size, id, this, color, 
@@ -948,26 +953,27 @@ public class GUI {
 					scrollbars[35].init(aligner.position, aligner.size, false, Scrollbar.GUI_SB_DEFAULT_THUMB);
 					guiTradeSetSBInitialOffset();
 				}
-				guiTradeSBUpdate();
-				scrollbars[35].render(GUI_COLORS_SCROLLBAR_COLORS);
-
-				//Rearranging resources
-				tradeSideA.getTradeStorage().flushTo(tradeDialogState.selectedResource, tradeDialogState.dispenser);
-				tradeSideB.getTradeStorage().flushTo(tradeDialogState.selectedResource, tradeDialogState.dispenser);
-				
-				float toA = Utils.remap(scrollbars[35].offset, 
-				                        0, tradeDialogState.resourceSharingRange, 
-				                        tradeDialogState.allToB.x, tradeDialogState.allToA.x);
-				float toB = Utils.remap(scrollbars[35].offset, //ASSERTION CHECK
-				                        0, tradeDialogState.resourceSharingRange, 
-				                        tradeDialogState.allToB.y, tradeDialogState.allToA.y);
-				
-				tradeDialogState.dispenser.tryTransfer(tradeDialogState.selectedResource, toA, tradeSideA.getTradeStorage());
-				float assertRLeft = tradeDialogState.dispenser.get(tradeDialogState.selectedResource);
-				assert(Math.abs(toB - assertRLeft) < .5f);
-				tradeDialogState.dispenser.flushTo(tradeDialogState.selectedResource, tradeSideB.getTradeStorage());
-				///////////////////////
-				
+				if (tradeDialogState.resourceSharingRange != 0){
+					guiTradeSBUpdate();
+					scrollbars[35].render(GUI_COLORS_SCROLLBAR_COLORS);
+	
+					//Rearranging resources
+					tradeSideA.getTradeStorage().flushTo(tradeDialogState.selectedResource, tradeDialogState.dispenser);
+					tradeSideB.getTradeStorage().flushTo(tradeDialogState.selectedResource, tradeDialogState.dispenser);
+					
+					float toA = Utils.remap(scrollbars[35].offset, 
+					                        0, tradeDialogState.resourceSharingRange, 
+					                        tradeDialogState.allToB.x, tradeDialogState.allToA.x);
+					float toB = Utils.remap(scrollbars[35].offset, //ASSERTION CHECK
+					                        0, tradeDialogState.resourceSharingRange, 
+					                        tradeDialogState.allToB.y, tradeDialogState.allToA.y);
+					
+					tradeDialogState.dispenser.tryTransfer(tradeDialogState.selectedResource, toA, tradeSideA.getTradeStorage());
+					float assertRLeft = tradeDialogState.dispenser.get(tradeDialogState.selectedResource);
+					assert(Math.abs(toB - assertRLeft) < .5f);
+					tradeDialogState.dispenser.flushTo(tradeDialogState.selectedResource, tradeSideB.getTradeStorage());
+					///////////////////////
+				}
 				aligner.next(0, -1);
 				
 				String selectedSign = Heartstrings.get(tradeDialogState.selectedResource, Heartstrings.rProperties).sign;

@@ -147,10 +147,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 		rebuildPiemenu();
 		
 		spread();
-		if (resources.sum() != 0){
-			System.out.println("писечька");
-		}
-		//assert(resources.sum() == 0);
+		assert(resources.sum() == 0);
 		/*if (resources.sum() > 0){
 			System.out.println("Spread not clear" + resources.sum());
 		}*/
