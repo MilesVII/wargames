@@ -22,7 +22,7 @@ public class WG extends ApplicationAdapter {
 		NONE, STATS, LABORATORY, CRAFTING, YARD, TRADE, MISSILE_EXCHANGE, MISSILE_DEPLOY
 	}
 	public enum UIState {
-		FREE, DIALOG, PIEMENU, MENU, MOVINGORDER
+		FREE, DIALOG, PIEMENU, MENU, MOVINGORDER, MISSILE_LAUNCH
 	}
 	
 	//Game constants
@@ -211,6 +211,22 @@ public class WG extends ApplicationAdapter {
 				uistate = UIState.FREE;
 			}
 		}
+		if (uistate == UIState.MISSILE_LAUNCH){
+			Structure silo = (Structure)focusedObject;
+			
+			hsr.setColor(GUI.GUI_COLOR_SEVENTH);
+			hsr.line(getUIFromWorldV(focusedObject.getWorldPosition()), Utils.UIMousePosition);
+			int fuelNeeded = silo.checkFuelNeededForMissileLaunch(Utils.WorldMousePosition);
+			int fuelAvailable = silo.resources.get(Resource.FUEL);
+			gui.prompt("Fuel needed: " + (fuelNeeded / WG.VIRTUAL_FRACTION_SIZE) + 
+			           "\nFuel available: " + (fuelAvailable / WG.VIRTUAL_FRACTION_SIZE) +
+			           (fuelNeeded <= fuelAvailable ? "\nLaunch allowed" : ""));
+			
+			if (Utils.confirmedTouchOccured){
+				silo.requestMissileLaunch(Utils.WorldMousePosition);
+				uistate = UIState.FREE;
+			}
+		}
 		
 		update();
 		
@@ -233,6 +249,12 @@ public class WG extends ApplicationAdapter {
 		for (Container standstill: Faction.containers){
 			gui.drawWorldIconOnHUD(Faction.ICONS[1], standstill.position, 0, ICON_SIDE, Color.BLACK);
 		}
+		for (Missile havesomerest: Faction.missilesInAir){
+			hsr.setColor(Color.RED);
+			hsr.circle(getUIFromWorldX(havesomerest.position.x), 
+			           getUIFromWorldY(havesomerest.position.y), 
+			           (System.currentTimeMillis() % 500) / 500 * 8);
+		}
 		if (uistate == UIState.PIEMENU && focusedObject != null)
 			gui.piemenu(getUIFromWorldV(focusedObject.getWorldPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, focusedObject.getEntries());
 		if (uistate == UIState.DIALOG && currentDialog != Dialog.NONE)
@@ -254,11 +276,20 @@ public class WG extends ApplicationAdapter {
 		for (Faction f: Faction.factions){
 			f.update(Gdx.graphics.getDeltaTime());
 		}
+		for (Missile m: Faction.missilesInAir){
+			m.move(Gdx.graphics.getDeltaTime());
+		}
+		for (int i = 0; i < Faction.missilesInAir.size();){
+			if (Faction.missilesInAir.get(i).exploded)
+				Faction.missilesInAir.remove(i);
+			else
+				++i;
+		}
 		
 		//Camera controls
 		if (!Gdx.input.isTouched())
 			prevPitchGestureDistance = -1;
-		if (uistate == UIState.FREE || uistate == UIState.MOVINGORDER){
+		if (uistate == UIState.FREE || uistate == UIState.MOVINGORDER || uistate == UIState.MISSILE_LAUNCH){
 			if (Gdx.input.isKeyPressed(Input.Keys.A)){
 				//Zoom in
 				camera.zoom = Math.max(camera.zoom -= CAM_ZOOM_STEP, CAM_ZOOM_MIN);

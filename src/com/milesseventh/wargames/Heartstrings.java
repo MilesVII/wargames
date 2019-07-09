@@ -48,6 +48,8 @@ public class Heartstrings {
 	public static final float UNIT_FIREPOWER_MAX = 14f;
 	public static final float UNIT_MAX_ANNEXATION_CHANCE_PER_SECOND = .5f;
 	public static final float STRUCTURE_CONDITION_ANNEXATION_THRESHOLD_RELATIVE = .42f;
+	public static final float MISSILE_FUEL_CONSUMPTION_RELATIVE = 7000f;
+	public static final float MISSILE_SPEED = 16f;
 	
 	//name, sign, description
 	public static ResourceProperties[] rProperties = {
@@ -75,9 +77,9 @@ public class Heartstrings {
 	};
 	//name, fuelConsumption, minMaxCondition, maxMaxCondition, minSpeed, maxSpeed, receiveFireChance
 	public static UnitProperties[] uProperties = {
-		new UnitProperties("Fighter",      .3f, 350000, 750,  3,  7, 70),
-		new UnitProperties("Transporter", .12f,  60000, 375,  5, 10, 25),
-		new UnitProperties("MCV",           2f, 160000, 260,  2,  4,  5)
+		new UnitProperties("Fighter",      .3f, 350000000, 750,  3,  7, 70),
+		new UnitProperties("Transporter", .12f,  60000000, 375,  5, 10, 25),
+		new UnitProperties("MCV",           2f, 160000000, 260,  2,  4,  5)
 	};
 	//title, description, investigationWorkamount, workamountMarkup, investigationPrice, 
 	//priceMarkup, TechnologyRequirement[], SpecialTechnology[]

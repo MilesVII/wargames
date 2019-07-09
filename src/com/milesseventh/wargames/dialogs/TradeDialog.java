@@ -1,6 +1,5 @@
 package com.milesseventh.wargames.dialogs;
 
-import com.badlogic.gdx.math.Vector2;
 import com.milesseventh.wargames.Resource;
 import com.milesseventh.wargames.ResourceStorage;
 import com.milesseventh.wargames.Squad;

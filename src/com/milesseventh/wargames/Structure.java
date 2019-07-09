@@ -317,6 +317,13 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		return false;
 	}
 	
+	public boolean hasAnyMissilesInDeployment(){
+		for (int i = 0; i < missilesReady.length; ++i)
+			if (missilesReady[i] != null)
+				return true;
+		return false;
+	}
+	
 	public boolean hasYard(){
 		return type == Type.CITY || type == Type.MB;
 	}
@@ -425,6 +432,47 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		}
 	}
 
+	private Missile getMountedMissile(){
+		for (Missile m: missilesReady)
+			if (m != null && m.isReady())
+				return m;
+		return null;
+	}
+	
+	public int checkFuelNeededForMissileLaunch(Vector2 target){
+		float trajectory = getMissileTrajectory(position, target);
+		return Math.round(trajectory * Heartstrings.MISSILE_FUEL_CONSUMPTION_RELATIVE);
+	}
+	
+	public boolean requestMissileLaunch(Vector2 target){
+		if (checkFuelNeededForMissileLaunch(target) <= resources.get(Resource.FUEL)){
+			performLaunch(getMountedMissile(), target);
+			return true;
+		} else
+			return false;
+	}
+	
+	public static float getMissileTrajectory(Vector2 from, Vector2 to){
+		return from.dst(to) * (float)Math.PI / 2f;
+	}
+	
+	private void performLaunch(Missile m, Vector2 target){
+		//Remove missile
+		for (int i = 0; i < missilesReady.length; ++i)
+			if (missilesReady[i] != null && missilesReady[i].equals(m)){
+				missilesReady[i] = null;
+				break;
+			}
+		
+		//Remove fuel
+		boolean a = resources.tryRemove(Resource.FUEL, checkFuelNeededForMissileLaunch(target));
+		assert(a);
+		
+		//Load and register missile
+		m.setLaunchData(position, target);
+		Faction.missilesInAir.add(m);
+	}
+	
 	@Override
 	public Vector2 getPosition(){
 		return position;
@@ -483,8 +531,10 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		}
 		if (potentialTradeables.size() > 0)
 			piemenu.add(PME_TRADE);
-		if (type == Type.ML && !missilesStorage.isEmpty())
+		if (type == Type.ML && (!missilesStorage.isEmpty() || hasAnyMissilesInDeployment()))
 			piemenu.add(PME_MISSILE_DEPLOY);
+		if (type == Type.ML && getMountedMissile() != null)
+			piemenu.add(PME_MISSILE_LAUNCH);
 	}
 	
 	public final PiemenuEntry PME_STATS = new PiemenuEntry("Stats", new Callback(){
@@ -524,6 +574,12 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		@Override
 		public void action(int source) {
 			WG.antistatic.openDialog(WG.Dialog.MISSILE_DEPLOY);
+		}
+	});
+	public final PiemenuEntry PME_MISSILE_LAUNCH = new PiemenuEntry("Missile Launch", new Callback(){
+		@Override
+		public void action(int source) {
+			WG.antistatic.uistate = WG.UIState.MISSILE_LAUNCH;
 		}
 	});
 	private ListEntryCallback LEC_TRADE_SELECTION_MENU = new Squad.TradeSelectionMenuCallbackPrototype(potentialTradeables){

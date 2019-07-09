@@ -88,7 +88,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 			if (Gdx.input.justTouched())// && piemenu.size() > 0) it won't break anyway, and piemenu with only one action would be more demonstrative than nothing
 				WG.antistatic.setFocusOnPiemenuable(this);
 			
-			WG.antistatic.gui.prompt(name + "\n" + units.size() + " units\n" + resources.get(Resource.FUEL) + Heartstrings.get(Resource.FUEL, Heartstrings.rProperties).sign + " of fuel\nPayload:" + getCapacity());
+			WG.antistatic.gui.prompt(name + "\n" + units.size() + " units\n" + (resources.get(Resource.FUEL) / WG.VIRTUAL_FRACTION_SIZE) + Heartstrings.get(Resource.FUEL, Heartstrings.rProperties).sign + " of fuel\nPayload:" + getCapacity());
 		}
 		
 		//Move column on path
@@ -102,7 +102,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 			} else {
 				float step = getSpeed() * dt;
 				
-				int fuelWasted = Math.round(step * getFuelConsumption());
+				int fuelWasted = Math.round(step * getFuelConsumption() * WG.VIRTUAL_FRACTION_SIZE);
 				
 				if (resources.isEnough(Resource.FUEL, fuelWasted))
 					resources.tryRemove(Resource.FUEL, fuelWasted);
@@ -622,7 +622,8 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 			if (id < interactableStructures.size() && 
 			    interactableStructures.get(id).hasYard())
 				disband(interactableStructures.get(id).yard,
-				        interactableStructures.get(id).resources);
+				        interactableStructures.get(id).resources,
+				        interactableStructures.get(id).missilesStorage);
 			
 			WG.antistatic.uistate = WG.UIState.FREE;
 		}
@@ -826,7 +827,8 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 			
 			if (interactableStructures.size() == 1)
 				disband(interactableStructures.get(0).yard,
-				        interactableStructures.get(0).resources);
+				        interactableStructures.get(0).resources,
+				        interactableStructures.get(0).missilesStorage);
 			else
 				WG.antistatic.setMenu(LEC_DISBAND_SELECTION_MENU, interactableStructures.size() + 1);
 		}
@@ -849,9 +851,10 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 			state = State.STAND;
 		}
 	});
-	private void disband(ArrayList<Unit> to, ResourceStorage rs){
+	private void disband(ArrayList<Unit> to, ResourceStorage rs, ArrayList<Missile> ms){
 		beginTrade();
 		resources.fullFlushTo(rs);
+		unloadMissiles(ms);
 		to.addAll(units);
 		faction.squads.remove(me);
 		
