@@ -438,8 +438,8 @@ public class GUI {
 	private void guiTradeSetSBInitialOffset(){
 		guiTradeSBUpdate();
 		float offset = Utils.remap(tradeSideA.getTradeStorage().get(tradeDialogState.selectedResource), 
-		                           tradeDialogState.allToB.x, 
-		                           tradeDialogState.allToA.x, 
+		                           tradeDialogState.allToBA, 
+		                           tradeDialogState.allToAA, 
 		                           0, 
 		                           tradeDialogState.resourceSharingRange);
 		scrollbars[35].offset = (int)Math.floor(offset);
@@ -703,7 +703,7 @@ public class GUI {
 			for (Resource r: Resource.values()){
 				stringBuilder.append(Heartstrings.get(r, Heartstrings.rProperties).name);
 				stringBuilder.append(": ");
-				stringBuilder.append(String.format("%.1f", focusedStruct.resources.get(r)));
+				stringBuilder.append(focusedStruct.resources.get(r));
 				stringBuilder.append(Heartstrings.get(r, Heartstrings.rProperties).sign);
 				stringBuilder.append('\n');
 			}
@@ -759,7 +759,7 @@ public class GUI {
 			focusedStruct.faction.investition = selectedInvestition;
 			
 			aligner.next(0, -1);
-			String scienceDataAmount = String.format("Science data available: %.2f", focusedStruct.faction.scienceDataAvailable);
+			String scienceDataAmount = "Science data available: " + focusedStruct.faction.scienceDataAvailable;
 			caption(aligner.position, scienceDataAmount, font, VALIGN_BOTTOM, null);
 			break;
 		case CRAFTING:
@@ -963,14 +963,10 @@ public class GUI {
 					
 					float toA = Utils.remap(scrollbars[35].offset, 
 					                        0, tradeDialogState.resourceSharingRange, 
-					                        tradeDialogState.allToB.x, tradeDialogState.allToA.x);
-					float toB = Utils.remap(scrollbars[35].offset, //ASSERTION CHECK
-					                        0, tradeDialogState.resourceSharingRange, 
-					                        tradeDialogState.allToB.y, tradeDialogState.allToA.y);
+					                        tradeDialogState.allToBA, tradeDialogState.allToAA);
+					toA = MathUtils.clamp(toA, tradeDialogState.allToBA, tradeDialogState.allToAA);
 					
 					tradeDialogState.dispenser.tryTransfer(tradeDialogState.selectedResource, (int)Math.floor(toA), tradeSideA.getTradeStorage());
-					float assertRLeft = tradeDialogState.dispenser.get(tradeDialogState.selectedResource);
-					assert(Math.abs(toB - assertRLeft) < .5f);
 					tradeDialogState.dispenser.flushTo(tradeDialogState.selectedResource, tradeSideB.getTradeStorage());
 					///////////////////////
 				}

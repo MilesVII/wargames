@@ -39,9 +39,9 @@ public class Container implements Tradeable {
 	}
 
 	@Override
-	public float getFreeSpace() {
+	public int getFreeSpace() {
 		assert(false);
-		return Float.POSITIVE_INFINITY;
+		return Integer.MAX_VALUE;
 	}
 
 }

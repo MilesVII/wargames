@@ -5,5 +5,5 @@ public interface Tradeable {
 	public ResourceStorage getTradeStorage();
 	public void endTrade();
 	public boolean isCapacityLimited();
-	public float getFreeSpace();
+	public int getFreeSpace();
 }

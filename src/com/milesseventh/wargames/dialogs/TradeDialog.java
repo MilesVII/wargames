@@ -15,32 +15,33 @@ public class TradeDialog {
 		// TODO Auto-generated constructor stub
 	}
 
-	public Vector2 allToA = new Vector2(); //x == A, y == B
-	public Vector2 allToB = new Vector2();
+	//public Vector2 allToA = new Vector2(); //x == A, y == B
+	//public Vector2 allToB = new Vector2();
+	public int allToAA, allToAB, allToBA, allToBB;
 	public int resourceSharingRange = 0;
 	public int estimateTradeableResourceShare(Tradeable A, Tradeable B){
-		float fullResources = A.getTradeStorage().get(selectedResource) + B.getTradeStorage().get(selectedResource);
+		int fullResources = A.getTradeStorage().get(selectedResource) + B.getTradeStorage().get(selectedResource);
 		
 		//check all-to-A case
 		if (A.isCapacityLimited()){
-			float operableCapacity = A.getFreeSpace() + A.getTradeStorage().get(selectedResource);
-			allToA.x = Math.min(fullResources, operableCapacity);
-			allToA.y = Math.max(fullResources - operableCapacity, 0);
+			int operableCapacity = A.getFreeSpace() + A.getTradeStorage().get(selectedResource);
+			allToAA = Math.min(fullResources, operableCapacity);
+			allToAB = Math.max(fullResources - operableCapacity, 0);
 		} else {
-			allToA.x = fullResources;
-			allToA.y = 0;
+			allToAA = fullResources;
+			allToAB = 0;
 		}
 		//check all-to-B case
 		if (B.isCapacityLimited()){
-			float operableCapacity = B.getFreeSpace() + B.getTradeStorage().get(selectedResource);
-			allToB.y = Math.min(fullResources, operableCapacity);
-			allToB.x = Math.max(fullResources - operableCapacity, 0);
+			int operableCapacity = B.getFreeSpace() + B.getTradeStorage().get(selectedResource);
+			allToBB = Math.min(fullResources, operableCapacity);
+			allToBA = Math.max(fullResources - operableCapacity, 0);
 		} else {
-			allToB.y = fullResources;
-			allToB.x = 0;
+			allToBB = fullResources;
+			allToBA = 0;
 		}
 		
-		resourceSharingRange = (int)Math.floor(Math.abs(allToA.x - allToB.x));
+		resourceSharingRange = (int)Math.floor(Math.abs(allToAA - allToBA));
 		return resourceSharingRange;
 	}
 	

@@ -51,7 +51,7 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		}
 		
 		public boolean craft(float dt){
-			timeHolder += dt * 1000f;
+			timeHolder += dt * 1000000f;
 			
 			for (int i = 0; i < Math.floor(timeHolder / singleCraftTime); ++i){
 				switch(craftable){
@@ -454,9 +454,9 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 	}
 
 	@Override
-	public float getFreeSpace() {
+	public int getFreeSpace() {
 		assert(false);
-		return Float.POSITIVE_INFINITY;
+		return Integer.MAX_VALUE;
 	}
 	////////////////////////////////////////////////////////////////////////////////
 	//Pie Menus
@@ -478,7 +478,7 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		if (ns != null && ns.position.dst2(position) < Heartstrings.INTERACTION_DISTANCE2 &&
 		    ns.state == Squad.State.STAND &&
 		    (type == Type.CITY || type == Type.MB || type == Type.ML) &&
-		    !missilesStorage.isEmpty()){
+		    faction.isInvestigated(SpecialTechnology.STRATEGIC_WARFARE)){
 			piemenu.add(PME_MISSILE_TRADE);
 		}
 		if (potentialTradeables.size() > 0)

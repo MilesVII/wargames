@@ -371,8 +371,8 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 		return false;
 	}
 	
-	public float getCapacity(){
-		float r = 0;
+	public int getCapacity(){
+		int r = 0;
 		for (Unit u: units)
 			r += u.getCapacity();
 		return r;
@@ -513,11 +513,11 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 	}
 
 	@Override
-	public float getFreeSpace(){
+	public int getFreeSpace(){
 		if (trading){
 			return getCapacity() - resources.sum() - getMissilesAmount() * Missile.WEIGHT;
 		} else {
-			float r = 0;
+			int r = 0;
 			for (Unit u: units)
 				r += u.getFreeSpace();
 			return r;
