@@ -253,7 +253,7 @@ public class WG extends ApplicationAdapter {
 			hsr.setColor(Color.RED);
 			hsr.circle(getUIFromWorldX(havesomerest.position.x), 
 			           getUIFromWorldY(havesomerest.position.y), 
-			           (System.currentTimeMillis() % 500) / 500 * 8);
+			           (System.currentTimeMillis() % 500) / 500f * 8f);
 		}
 		if (uistate == UIState.PIEMENU && focusedObject != null)
 			gui.piemenu(getUIFromWorldV(focusedObject.getWorldPosition()), PIE_MENU_RADIUS, Color.BLACK, Color.GREEN, focusedObject.getEntries());

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
+import com.milesseventh.wargames.Heartstrings.Technology;
 
 public class Missile {
 	public enum State{
@@ -75,9 +76,55 @@ public class Missile {
 	}
 	
 	private void explode(){
-		WG.antistatic.gui.sr.circle(WG.antistatic.getUIFromWorldX(to.x), WG.antistatic.getUIFromWorldY(to.y), 32);
-		//Faction.missilesInAir.remove(this);
+		//Cause damage
+		float blastRadius = MathUtils.lerp(Heartstrings.MISSILE_BLAST_RADIUS_MIN, Heartstrings.MISSILE_BLAST_RADIUS_MAX, Heartstrings.get(Technology.FIREPOWER, tech));
+		float totalDestructionRadius = blastRadius * Heartstrings.MISSILE_BLAST_CORE_FRACTION;
+		float maxDamage = MathUtils.lerp(Heartstrings.MISSILE_EXPLOSION_DAMAGE_MIN, Heartstrings.MISSILE_EXPLOSION_DAMAGE_MAX, Heartstrings.get(Technology.FIREPOWER, tech));
+		
+		for (Container c: Faction.containers)
+			explode(c, blastRadius, totalDestructionRadius, maxDamage);
+		for (Faction f: Faction.factions){
+			for (Squad s: f.squads)
+				explode(s, blastRadius, totalDestructionRadius, maxDamage);
+			for (Structure s: f.structs)
+				explode(s, blastRadius, totalDestructionRadius, maxDamage);
+		}
+		
+		//Initiate drawing effects
+		WG.antistatic.gui.sr.circle(WG.antistatic.getUIFromWorldX(to.x), WG.antistatic.getUIFromWorldY(to.y), blastRadius);
+		
+		//End missile flight
+		Faction.missilesInAir.remove(this);
 		exploded = true;
 	}
 	
+	private void explode(Object target, float blastRadius, float totalDestructionRadius, float maxDamage){
+		Vector2 targetPosition;
+		boolean isCombatant = target.getClass().isAssignableFrom(Combatant.class);
+		
+		if (isCombatant)
+			targetPosition = ((Combatant)target).getPosition();
+		else {
+			assert(target.getClass().isAssignableFrom(Container.class));
+			targetPosition = ((Container)target).position;
+		}
+		
+		//Erase targets with all cargo that was too close to explosion center
+		//Or cause damage on more distant ones
+		float targetDistance = to.dst(targetPosition);
+		if (targetDistance <= totalDestructionRadius){
+			if (target.getClass().isAssignableFrom(Squad.class)){
+				Squad s = (Squad)target;
+				s.faction.unregisterSquad(s);
+			} else if (target.getClass().isAssignableFrom(Structure.class)){
+				Structure s = (Structure)target;
+				s.faction.unregisterStructure(s);
+			} else if (target.getClass().isAssignableFrom(Container.class)){
+				Faction.containers.remove((Container)target);
+			} else
+				assert(false);
+		} else if (targetDistance <= blastRadius && isCombatant){
+			((Combatant)target).receiveFire(MathUtils.lerp(maxDamage, 0, targetDistance / (blastRadius - totalDestructionRadius)));
+		}
+	}
 }

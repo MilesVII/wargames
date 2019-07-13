@@ -102,7 +102,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 			} else {
 				float step = getSpeed() * dt;
 				
-				int fuelWasted = Math.round(step * getFuelConsumption() * WG.VIRTUAL_FRACTION_SIZE);
+				int fuelWasted = Math.round(step * getFuelConsumption());
 				
 				if (resources.isEnough(Resource.FUEL, fuelWasted))
 					resources.tryRemove(Resource.FUEL, fuelWasted);

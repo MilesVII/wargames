@@ -32,13 +32,20 @@ public class Heartstrings {
 		FLARES,                   //Allows missiles to use decoy flares; Req: SW, RADIO, ENG(50%)
 	}
 
-	public static final float INTERACTION_DISTANCE2 = 120;
+	public static final float INTERACTION_DISTANCE2 = 120; //10
 	public static final float STRUCTURE_BUILDING_MIN_DISTANCE2 = INTERACTION_DISTANCE2 * 2;
 	public static final float STRUCTURE_INTERACTION_COLLISION_DISTANCE2 = INTERACTION_DISTANCE2 * .12f;
 	
 	public static final int MISSILE_ACTIVE_STORAGE_CAPACITY = 3;
 	public static final float MISSILE_MOUNTING_SPEED_MIN = .02f;
 	public static final float MISSILE_MOUNTING_SPEED_MAX = .1f;
+	public static final float MISSILE_FUEL_CONSUMPTION_RELATIVE = 7000f;
+	public static final float MISSILE_SPEED = 16f;
+	public static final float MISSILE_BLAST_RADIUS_MIN = 32f;
+	public static final float MISSILE_BLAST_RADIUS_MAX = 128f;
+	public static final float MISSILE_BLAST_CORE_FRACTION = .32f;
+	public static final float MISSILE_EXPLOSION_DAMAGE_MIN = 200f;
+	public static final float MISSILE_EXPLOSION_DAMAGE_MAX = 1500f;
 
 	public static final float DEBUG_STRUCTURE_DAMAGE = 32f;
 	public static final float SQUAD_ATTACK_RANGE_MIN = 15f;
@@ -48,8 +55,6 @@ public class Heartstrings {
 	public static final float UNIT_FIREPOWER_MAX = 14f;
 	public static final float UNIT_MAX_ANNEXATION_CHANCE_PER_SECOND = .5f;
 	public static final float STRUCTURE_CONDITION_ANNEXATION_THRESHOLD_RELATIVE = .42f;
-	public static final float MISSILE_FUEL_CONSUMPTION_RELATIVE = 7000f;
-	public static final float MISSILE_SPEED = 16f;
 	
 	//name, sign, description
 	public static ResourceProperties[] rProperties = {
@@ -77,9 +82,9 @@ public class Heartstrings {
 	};
 	//name, fuelConsumption, minMaxCondition, maxMaxCondition, minSpeed, maxSpeed, receiveFireChance
 	public static UnitProperties[] uProperties = {
-		new UnitProperties("Fighter",      .3f, 350000000, 750,  3,  7, 70),
-		new UnitProperties("Transporter", .12f,  60000000, 375,  5, 10, 25),
-		new UnitProperties("MCV",           2f, 160000000, 260,  2,  4,  5)
+		new UnitProperties("Fighter",      300f, 350, 750,  3,  7, 70),
+		new UnitProperties("Transporter",  120f,  60, 375,  5, 10, 25),
+		new UnitProperties("MCV",         2000f, 160, 260,  2,  4,  5)
 	};
 	//title, description, investigationWorkamount, workamountMarkup, investigationPrice, 
 	//priceMarkup, TechnologyRequirement[], SpecialTechnology[]
