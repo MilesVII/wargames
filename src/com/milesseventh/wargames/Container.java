@@ -6,9 +6,10 @@ public class Container implements Tradeable {
 	private ResourceStorage resources = new ResourceStorage("Debris");
 	public Vector2 position;
 	public float lifetimeInSeconds = 60;
+	public boolean destroyed = false;
 	
 	public Container(Vector2 nposition, ResourceStorage rs) {
-		position = nposition;
+		position = nposition.cpy();
 		
 		Structure s = Utils.findNearestStructure(null, position, null);
 		if (s != null && s.position.dst2(position) < Heartstrings.INTERACTION_DISTANCE2)

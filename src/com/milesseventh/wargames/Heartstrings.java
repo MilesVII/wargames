@@ -40,12 +40,15 @@ public class Heartstrings {
 	public static final float MISSILE_MOUNTING_SPEED_MIN = .02f;
 	public static final float MISSILE_MOUNTING_SPEED_MAX = .1f;
 	public static final float MISSILE_FUEL_CONSUMPTION_RELATIVE = 7000f;
-	public static final float MISSILE_SPEED = 16f;
+	public static final float MISSILE_FUEL_CONSUMPTION_DISCOUNT_MAX = .25f;
+	public static final float MISSILE_SPEED_MIN = 8f;
+	public static final float MISSILE_SPEED_MAX = 24f;
 	public static final float MISSILE_BLAST_RADIUS_MIN = 32f;
 	public static final float MISSILE_BLAST_RADIUS_MAX = 128f;
 	public static final float MISSILE_BLAST_CORE_FRACTION = .32f;
 	public static final float MISSILE_EXPLOSION_DAMAGE_MIN = 200f;
 	public static final float MISSILE_EXPLOSION_DAMAGE_MAX = 1500f;
+	public static final float MISSILE_SHAKE_MAX = 32f;
 
 	public static final float DEBUG_STRUCTURE_DAMAGE = 32f;
 	public static final float SQUAD_ATTACK_RANGE_MIN = 15f;

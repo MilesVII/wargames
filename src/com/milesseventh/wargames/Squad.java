@@ -33,6 +33,7 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 	public String name;
 	public ResourceStorage resources;
 	public boolean trading = false;
+	public boolean destroyed = false;
 	private ArrayList<Structure> interactableStructures = new ArrayList<Structure>();
 	private ArrayList<Tradeable> potentialTradeables = new ArrayList<Tradeable>();
 	private ArrayList<Combatant> targets = new ArrayList<Combatant>();
@@ -158,8 +159,6 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 		if (units.size() == 0)
 			return;
 		
-
-		
 		//Count sum of chances for types to get hit when squad is attacked
 		float chancesSum = 0;
 		for (Unit.Type t: Unit.Type.values())
@@ -269,24 +268,13 @@ public class Squad implements Piemenuable, Combatant, Tradeable {
 		
 		if (wasTrading)
 			endTrade();
-		dropResources(u);
+		Utils.dropResources(position, u.resources);
 		units.remove(u);
 		if (wasTrading)
 			beginTrade();
 		
 		if (units.size() == 0)
-			faction.unregisterSquad(this);
-	}
-	
-	private void dropResources(Unit u){
-		for (Resource r: Resource.values())
-			u.resources.tryRemove(r, u.resources.get(r) * Math.round(Utils.remap(Utils.random.nextFloat(),  0, 1, 250, 800)));
-		
-		Container c = Utils.findNearestContainer(position);
-		if (c == null || position.dst2(c.position) < Heartstrings.INTERACTION_DISTANCE2)
-			c = new Container(position, u.resources);
-		else
-			u.resources.fullFlushTo(c.getTradeStorage());
+			destroyed = true;
 	}
 	
 	@Override

@@ -13,7 +13,7 @@ public class Missile {
 	}
 	public static final int WEIGHT = Math.round(Utils.remap(.5f, 0, 1, Unit.MIN_CARGO, Unit.MAX_CARGO));
 	
-	private float[] tech;
+	public float[] tech;
 	private ArrayList<SpecialTechnology> st;
 	private float readiness = 0;
 	public State orderedState = State.UNMOUNTED;
@@ -53,7 +53,9 @@ public class Missile {
 	
 	public void setLaunchData(Vector2 nfrom, Vector2 nto){
 		from = nfrom.cpy();
-		to = nto.cpy();
+		float shake = MathUtils.lerp(Heartstrings.MISSILE_SHAKE_MAX, 0, Heartstrings.get(Technology.ACCURACY, tech));
+		shake *= Utils.random.nextFloat();
+		to = nto.cpy().add(Utils.getVector(shake, 0).rotate(Utils.random.nextFloat() * 360f));
 		trajectory = Structure.getMissileTrajectory(from, to);
 		position = from.cpy();
 	}
@@ -63,7 +65,8 @@ public class Missile {
 		assert(to != null);
 		assert(trajectory != -1);
 		
-		traveled += dt * Heartstrings.MISSILE_SPEED;
+		float speed = MathUtils.lerp(Heartstrings.MISSILE_SPEED_MIN, Heartstrings.MISSILE_SPEED_MAX, Heartstrings.get(Technology.SPEED, tech));
+		traveled += dt * speed;
 		float progress = traveled / trajectory;
 		
 		if (progress >= 1f){
@@ -75,10 +78,24 @@ public class Missile {
 		}
 	}
 	
+	public float getBlastRadius(){
+		return MathUtils.lerp(Heartstrings.MISSILE_BLAST_RADIUS_MIN, Heartstrings.MISSILE_BLAST_RADIUS_MAX, Heartstrings.get(Technology.FIREPOWER, tech));
+	}
+	
+	public float getTotalDestructionRadius(){
+		return getBlastRadius() * Heartstrings.MISSILE_BLAST_CORE_FRACTION;
+	}
+	
+	public int getFuelNeeded(Vector2 from, Vector2 target){
+		float trajectory = Structure.getMissileTrajectory(from, target);
+		float discounted = 1 - MathUtils.lerp(0, Heartstrings.MISSILE_FUEL_CONSUMPTION_DISCOUNT_MAX, Heartstrings.get(Technology.SPEED, tech));
+		return Math.round(trajectory * Heartstrings.MISSILE_FUEL_CONSUMPTION_RELATIVE * discounted);
+	}
+	
 	private void explode(){
 		//Cause damage
-		float blastRadius = MathUtils.lerp(Heartstrings.MISSILE_BLAST_RADIUS_MIN, Heartstrings.MISSILE_BLAST_RADIUS_MAX, Heartstrings.get(Technology.FIREPOWER, tech));
-		float totalDestructionRadius = blastRadius * Heartstrings.MISSILE_BLAST_CORE_FRACTION;
+		float blastRadius = getBlastRadius();
+		float totalDestructionRadius = getTotalDestructionRadius();
 		float maxDamage = MathUtils.lerp(Heartstrings.MISSILE_EXPLOSION_DAMAGE_MIN, Heartstrings.MISSILE_EXPLOSION_DAMAGE_MAX, Heartstrings.get(Technology.FIREPOWER, tech));
 		
 		for (Container c: Faction.containers)
@@ -94,18 +111,18 @@ public class Missile {
 		WG.antistatic.gui.sr.circle(WG.antistatic.getUIFromWorldX(to.x), WG.antistatic.getUIFromWorldY(to.y), blastRadius);
 		
 		//End missile flight
-		Faction.missilesInAir.remove(this);
+		//Faction.missilesInAir.remove(this);
 		exploded = true;
 	}
 	
 	private void explode(Object target, float blastRadius, float totalDestructionRadius, float maxDamage){
 		Vector2 targetPosition;
-		boolean isCombatant = target.getClass().isAssignableFrom(Combatant.class);
+		boolean isCombatant = target instanceof Combatant;
 		
 		if (isCombatant)
 			targetPosition = ((Combatant)target).getPosition();
 		else {
-			assert(target.getClass().isAssignableFrom(Container.class));
+			assert(target instanceof Container);
 			targetPosition = ((Container)target).position;
 		}
 		
@@ -113,18 +130,18 @@ public class Missile {
 		//Or cause damage on more distant ones
 		float targetDistance = to.dst(targetPosition);
 		if (targetDistance <= totalDestructionRadius){
-			if (target.getClass().isAssignableFrom(Squad.class)){
-				Squad s = (Squad)target;
-				s.faction.unregisterSquad(s);
-			} else if (target.getClass().isAssignableFrom(Structure.class)){
-				Structure s = (Structure)target;
-				s.faction.unregisterStructure(s);
-			} else if (target.getClass().isAssignableFrom(Container.class)){
-				Faction.containers.remove((Container)target);
-			} else
+			if (target instanceof Container)
+				((Container)target).lifetimeInSeconds = -1;
+			else if (target instanceof Squad)
+				((Squad)target).destroyed = true;
+			else if (target instanceof Structure)
+				((Structure)target).destroyed = true;
+			else
 				assert(false);
 		} else if (targetDistance <= blastRadius && isCombatant){
-			((Combatant)target).receiveFire(MathUtils.lerp(maxDamage, 0, targetDistance / (blastRadius - totalDestructionRadius)));
+			//float damage = MathUtils.lerp(maxDamage, 0, (targetDistance - totalDestructionRadius) / (blastRadius - totalDestructionRadius));
+			float damage = Utils.remap(targetDistance, totalDestructionRadius, blastRadius, maxDamage, 0f);
+			((Combatant)target).receiveFire(damage);
 		}
 	}
 }

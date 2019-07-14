@@ -109,6 +109,7 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 	public Type type;
 	public ResourceStorage resources;
 	public float condition;
+	public boolean destroyed = false;
 
 	public ArrayList<Missile> missilesStorage = new ArrayList<Missile>();
 	public Missile[] missilesReady = new Missile[Heartstrings.MISSILE_ACTIVE_STORAGE_CAPACITY];
@@ -279,10 +280,6 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		return Faction.ICONS[type.ordinal()];
 	}
 	
-	protected void onDestroy() {
-		faction.unregisterStructure(this);
-	}
-	
 	private static final float MIN_CRFTSP_K = .8f, MAX_CRFTSP_K = 1.7f;
 	public float getCraftSpeed(){
 		float cs = Heartstrings.get(type, Heartstrings.structureProperties).craftSpeed;
@@ -376,30 +373,6 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 			return Utils.remap(x, .667f, 1, .2f, 1);
 	}
 
-/*	private static final float ORE_TO_METAL_PROCESS_RATIO_MIN = 3f,
-	                           ORE_TO_METAL_PROCESS_RATIO_MAX = 1.2f,
-	                           OIL_TO_FUEL_PROCESS_RATIO_MIN = 4f,
-	                           OIL_TO_FUEL_PROCESS_RATIO_MAX = 1.7f,
-	                           RESOURCE_PROCESSING_RATE_MIN = .7f,
-	                           RESOURCE_PROCESSING_RATE_MAX = 7f; //Per second
-	private void processResources(float dt){
-		float t = faction.techLevel(Technology.ENGINEERING);
-		float rate = Utils.remap(t, 0, 1, RESOURCE_PROCESSING_RATE_MIN, RESOURCE_PROCESSING_RATE_MAX);
-		float ratio = Utils.remap(t, 0, 1, ORE_TO_METAL_PROCESS_RATIO_MIN, ORE_TO_METAL_PROCESS_RATIO_MAX);
-		float r = resources.get(Resource.ORE);
-		float amount = Math.min(rate * dt, r);
-		boolean x = resources.tryRemove(Resource.ORE, amount);
-		assert(x);
-		resources.add(Resource.METAL, amount / ratio);
-		
-		ratio = Utils.remap(t, 0, 1, OIL_TO_FUEL_PROCESS_RATIO_MIN, OIL_TO_FUEL_PROCESS_RATIO_MAX);
-		r = resources.get(Resource.OIL);
-		amount = Math.min(rate * dt, r);
-		x = resources.tryRemove(Resource.OIL, amount);
-		assert(x);
-		resources.add(Resource.FUEL, amount / ratio);
-	}*/
-
 	public boolean isCraftingInProcess(){
 		return manufactoryQueue.size > 0;
 	}
@@ -419,34 +392,32 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 	}
 
 	public void annexated(Faction f){
-		faction.unregisterStructure(this);
+		faction.structs.remove(this);
 		faction = f;
-		faction.registerStructure(this);
+		faction.structs.add(this);
 	}
 	
 	@Override
 	public void receiveFire(float power) {
 		condition -= power;
 		if (condition <= 0){
-			onDestroy();
+			Utils.dropResources(position, resources);
+			destroyed = true;
 		}
 	}
 
-	private Missile getMountedMissile(){
+	public Missile getFirstMountedMissile(){
 		for (Missile m: missilesReady)
 			if (m != null && m.isReady())
 				return m;
 		return null;
 	}
 	
-	public int checkFuelNeededForMissileLaunch(Vector2 target){
-		float trajectory = getMissileTrajectory(position, target);
-		return Math.round(trajectory * Heartstrings.MISSILE_FUEL_CONSUMPTION_RELATIVE);
-	}
+	
 	
 	public boolean requestMissileLaunch(Vector2 target){
-		if (checkFuelNeededForMissileLaunch(target) <= resources.get(Resource.FUEL)){
-			performLaunch(getMountedMissile(), target);
+		if (getFirstMountedMissile().getFuelNeeded(position, target) <= resources.get(Resource.FUEL)){
+			performLaunch(getFirstMountedMissile(), target);
 			return true;
 		} else
 			return false;
@@ -465,7 +436,7 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 			}
 		
 		//Remove fuel
-		boolean a = resources.tryRemove(Resource.FUEL, checkFuelNeededForMissileLaunch(target));
+		boolean a = resources.tryRemove(Resource.FUEL, m.getFuelNeeded(position, target));
 		assert(a);
 		
 		//Load and register missile
@@ -533,7 +504,7 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 			piemenu.add(PME_TRADE);
 		if (type == Type.ML && (!missilesStorage.isEmpty() || hasAnyMissilesInDeployment()))
 			piemenu.add(PME_MISSILE_DEPLOY);
-		if (type == Type.ML && getMountedMissile() != null)
+		if (type == Type.ML && getFirstMountedMissile() != null)
 			piemenu.add(PME_MISSILE_LAUNCH);
 	}
 	

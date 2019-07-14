@@ -182,6 +182,15 @@ public class Utils {
 		return minStructure;
 	}
 	
+	public static void dropResources(Vector2 position, ResourceStorage rs){
+		for (Resource r: Resource.values())
+			rs.tryRemove(r, Math.round(rs.get(r) * Utils.remap(Utils.random.nextFloat(),  0, 1, .25f, .8f)));
+		
+		Container c = Utils.findNearestContainer(position);
+		if (c == null || position.dst2(c.position) < Heartstrings.INTERACTION_DISTANCE2)
+			c = new Container(position, rs);
+	}
+	
 	public static float getAngle(Vector2 point){
 		//return point.angle();
 		return (float) Math.toDegrees((Math.atan2(point.y, point.x) > 0 ? Math.atan2(point.y, point.x) : Math.atan2(point.y, point.x) + Math.PI * 2));

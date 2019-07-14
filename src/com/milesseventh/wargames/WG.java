@@ -213,9 +213,14 @@ public class WG extends ApplicationAdapter {
 		}
 		if (uistate == UIState.MISSILE_LAUNCH){
 			Structure silo = (Structure)focusedObject;
+			Missile m = silo.getFirstMountedMissile();
 			
-			hsr.setColor(GUI.GUI_COLOR_SEVENTH);
-			hsr.line(getUIFromWorldV(focusedObject.getWorldPosition()), Utils.UIMousePosition);
+			sr.setColor(GUI.GUI_COLOR_SEVENTH);
+			sr.line(focusedObject.getWorldPosition(), Utils.WorldMousePosition);
+			sr.circle(Utils.WorldMousePosition.x, Utils.WorldMousePosition.y, m.getBlastRadius());
+			sr.setColor(Color.RED);
+			sr.circle(Utils.WorldMousePosition.x, Utils.WorldMousePosition.y, m.getTotalDestructionRadius());
+			
 			int fuelNeeded = silo.checkFuelNeededForMissileLaunch(Utils.WorldMousePosition);
 			int fuelAvailable = silo.resources.get(Resource.FUEL);
 			gui.prompt("Fuel needed: " + (fuelNeeded / WG.VIRTUAL_FRACTION_SIZE) + 
@@ -282,6 +287,13 @@ public class WG extends ApplicationAdapter {
 		for (int i = 0; i < Faction.missilesInAir.size();){
 			if (Faction.missilesInAir.get(i).exploded)
 				Faction.missilesInAir.remove(i);
+			else
+				++i;
+		}
+		for (int i = 0; i < Faction.containers.size();){
+			Faction.containers.get(i).lifetimeInSeconds -= Gdx.graphics.getDeltaTime();
+			if (Faction.containers.get(i).lifetimeInSeconds <= 0)
+				Faction.containers.remove(i);
 			else
 				++i;
 		}

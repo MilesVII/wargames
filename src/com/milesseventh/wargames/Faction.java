@@ -59,9 +59,18 @@ public class Faction {
 		availableCraftables.add(Craftable.BUILDER);
 		capital = new Structure(_pos, Structure.Type.CITY, this);
 		structs.add(capital);
+
+		specTech.add(SpecialTechnology.BASIC_WARFARE);
+		onSpecialTechnologyInvestigated(SpecialTechnology.BASIC_WARFARE);
+		specTech.add(SpecialTechnology.ADVANCED_WARFARE);
+		onSpecialTechnologyInvestigated(SpecialTechnology.ADVANCED_WARFARE);
+		specTech.add(SpecialTechnology.STRATEGIC_WARFARE);
+		onSpecialTechnologyInvestigated(SpecialTechnology.STRATEGIC_WARFARE);
+		
 		capital.resources.add(Resource.METAL, 20000000);
-		capital.resources.add(Resource.FUEL, 2000000);
+		capital.resources.add(Resource.FUEL, 20000000);
 		capital.resources.add(Resource.AMMO, 1000000);
+		
 		scienceDataAvailable = 700000000;
 		
 		debug = this;
@@ -71,8 +80,20 @@ public class Faction {
 	
 	public void update(float dt){
 		doInvestigation(dt);
+
+		for (int i = 0; i < structs.size();)
+			if (structs.get(i).destroyed)
+				structs.remove(i);
+			else
+				++i;
 		for (Structure s : structs)
 			s.update(dt);
+
+		for (int i = 0; i < squads.size();)
+			if (squads.get(i).destroyed)
+				squads.remove(i);
+			else
+				++i;
 		for (Squad s : squads)
 			s.update(dt);
 	}
@@ -204,13 +225,6 @@ public class Faction {
 				tempCraftTitles[i] = Heartstrings.get(availableCraftables.get(i), Heartstrings.craftableProperties).title;//craftableTitles[availableCraftables.get(i).ordinal()];
 		}
 		return tempCraftTitles;
-	}
-
-	public void unregisterStructure(Structure victim){
-		structs.remove(victim);
-	}
-	public void unregisterSquad(Squad victim){
-		squads.remove(victim);
 	}
 	
 	public void registerStructure(Structure _victim){
