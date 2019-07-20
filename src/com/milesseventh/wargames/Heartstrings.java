@@ -49,6 +49,7 @@ public class Heartstrings {
 	public static final float MISSILE_EXPLOSION_DAMAGE_MIN = 200f;
 	public static final float MISSILE_EXPLOSION_DAMAGE_MAX = 1500f;
 	public static final float MISSILE_SHAKE_MAX = 32f;
+	public static final int MISSILE_FRAGMENTS_COUNT = 8;
 
 	public static final float DEBUG_STRUCTURE_DAMAGE = 32f;
 	public static final float SQUAD_ATTACK_RANGE_MIN = 15f;

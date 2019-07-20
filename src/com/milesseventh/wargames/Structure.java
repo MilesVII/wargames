@@ -11,7 +11,6 @@ import com.badlogic.gdx.utils.Queue;
 import com.milesseventh.wargames.Heartstrings.Craftable;
 import com.milesseventh.wargames.Heartstrings.SpecialTechnology;
 import com.milesseventh.wargames.Heartstrings.Technology;
-import com.milesseventh.wargames.WG.Dialog;
 
 public class Structure implements Piemenuable, Combatant, Tradeable{
 	//////////////////////////////////////////////////////////////////
@@ -405,7 +404,11 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 			destroyed = true;
 		}
 	}
-
+	
+	public Missile getMissileForLaunch(){
+		return getFirstMountedMissile();
+	}
+	
 	public Missile getFirstMountedMissile(){
 		for (Missile m: missilesReady)
 			if (m != null && m.isReady())
@@ -413,10 +416,8 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		return null;
 	}
 	
-	
-	
 	public boolean requestMissileLaunch(Vector2 target){
-		if (getFirstMountedMissile().getFuelNeeded(position, target) <= resources.get(Resource.FUEL)){
+		if (getMissileForLaunch().getFuelNeeded(position, target) <= resources.get(Resource.FUEL)){
 			performLaunch(getFirstMountedMissile(), target);
 			return true;
 		} else
@@ -440,7 +441,7 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 		assert(a);
 		
 		//Load and register missile
-		m.setLaunchData(position, target);
+		m.setLaunchData(position, target, true);
 		Faction.missilesInAir.add(m);
 	}
 	
@@ -573,7 +574,7 @@ public class Structure implements Piemenuable, Combatant, Tradeable{
 	private void trade(Tradeable ta){
 		WG.antistatic.gui.tradeSideA = this;
 		WG.antistatic.gui.tradeSideB = ta;
-		WG.antistatic.openDialog(Dialog.TRADE);
+		WG.antistatic.openDialog(WG.Dialog.TRADE);
 	}
 	
 	//Piemenuable interface implementation

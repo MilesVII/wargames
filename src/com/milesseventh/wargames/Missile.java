@@ -23,12 +23,15 @@ public class Missile {
 	public Vector2 position = new Vector2();
 	private float traveled = 0, trajectory = -1;
 	public boolean exploded = false;
+	public boolean canFragmentate = false;
+	public boolean fragmentated = false;
+	public float damageReducer = 1f;
 	
 	@SuppressWarnings("unchecked")
 	public Missile(float[] nt, ArrayList<SpecialTechnology> nst) {
 		tech = nt.clone();
 		st = (ArrayList<SpecialTechnology>)nst.clone();
-		
+		canFragmentate = st.contains(SpecialTechnology.WARHEAD_FRAGMENTATION);
 		name = "Sidewinder";
 	}
 
@@ -51,11 +54,15 @@ public class Missile {
 		return readiness;
 	}
 	
-	public void setLaunchData(Vector2 nfrom, Vector2 nto){
+	public void setLaunchData(Vector2 nfrom, Vector2 nto, boolean enableShake){
 		from = nfrom.cpy();
-		float shake = MathUtils.lerp(Heartstrings.MISSILE_SHAKE_MAX, 0, Heartstrings.get(Technology.ACCURACY, tech));
-		shake *= Utils.random.nextFloat();
-		to = nto.cpy().add(Utils.getVector(shake, 0).rotate(Utils.random.nextFloat() * 360f));
+		
+		to = nto.cpy();
+		if (enableShake){
+			float shake = MathUtils.lerp(Heartstrings.MISSILE_SHAKE_MAX, 0, Heartstrings.get(Technology.ACCURACY, tech));
+			Utils.shakePoint(to, shake);
+		}
+		
 		trajectory = Structure.getMissileTrajectory(from, to);
 		position = from.cpy();
 	}
@@ -68,6 +75,12 @@ public class Missile {
 		float speed = MathUtils.lerp(Heartstrings.MISSILE_SPEED_MIN, Heartstrings.MISSILE_SPEED_MAX, Heartstrings.get(Technology.SPEED, tech));
 		traveled += dt * speed;
 		float progress = traveled / trajectory;
+		
+		if (canFragmentate && !fragmentated && progress >= .5f){
+			progress = .5f;
+			traveled = trajectory * 5f;
+			fragmentate();
+		}
 		
 		if (progress >= 1f){
 			explode();
@@ -90,6 +103,26 @@ public class Missile {
 		float trajectory = Structure.getMissileTrajectory(from, target);
 		float discounted = 1 - MathUtils.lerp(0, Heartstrings.MISSILE_FUEL_CONSUMPTION_DISCOUNT_MAX, Heartstrings.get(Technology.SPEED, tech));
 		return Math.round(trajectory * Heartstrings.MISSILE_FUEL_CONSUMPTION_RELATIVE * discounted);
+	}
+	
+	private void fragmentate(){
+		int fragments = Heartstrings.MISSILE_FRAGMENTS_COUNT;
+		for (int i = 0; i < fragments - 1; ++i){
+			//TODO: try to make it more readable
+			Missile m = new Missile(tech, st);
+			Vector2 offed = Utils.getVector(to);
+			Utils.shakePoint(offed, getTotalDestructionRadius() * .9f);
+			Vector2 ghostFrom = Utils.getVector(position).sub(Utils.getVector(offed).sub(position));
+			m.setLaunchData(ghostFrom, offed, false);
+			m.traveled = m.trajectory * .5f;
+			m.damageReducer = damageReducer / (float)Heartstrings.MISSILE_FRAGMENTS_COUNT;
+			m.fragmentated = true;
+			m.move(0);
+			Faction.missilesInAir.add(m);
+		}
+		Utils.shakePoint(to, getTotalDestructionRadius() * .9f);
+		damageReducer /= (float)Heartstrings.MISSILE_FRAGMENTS_COUNT;
+		fragmentated = true;
 	}
 	
 	private void explode(){
@@ -141,6 +174,7 @@ public class Missile {
 		} else if (targetDistance <= blastRadius && isCombatant){
 			//float damage = MathUtils.lerp(maxDamage, 0, (targetDistance - totalDestructionRadius) / (blastRadius - totalDestructionRadius));
 			float damage = Utils.remap(targetDistance, totalDestructionRadius, blastRadius, maxDamage, 0f);
+			damage *= damageReducer;
 			((Combatant)target).receiveFire(damage);
 		}
 	}

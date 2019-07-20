@@ -191,6 +191,11 @@ public class Utils {
 			c = new Container(position, rs);
 	}
 	
+	public static void shakePoint(Vector2 v, float radius){
+		Vector2 offset = getVector(radius * random.nextFloat(), 0).rotate(random.nextFloat() * 360f);
+		v.add(offset);
+	}
+	
 	public static float getAngle(Vector2 point){
 		//return point.angle();
 		return (float) Math.toDegrees((Math.atan2(point.y, point.x) > 0 ? Math.atan2(point.y, point.x) : Math.atan2(point.y, point.x) + Math.PI * 2));
